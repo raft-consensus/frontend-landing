@@ -1,25 +1,18 @@
-name: Flutter CI/CD
+name: Deploy Flutter VPS
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: github-pages
-  cancel-in-progress: true
+  packages: write
 
 jobs:
-  test-and-analyze:
-    name: Validate Flutter app
+  build-and-deploy:
+    name: Build and deploy Flutter web app
     runs-on: ubuntu-latest
 
     steps:
@@ -41,42 +34,42 @@ jobs:
       - name: Run tests
         run: flutter test
 
-  build-web:
-    name: Build web app
-    needs: test-and-analyze
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
       - name: Build release web app
-        run: flutter build web --release
+        run: flutter build web --release --base-href /
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          path: build/web
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-  deploy-pages:
-    name: Deploy to GitHub Pages
-    needs: build-web
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      - name: Build and push image
+        run: |
+          IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')"
+          docker build --no-cache -t "${IMAGE_NAME}:${GITHUB_SHA}" -t "${IMAGE_NAME}:latest" .
+          docker push "${IMAGE_NAME}:${GITHUB_SHA}"
+          docker push "${IMAGE_NAME}:latest"
 
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')"
+            CONTAINER_NAME="$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')"
+
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            docker rm -f "${CONTAINER_NAME}" || true
+            docker image rm "${IMAGE_NAME}:latest" || true
+
+            docker pull "${IMAGE_NAME}:latest"
+
+            docker run -d \
+              --name "${CONTAINER_NAME}" \
+              --restart always \
+              -p 8062:80 \
+              "${IMAGE_NAME}:latest"
