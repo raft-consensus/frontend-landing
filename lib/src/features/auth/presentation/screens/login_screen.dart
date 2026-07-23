@@ -45,6 +45,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   /// Procesa el inicio de sesión del usuario
+  /// Procesa el inicio de sesión del usuario y navega al Dashboard
   Future<void> _login() async {
     FocusScope.of(context).unfocus();
 
@@ -52,36 +53,33 @@ class _LoginScreenState extends State<LoginScreen>
 
     setState(() => _loading = true);
 
-    // Simula la llamada de inicio de sesión a la API
+    // Simula la llamada de inicio de sesión a la API (1.1 segundos)
     await Future.delayed(const Duration(milliseconds: 1100));
 
     if (!mounted) return;
 
     setState(() => _loading = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Sesión iniciada correctamente.'),
-        backgroundColor: Color(0xFF118A61),
-      ),
-    );
+    // Redirige al usuario a su panel de control /dashboard
+    context.go('/dashboard');
   }
 
-  /// Maneja el inicio de sesión social
+  /// Maneja el inicio de sesión social y navega al Dashboard
   void _socialLogin(String provider) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Iniciar sesión con $provider'),
+        content: Text('Sesión iniciada con $provider'),
+        backgroundColor: const Color(0xFF118A61),
       ),
     );
+    // Redirige al usuario a su panel de control /dashboard
+    context.go('/dashboard');
   }
 
   /// Abre la recuperación de contraseña
   void _recoverPassword() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Abrir recuperación de contraseña.'),
-      ),
+      const SnackBar(content: Text('Abrir recuperación de contraseña.')),
     );
   }
 
@@ -114,9 +112,7 @@ class _LoginScreenState extends State<LoginScreen>
                 onPressed: () => context.go('/'),
                 icon: const Icon(Icons.arrow_back_rounded),
                 label: const Text('Volver al inicio'),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white70,
-                ),
+                style: TextButton.styleFrom(foregroundColor: Colors.white70),
               ),
             ),
           ),
@@ -149,9 +145,7 @@ class _LoginScreenState extends State<LoginScreen>
                             // Vista Escritorio (Row): Presentación a la izquierda, Tarjeta a la derecha
                             ? Row(
                                 children: [
-                                  const Expanded(
-                                    child: LoginPresentation(),
-                                  ),
+                                  const Expanded(child: LoginPresentation()),
                                   const SizedBox(width: 75),
                                   SizedBox(
                                     width: 460,
@@ -186,8 +180,9 @@ class _LoginScreenState extends State<LoginScreen>
                                   const MobileBrand(),
                                   const SizedBox(height: 28),
                                   ConstrainedBox(
-                                    constraints:
-                                        const BoxConstraints(maxWidth: 500),
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 500,
+                                    ),
                                     child: LoginCard(
                                       formKey: _formKey,
                                       emailController: _emailController,

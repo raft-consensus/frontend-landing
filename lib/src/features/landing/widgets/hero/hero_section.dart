@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
-import 'package:frontend_landing/src/features/auth/presentation/screens/register_screen.dart';
 import 'package:frontend_landing/src/features/landing/widgets/hero/mini_benefit.dart';
 import 'package:frontend_landing/src/features/landing/widgets/hero/pill_badge.dart';
 import 'package:frontend_landing/src/features/landing/widgets/hero/raft_illustration.dart';

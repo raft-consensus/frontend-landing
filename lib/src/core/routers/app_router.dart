@@ -1,3 +1,4 @@
+import 'package:frontend_landing/src/features/user/presentation/pages/dashboard_page.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend_landing/src/features/landing/presentation/screens/landing_screen.dart';
 import 'package:frontend_landing/src/features/auth/presentation/screens/login_screen.dart';
@@ -23,6 +24,11 @@ abstract class AppRouter {
         name: 'register',
         builder: (context, state) => const RegisterScreen(),
       ),
+      GoRoute(
+        path: '/dashboard',
+        name: 'dashboard',
+        builder: (context, state) => const DashboardPage(),
+        )
     ],
   );
 }

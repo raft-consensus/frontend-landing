@@ -969,7 +969,7 @@ class OverviewPage extends StatelessWidget {
 class WelcomeBanner extends StatelessWidget {
   const WelcomeBanner({
     required this.onCreateDatabase,
-    super.key,
+    super.key, required VoidCallback onGoDocumentation,
   });
 
   final VoidCallback onCreateDatabase;

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
-import 'package:frontend_landing/src/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/auth_divider.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/field_label.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/social_button.dart';
