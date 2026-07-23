@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../../core/theme/app_colors.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart';
 
 /// Widget contenedor que estandariza el padding y ancho máximo de cada sección de la Landing Page.
 class SectionContainer extends StatelessWidget {

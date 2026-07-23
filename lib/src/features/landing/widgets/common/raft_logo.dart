@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../../core/theme/app_colors.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart';
 
 /// Widget de logotipo oficial de Raft DB.
 class RaftLogo extends StatelessWidget {
