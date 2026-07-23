@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
-import 'package:frontend_landing/src/features/auth/presentation/screens/register_screen.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/auth_divider.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/field_label.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/social_button.dart';
+import 'package:go_router/go_router.dart';
 
 /// Tarjeta blanca de formulario para Inicio de Sesión (Login).
 class LoginCard extends StatelessWidget {
@@ -268,14 +268,7 @@ class LoginCard extends StatelessWidget {
                       WidgetSpan(
                         alignment: PlaceholderAlignment.middle,
                         child: InkWell(
-                          onTap: () {
-                            // Reemplaza la pantalla actual de Login por Registro
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (context) => const RegisterScreen(),
-                              ),
-                            );
-                          },
+                          onTap: () => context.go('/register'),
                           child: const Text(
                             'Regístrate gratis',
                             style: TextStyle(

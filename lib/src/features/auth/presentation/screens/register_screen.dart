@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/auth_background.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/register/register_card.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/register/register_presentation.dart';
+import 'package:go_router/go_router.dart';
 
 /// Pantalla principal de Registro de Usuario.
 /// Gestiona la animación de fondo, el estado del formulario y la respuesta según pantalla.
@@ -115,9 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             left: 22,
             child: SafeArea(
               child: TextButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+                onPressed: () => context.go('/'),
                 icon: const Icon(Icons.arrow_back_rounded),
                 label: const Text('Volver al inicio'),
                 style: TextButton.styleFrom(

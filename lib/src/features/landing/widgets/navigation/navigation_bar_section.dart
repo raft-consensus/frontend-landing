@@ -4,6 +4,7 @@ import 'package:frontend_landing/src/features/auth/presentation/screens/login_sc
 import 'package:frontend_landing/src/features/auth/presentation/screens/register_screen.dart';
 import 'package:frontend_landing/src/features/landing/widgets/common/raft_logo.dart';
 import 'package:frontend_landing/src/features/landing/widgets/navigation/nav_link.dart';
+import 'package:go_router/go_router.dart';
 
 /// Barra de navegación superior (Header/Navbar) con comportamiento responsivo.
 class NavigationBarSection extends StatelessWidget {
@@ -42,13 +43,7 @@ class NavigationBarSection extends StatelessWidget {
 
                     // Botón secundario para Iniciar sesión
                     TextButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
-                          ),
-                        );
-                      },
+                      onPressed: () => context.go('/login'),
                       child: const Text('Iniciar sesión'),
                     ),
 
@@ -56,13 +51,7 @@ class NavigationBarSection extends StatelessWidget {
 
                     // Botón primario relleno para Crear cuenta
                     FilledButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const RegisterScreen(),
-                          ),
-                        );
-                      },
+                      onPressed: () => context.go('/register'),
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.navy,
                         foregroundColor: Colors.white,

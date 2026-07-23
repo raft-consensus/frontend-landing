@@ -5,6 +5,7 @@ import 'package:frontend_landing/src/features/landing/widgets/hero/mini_benefit.
 import 'package:frontend_landing/src/features/landing/widgets/hero/pill_badge.dart';
 import 'package:frontend_landing/src/features/landing/widgets/hero/raft_illustration.dart';
 import 'package:frontend_landing/src/features/landing/widgets/hero/wave_background.dart';
+import 'package:go_router/go_router.dart';
 
 /// Sección principal de bienvenida (Hero Section).
 class HeroSection extends StatelessWidget {
@@ -71,14 +72,7 @@ class HeroSection extends StatelessWidget {
                           runSpacing: 12,
                           children: [
                             FilledButton.icon(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const RegisterScreen(),
-                                  ),
-                                );
-                              },
+                              onPressed: () => context.go('/register'),
                               icon: const Icon(Icons.rocket_launch_rounded),
                               label: const Text('Crear base de datos gratis'),
                               style: FilledButton.styleFrom(

@@ -4,6 +4,7 @@ import 'package:frontend_landing/src/features/auth/presentation/screens/login_sc
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/auth_divider.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/field_label.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/social_button.dart';
+import 'package:go_router/go_router.dart';
 
 /// Tarjeta blanca de formulario de registro de usuario.
 class RegisterCard extends StatelessWidget {
@@ -306,13 +307,7 @@ class RegisterCard extends StatelessWidget {
                     WidgetSpan(
                       alignment: PlaceholderAlignment.middle,
                       child: TextButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const LoginScreen(),
-                            ),
-                          );
-                        },
+                        onPressed: () => context.go('/login'),
                         child: const Text('Iniciar sesión'),
                       ),
                     ),

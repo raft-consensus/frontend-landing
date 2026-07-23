@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_landing/src/core/routers/app_router.dart';
 import 'package:frontend_landing/src/core/theme/app_theme.dart';
-import 'package:frontend_landing/src/features/landing/presentation/screens/landing_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,12 +11,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Raft DB',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const LandingScreen(),
+      routerConfig: AppRouter.router, // Conecta nuestro router de URLs
     );
   }
 }
+
 

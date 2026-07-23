@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/auth_background.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/login/login_card.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/login/login_presentation.dart';
+import 'package:go_router/go_router.dart';
 
 /// Pantalla principal de Inicio de Sesión (Login).
 class LoginScreen extends StatefulWidget {
@@ -110,9 +111,7 @@ class _LoginScreenState extends State<LoginScreen>
             left: 22,
             child: SafeArea(
               child: TextButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+                onPressed: () => context.go('/'),
                 icon: const Icon(Icons.arrow_back_rounded),
                 label: const Text('Volver al inicio'),
                 style: TextButton.styleFrom(
