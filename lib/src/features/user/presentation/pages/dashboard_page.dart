@@ -22,11 +22,12 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  int _selectedIndex = 0; // 0: Resumen, 1: BD, 2: Herramientas, 3: Docs, 4: Cuenta
+  int _selectedIndex =
+      0; // 0: Resumen, 1: BD, 2: Herramientas, 3: Docs, 4: Cuenta
 
   // Lista inicial de instancias de prueba de bases de datos del usuario
   final List<DatabaseInstance> _instances = [
-    const DatabaseInstance(
+    DatabaseInstance(
       id: 'db-101',
       name: 'api-tienda-demo',
       engine: 'PostgreSQL',
@@ -40,7 +41,7 @@ class _DashboardPageState extends State<DashboardPage> {
       createdAt: '18 Jul 2026',
       isRunning: true,
     ),
-    const DatabaseInstance(
+    DatabaseInstance(
       id: 'db-102',
       name: 'blog-universidad',
       engine: 'MySQL',
@@ -54,7 +55,7 @@ class _DashboardPageState extends State<DashboardPage> {
       createdAt: '20 Jul 2026',
       isRunning: true,
     ),
-    const DatabaseInstance(
+    DatabaseInstance(
       id: 'db-103',
       name: 'practica-consultas',
       engine: 'MongoDB',
@@ -112,12 +113,13 @@ class _DashboardPageState extends State<DashboardPage> {
   // Alternar estado encendido/apagado de una BD
   void _toggleInstanceState(int index) {
     setState(() {
-      final current = _instances[index];
-      _instances[index] = current.copyWith(isRunning: !current.isRunning);
+      _instances[index].isRunning = !_instances[index].isRunning;
     });
     final instance = _instances[index];
     _showMessage(
-      instance.isRunning ? 'Instancia "${instance.name}" iniciada.' : 'Instancia "${instance.name}" detenida.',
+      instance.isRunning
+          ? 'Instancia "${instance.name}" iniciada.'
+          : 'Instancia "${instance.name}" detenida.',
       success: instance.isRunning,
     );
   }
@@ -196,7 +198,8 @@ class _DashboardPageState extends State<DashboardPage> {
                         instances: _instances,
                         onCreateDatabase: _openCreateDatabaseDialog,
                         onGoDatabases: () => setState(() => _selectedIndex = 1),
-                        onGoDocumentation: () => setState(() => _selectedIndex = 3),
+                        onGoDocumentation: () =>
+                            setState(() => _selectedIndex = 3),
                       ),
                       // 1: Bases de Datos (Databases)
                       DatabasesPage(
