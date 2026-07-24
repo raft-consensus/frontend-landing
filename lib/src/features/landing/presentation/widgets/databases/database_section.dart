@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/features/landing/widgets/common/section_container.dart';
-import 'package:frontend_landing/src/features/landing/widgets/common/section_title.dart';
-import 'package:frontend_landing/src/features/landing/widgets/databases/database_card.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/common/section_container.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/common/section_title.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/databases/database_card.dart';
 
 /// Sección que presenta los motores de bases de datos disponibles en una grilla responsiva.
 class DatabaseSection extends StatelessWidget {

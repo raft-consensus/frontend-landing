@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/features/landing/widgets/databases/database_section.dart';
-import 'package:frontend_landing/src/features/landing/widgets/hero/hero_section.dart';
-import 'package:frontend_landing/src/features/landing/widgets/navigation/navigation_bar_section.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/databases/database_section.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/hero/hero_section.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/navigation/navigation_bar_section.dart';
 
 /// Pantalla principal de la Landing Page que ensambla las secciones modularizadas.
 class LandingScreen extends StatelessWidget {

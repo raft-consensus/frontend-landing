@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend_landing/src/core/network/api_client.dart';
 import 'package:frontend_landing/src/features/auth/domain/entities/register_form_data.dart';
 import 'package:frontend_landing/src/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/auth_background.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/register/register_card.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/register/register_presentation.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Pantalla principal de Registro de Usuario.
 /// Gestiona la animación de fondo, el estado del formulario y la respuesta según pantalla.
@@ -105,11 +107,30 @@ class _RegisterPageState extends ConsumerState<RegisterPage>
     }
   }
 
-  /// Maneja el registro con redes sociales
-  void _socialRegister(String provider) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Continuar registro con $provider')));
+  /// Maneja el registro social redirigiendo al proveedor OAuth (Google o GitHub)
+  Future<void> _socialRegister(String provider) async {
+    final baseUrl = ApiClient.baseUrl;
+    final providerEndpoint = provider.toLowerCase();
+    final oauthUrl = Uri.parse('$baseUrl/api/auth/login/$providerEndpoint');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Redirigiendo a $provider...'),
+        backgroundColor: const Color(0xFF118A61),
+      ),
+    );
+
+    if (await canLaunchUrl(oauthUrl)) {
+      await launchUrl(oauthUrl, mode: LaunchMode.externalApplication);
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo abrir la navegación a $provider'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
   @override

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
-import 'package:frontend_landing/src/features/landing/widgets/common/raft_logo.dart';
-import 'package:frontend_landing/src/features/landing/widgets/navigation/nav_link.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/common/raft_logo.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/navigation/nav_link.dart';
 import 'package:go_router/go_router.dart';
 
 /// Barra de navegación superior (Header/Navbar) con comportamiento responsivo.

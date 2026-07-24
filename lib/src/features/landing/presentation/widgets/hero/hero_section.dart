@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
-import 'package:frontend_landing/src/features/landing/widgets/hero/mini_benefit.dart';
-import 'package:frontend_landing/src/features/landing/widgets/hero/pill_badge.dart';
-import 'package:frontend_landing/src/features/landing/widgets/hero/raft_illustration.dart';
-import 'package:frontend_landing/src/features/landing/widgets/hero/wave_background.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/hero/mini_benefit.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/hero/pill_badge.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/hero/raft_illustration.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/hero/wave_background.dart';
 import 'package:go_router/go_router.dart';
 
 /// Sección principal de bienvenida (Hero Section).

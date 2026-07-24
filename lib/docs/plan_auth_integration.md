@@ -110,3 +110,14 @@ A diferencia del formulario tradicional (que usa peticiones HTTP POST asíncrona
 2. Tras la autorización exitosa, el backend redirige al navegador de vuelta a la URL del frontend con el token JWT adjunto en los fragmentos de la URL:
    `https://raft.andrescortes.dev/#access_token=eyJhbGciOi...`
 3. El enrutador `app_router.dart` o la pantalla inicial lee los parámetros del fragmento de la URL, guarda el token recibido en `SessionStorage` y redirige automáticamente al panel `/dashboard`.
+
+## Protección Dinámica de Rutas y Redirección (GoRouter + Riverpod)
+
+### 1. Objetivos del Sistema de Rutas Protegidas
+- **Protección de Privacidad:** Bloquear el acceso directo a `/dashboard` si el usuario no cuenta con un token JWT válido en `SessionStorage`.
+- **Optimización de UX:** Evitar que un usuario que ya tiene sesión activa vea nuevamente las pantallas de `/login` o `/register`, enviándolo de inmediato a su panel.
+
+### 2. Arquitectura del Router Reactivo (`app_router.dart`)
+1. Convertir `AppRouter` en un proveedor de Riverpod (`routerProvider`).
+2. Vincular el `refreshListenable` de GoRouter a un `Listenable` que notifique cada cambio en `authState`.
+3. Implementar el callback `redirect(context, state)` para evaluar la URL destino frente al estado `authState.isAuthenticated`.

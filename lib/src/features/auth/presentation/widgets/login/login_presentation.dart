@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/features/landing/widgets/common/raft_logo.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/common/raft_logo.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/login/platform_preview.dart';
 
 /// Panel lateral de presentación para la pantalla de Login en vista escritorio.

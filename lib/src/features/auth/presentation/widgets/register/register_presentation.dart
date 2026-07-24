@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
-import 'package:frontend_landing/src/features/landing/widgets/common/raft_logo.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/common/raft_logo.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/register/feature_item.dart';
 
 /// Panel lateral de presentación para la pantalla de registro en vista escritorio.

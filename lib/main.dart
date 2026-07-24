@@ -13,16 +13,20 @@ void main() {
   );
 }
 
-class MyApp extends StatelessWidget {
+/// Widget raíz de la aplicación que configura el tema y escucha las rutas de Riverpod.
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Escucha el router reactivo con protección de rutas
+    final router = ref.watch(routerProvider);
+
     return MaterialApp.router(
       title: 'Raft DB',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      routerConfig: AppRouter.router, // Router central de navegación
+      routerConfig: router, // Router dinámico reactivo
     );
   }
 }
