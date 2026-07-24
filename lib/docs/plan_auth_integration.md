@@ -95,4 +95,18 @@ Crearemos un servicio para:
   1. Redirigimos el navegador a `/api/auth/login/google` o `/api/auth/login/github`.
   2. Configuramos la escucha de la ruta `/auth/callback` en `app_router.dart`.
   3. Leemos los parámetros fragmento del hash de la URL (`#access_token=...`), guardamos el JWT y redirigimos a `/dashboard`.
-```
+
+
+## Flujo de Autenticación Social OAuth (Google y GitHub)
+
+### 1. Mecanismo de Redirección
+A diferencia del formulario tradicional (que usa peticiones HTTP POST asíncronas), el login social OAuth requiere una navegación completa del navegador hacia los endpoints expuestos por el backend:
+
+- Google: `POST/GET https://raft.andrescortes.dev/api/auth/login/google`
+- GitHub: `POST/GET https://raft.andrescortes.dev/api/auth/login/github`
+
+### 2. Retorno y Lectura del Token JWT
+1. El backend procesa la autenticación con el proveedor (Google/GitHub).
+2. Tras la autorización exitosa, el backend redirige al navegador de vuelta a la URL del frontend con el token JWT adjunto en los fragmentos de la URL:
+   `https://raft.andrescortes.dev/#access_token=eyJhbGciOi...`
+3. El enrutador `app_router.dart` o la pantalla inicial lee los parámetros del fragmento de la URL, guarda el token recibido en `SessionStorage` y redirige automáticamente al panel `/dashboard`.

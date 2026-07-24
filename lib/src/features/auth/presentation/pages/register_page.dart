@@ -1,35 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend_landing/src/features/auth/domain/entities/register_form_data.dart';
+import 'package:frontend_landing/src/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/auth_background.dart';
-import 'package:frontend_landing/src/features/auth/presentation/widgets/login/login_card.dart';
-import 'package:frontend_landing/src/features/auth/presentation/widgets/login/login_presentation.dart';
+import 'package:frontend_landing/src/features/auth/presentation/widgets/register/register_card.dart';
+import 'package:frontend_landing/src/features/auth/presentation/widgets/register/register_presentation.dart';
 import 'package:go_router/go_router.dart';
 
-/// Pantalla principal de Inicio de Sesión (Login).
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+/// Pantalla principal de Registro de Usuario.
+/// Gestiona la animación de fondo, el estado del formulario y la respuesta según pantalla.
+class RegisterPage extends ConsumerStatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginScreenState extends State<LoginScreen>
+class _RegisterPageState extends ConsumerState<RegisterPage>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
 
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   late final AnimationController _backgroundController;
 
   bool _hidePassword = true;
-  bool _rememberMe = false;
-  bool _loading = false;
+  bool _acceptTerms = false;
 
   @override
   void initState() {
     super.initState();
 
-    // Inicia la animación continua del fondo 2D
+    // Inicia la animación en bucle infinito del fondo 2D (dura 16s cada ciclo)
     _backgroundController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 16),
@@ -38,58 +42,86 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _backgroundController.dispose();
     super.dispose();
   }
 
-  /// Procesa el inicio de sesión del usuario
-  /// Procesa el inicio de sesión del usuario y navega al Dashboard
-  Future<void> _login() async {
+  /// Procesa el envío del formulario de registro
+  /// Procesa el envío del formulario llamando al authProvider de Riverpod.
+  Future<void> _register() async {
     FocusScope.of(context).unfocus();
 
+    // 1. Valida los campos del formulario
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _loading = true);
+    // 2. Valida los términos y condiciones
+    if (!_acceptTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Debes aceptar los términos y la política de privacidad.',
+          ),
+        ),
+      );
+      return;
+    }
 
-    // Simula la llamada de inicio de sesión a la API (1.1 segundos)
-    await Future.delayed(const Duration(milliseconds: 1100));
+    // 3. Crea el DTO con los valores capturados de los controllers
+    final formData = RegisterFormData(
+      name: _nameController.text,
+      email: _emailController.text,
+      password: _passwordController.text,
+      acceptTerms: _acceptTerms,
+    );
+
+    // 4. Llama a la lógica de registro a través de ref.read()
+    final success = await ref.read(authProvider.notifier).register(formData);
 
     if (!mounted) return;
 
-    setState(() => _loading = false);
-
-    // Redirige al usuario a su panel de control /dashboard
-    context.go('/dashboard');
+    // 5. Maneja la respuesta según el resultado
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cuenta creada correctamente.'),
+          backgroundColor: Color(0xFF118A61),
+        ),
+      );
+      // Redirige al panel del usuario
+      context.go('/dashboard');
+    } else {
+      // Muestra el mensaje de error devuelto por la API
+      final errorMessage =
+          ref.read(authProvider).errorMessage ?? 'Error al registrar la cuenta';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
-  /// Maneja el inicio de sesión social y navega al Dashboard
-  void _socialLogin(String provider) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Sesión iniciada con $provider'),
-        backgroundColor: const Color(0xFF118A61),
-      ),
-    );
-    // Redirige al usuario a su panel de control /dashboard
-    context.go('/dashboard');
-  }
-
-  /// Abre la recuperación de contraseña
-  void _recoverPassword() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Abrir recuperación de contraseña.')),
-    );
+  /// Maneja el registro con redes sociales
+  void _socialRegister(String provider) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Continuar registro con $provider')));
   }
 
   @override
   Widget build(BuildContext context) {
+    // Escucha los cambios del estado de autenticación (cargando, error, etc.)
+    final authState = ref.watch(authProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFF031126),
       body: Stack(
         children: [
-          // 1. Fondo animado de la red de base de datos
+          // 1. Fondo animado con CustomPaint
           Positioned.fill(
             child: AnimatedBuilder(
               animation: _backgroundController,
@@ -103,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
 
-          // 2. Botón para volver a la Landing Page
+          // 2. Botón flotante para regresar al inicio (Landing Page)
           Positioned(
             top: 22,
             left: 22,
@@ -117,13 +149,13 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
 
-          // 3. Formulario y presentación responsiva
+          // 3. Contenido principal centrado con animación de entrada
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 78, 24, 40),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1120),
+                  constraints: const BoxConstraints(maxWidth: 1140),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final desktop = constraints.maxWidth >= 900;
@@ -142,39 +174,39 @@ class _LoginScreenState extends State<LoginScreen>
                           );
                         },
                         child: desktop
-                            // Vista Escritorio (Row): Presentación a la izquierda, Tarjeta a la derecha
+                            // Vista Escritorio (Row): Presentación a la izquierda, tarjeta a la derecha
                             ? Row(
                                 children: [
-                                  const Expanded(child: LoginPresentation()),
-                                  const SizedBox(width: 75),
+                                  const Expanded(child: RegisterPresentation()),
+                                  const SizedBox(width: 70),
                                   SizedBox(
-                                    width: 460,
-                                    child: LoginCard(
+                                    width: 470,
+                                    child: RegisterCard(
                                       formKey: _formKey,
+                                      nameController: _nameController,
                                       emailController: _emailController,
                                       passwordController: _passwordController,
                                       hidePassword: _hidePassword,
-                                      rememberMe: _rememberMe,
-                                      loading: _loading,
+                                      acceptTerms: _acceptTerms,
+                                      loading: authState.isLoading,
                                       onTogglePassword: () {
                                         setState(() {
                                           _hidePassword = !_hidePassword;
                                         });
                                       },
-                                      onRememberChanged: (value) {
+                                      onTermsChanged: (value) {
                                         setState(() {
-                                          _rememberMe = value ?? false;
+                                          _acceptTerms = value ?? false;
                                         });
                                       },
-                                      onLogin: _login,
-                                      onGoogle: () => _socialLogin('Google'),
-                                      onGithub: () => _socialLogin('GitHub'),
-                                      onRecoverPassword: _recoverPassword,
+                                      onRegister: _register,
+                                      onGoogle: () => _socialRegister('Google'),
+                                      onGithub: () => _socialRegister('GitHub'),
                                     ),
                                   ),
                                 ],
                               )
-                            // Vista Móvil (Column): Marca arriba, Tarjeta al centro abajo
+                            // Vista Móvil (Column): Marca arriba, tarjeta al centro abajo
                             : Column(
                                 children: [
                                   const MobileBrand(),
@@ -183,27 +215,27 @@ class _LoginScreenState extends State<LoginScreen>
                                     constraints: const BoxConstraints(
                                       maxWidth: 500,
                                     ),
-                                    child: LoginCard(
+                                    child: RegisterCard(
                                       formKey: _formKey,
+                                      nameController: _nameController,
                                       emailController: _emailController,
                                       passwordController: _passwordController,
                                       hidePassword: _hidePassword,
-                                      rememberMe: _rememberMe,
-                                      loading: _loading,
+                                      acceptTerms: _acceptTerms,
+                                      loading: authState.isLoading,
                                       onTogglePassword: () {
                                         setState(() {
                                           _hidePassword = !_hidePassword;
                                         });
                                       },
-                                      onRememberChanged: (value) {
+                                      onTermsChanged: (value) {
                                         setState(() {
-                                          _rememberMe = value ?? false;
+                                          _acceptTerms = value ?? false;
                                         });
                                       },
-                                      onLogin: _login,
-                                      onGoogle: () => _socialLogin('Google'),
-                                      onGithub: () => _socialLogin('GitHub'),
-                                      onRecoverPassword: _recoverPassword,
+                                      onRegister: _register,
+                                      onGoogle: () => _socialRegister('Google'),
+                                      onGithub: () => _socialRegister('GitHub'),
                                     ),
                                   ),
                                 ],

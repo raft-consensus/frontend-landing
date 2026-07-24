@@ -34,7 +34,17 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+
+  # Enrutamiento declarativo de pantallas y navegación web/móvil
   go_router: ^17.3.0
+  # Cliente HTTP para comunicación REST con el backend ASP.NET Core
+  http: ^1.2.2
+  # Persistencia de datos locales (Guardado del Token JWT)
+  shared_preferences: ^2.3.2
+  # Gestor de estado global e inyección de dependencias (Riverpod)
+  flutter_riverpod: ^2.6.1
+  # Paquete oficial multiplataforma (Web y Móvil) para abrir URLs externas
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:

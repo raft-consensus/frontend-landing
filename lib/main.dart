@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/core/routers/app_router.dart';
 import 'package:frontend_landing/src/core/theme/app_theme.dart';
 
+/// Punto de entrada principal de la aplicación.
 void main() {
-  runApp(const MyApp());
+  runApp(
+    // ProviderScope inicializa el árbol de estados globales de Riverpod
+    const ProviderScope(
+      child: MyApp()
+    )
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -15,9 +22,7 @@ class MyApp extends StatelessWidget {
       title: 'Raft DB',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      routerConfig: AppRouter.router, // Conecta nuestro router de URLs
+      routerConfig: AppRouter.router, // Router central de navegación
     );
   }
 }
-
-

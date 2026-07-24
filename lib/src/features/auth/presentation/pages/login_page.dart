@@ -1,37 +1,41 @@
-import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/features/auth/presentation/widgets/common/auth_background.dart';
-import 'package:frontend_landing/src/features/auth/presentation/widgets/register/register_card.dart';
-import 'package:frontend_landing/src/features/auth/presentation/widgets/register/register_presentation.dart';
-import 'package:go_router/go_router.dart';
+import 'dart:html' as html;
 
-/// Pantalla principal de Registro de Usuario.
-/// Gestiona la animación de fondo, el estado del formulario y la respuesta según pantalla.
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend_landing/src/core/network/api_client.dart';
+import 'package:frontend_landing/src/features/auth/domain/entities/login_form_data.dart';
+import 'package:frontend_landing/src/features/auth/presentation/providers/auth_provider.dart';
+import 'package:frontend_landing/src/features/auth/presentation/widgets/common/auth_background.dart';
+import 'package:frontend_landing/src/features/auth/presentation/widgets/login/login_card.dart';
+import 'package:frontend_landing/src/features/auth/presentation/widgets/login/login_presentation.dart';
+import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+/// Pantalla principal de Inicio de Sesión (Login).
+class LoginPage extends ConsumerStatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen>
+class _LoginPageState extends ConsumerState<LoginPage>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
 
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   late final AnimationController _backgroundController;
 
   bool _hidePassword = true;
-  bool _acceptTerms = false;
-  bool _loading = false;
+  bool _rememberMe = false;
 
   @override
   void initState() {
     super.initState();
 
-    // Inicia la animación en bucle infinito del fondo 2D (dura 16s cada ciclo)
+    // Inicia la animación continua del fondo 2D
     _backgroundController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 16),
@@ -40,63 +44,93 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _backgroundController.dispose();
     super.dispose();
   }
 
-  /// Procesa el envío del formulario de registro
-  Future<void> _register() async {
+  /// Procesa el inicio de sesión del usuario
+  /// Procesa el inicio de sesión del usuario y navega al Dashboard
+  /// Procesa el inicio de sesión del usuario conectando con la API a través de Riverpod.
+  Future<void> _login() async {
     FocusScope.of(context).unfocus();
 
     if (!_formKey.currentState!.validate()) return;
 
-    if (!_acceptTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Debes aceptar los términos y la política de privacidad.',
-          ),
-        ),
-      );
-      return;
-    }
+    // 1. Construye el DTO con email, contraseña y recordar sesión
+    final formData = LoginFormData(
+      email: _emailController.text,
+      password: _passwordController.text,
+      rememberMe: _rememberMe,
+    );
 
-    setState(() => _loading = true);
-
-    // Simula la llamada a la API de registro
-    await Future.delayed(const Duration(milliseconds: 1100));
+    // 2. Invoca el login en el notificador de estado
+    final success = await ref.read(authProvider.notifier).login(formData);
 
     if (!mounted) return;
 
-    setState(() => _loading = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Cuenta creada correctamente.'),
-        backgroundColor: Color(0xFF118A61),
-      ),
-    );
+    // 3. Si el servidor responde exitosamente, navega al dashboard
+    if (success) {
+      context.go('/dashboard');
+    } else {
+      // 4. Si el servidor rechaza las credenciales, muestra el mensaje de error
+      final errorMessage =
+          ref.read(authProvider).errorMessage ??
+          'Correo o contraseña incorrectos';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
-  /// Maneja el registro con redes sociales
-  void _socialRegister(String provider) {
+    /// Maneja el inicio de sesión social redirigiendo al proveedor OAuth (Web y Móvil)
+  Future<void> _socialLogin(String provider) async {
+    final baseUrl = ApiClient.baseUrl;
+    final providerEndpoint = provider.toLowerCase();
+
+    // 1. Construye la URL OAuth del backend
+    final oauthUrl = Uri.parse('$baseUrl/api/auth/login/$providerEndpoint');
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Continuar registro con $provider'),
+        content: Text('Redirigiendo a $provider...'),
+        backgroundColor: const Color(0xFF118A61),
       ),
+    );
+
+    // 2. Abre la URL en el navegador del dispositivo (funciona en Web, Android e iOS)
+    if (await canLaunchUrl(oauthUrl)) {
+      await launchUrl(oauthUrl, mode: LaunchMode.externalApplication);
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo abrir la navegación a $provider'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  /// Abre la recuperación de contraseña
+  void _recoverPassword() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Abrir recuperación de contraseña.')),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
     return Scaffold(
       backgroundColor: const Color(0xFF031126),
       body: Stack(
         children: [
-          // 1. Fondo animado con CustomPaint
+          // 1. Fondo animado de la red de base de datos
           Positioned.fill(
             child: AnimatedBuilder(
               animation: _backgroundController,
@@ -110,7 +144,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             ),
           ),
 
-          // 2. Botón flotante para regresar al inicio (Landing Page)
+          // 2. Botón para volver a la Landing Page
           Positioned(
             top: 22,
             left: 22,
@@ -119,20 +153,18 @@ class _RegisterScreenState extends State<RegisterScreen>
                 onPressed: () => context.go('/'),
                 icon: const Icon(Icons.arrow_back_rounded),
                 label: const Text('Volver al inicio'),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white70,
-                ),
+                style: TextButton.styleFrom(foregroundColor: Colors.white70),
               ),
             ),
           ),
 
-          // 3. Contenido principal centrado con animación de entrada
+          // 3. Formulario y presentación responsiva
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 78, 24, 40),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1140),
+                  constraints: const BoxConstraints(maxWidth: 1120),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final desktop = constraints.maxWidth >= 900;
@@ -151,73 +183,68 @@ class _RegisterScreenState extends State<RegisterScreen>
                           );
                         },
                         child: desktop
-                            // Vista Escritorio (Row): Presentación a la izquierda, tarjeta a la derecha
+                            // Vista Escritorio (Row): Presentación a la izquierda, Tarjeta a la derecha
                             ? Row(
                                 children: [
-                                  const Expanded(
-                                    child: RegisterPresentation(),
-                                  ),
-                                  const SizedBox(width: 70),
+                                  const Expanded(child: LoginPresentation()),
+                                  const SizedBox(width: 75),
                                   SizedBox(
-                                    width: 470,
-                                    child: RegisterCard(
+                                    width: 460,
+                                    child: LoginCard(
                                       formKey: _formKey,
-                                      nameController: _nameController,
                                       emailController: _emailController,
                                       passwordController: _passwordController,
                                       hidePassword: _hidePassword,
-                                      acceptTerms: _acceptTerms,
-                                      loading: _loading,
+                                      rememberMe: _rememberMe,
+                                      loading: authState.isLoading,
                                       onTogglePassword: () {
                                         setState(() {
                                           _hidePassword = !_hidePassword;
                                         });
                                       },
-                                      onTermsChanged: (value) {
+                                      onRememberChanged: (value) {
                                         setState(() {
-                                          _acceptTerms = value ?? false;
+                                          _rememberMe = value ?? false;
                                         });
                                       },
-                                      onRegister: _register,
-                                      onGoogle: () =>
-                                          _socialRegister('Google'),
-                                      onGithub: () =>
-                                          _socialRegister('GitHub'),
+                                      onLogin: _login,
+                                      onGoogle: () => _socialLogin('Google'),
+                                      onGithub: () => _socialLogin('GitHub'),
+                                      onRecoverPassword: _recoverPassword,
                                     ),
                                   ),
                                 ],
                               )
-                            // Vista Móvil (Column): Marca arriba, tarjeta al centro abajo
+                            // Vista Móvil (Column): Marca arriba, Tarjeta al centro abajo
                             : Column(
                                 children: [
                                   const MobileBrand(),
                                   const SizedBox(height: 28),
                                   ConstrainedBox(
-                                    constraints:
-                                        const BoxConstraints(maxWidth: 500),
-                                    child: RegisterCard(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 500,
+                                    ),
+                                    child: LoginCard(
                                       formKey: _formKey,
-                                      nameController: _nameController,
                                       emailController: _emailController,
                                       passwordController: _passwordController,
                                       hidePassword: _hidePassword,
-                                      acceptTerms: _acceptTerms,
-                                      loading: _loading,
+                                      rememberMe: _rememberMe,
+                                      loading: authState.isLoading,
                                       onTogglePassword: () {
                                         setState(() {
                                           _hidePassword = !_hidePassword;
                                         });
                                       },
-                                      onTermsChanged: (value) {
+                                      onRememberChanged: (value) {
                                         setState(() {
-                                          _acceptTerms = value ?? false;
+                                          _rememberMe = value ?? false;
                                         });
                                       },
-                                      onRegister: _register,
-                                      onGoogle: () =>
-                                          _socialRegister('Google'),
-                                      onGithub: () =>
-                                          _socialRegister('GitHub'),
+                                      onLogin: _login,
+                                      onGoogle: () => _socialLogin('Google'),
+                                      onGithub: () => _socialLogin('GitHub'),
+                                      onRecoverPassword: _recoverPassword,
                                     ),
                                   ),
                                 ],
