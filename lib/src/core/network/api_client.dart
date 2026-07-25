@@ -90,6 +90,40 @@ class ApiClient {
       throw ApiException('Error de conexión con el servidor: $e');
     }
   }
+
+  /// Realiza peticiones HTTP GET y retorna el mapa JSON deserializado.
+  /// ¿Qué hace?: Realiza una consulta GET al endpoint indicado.
+  /// ¿De dónde recibe datos?: Peticiones de los DataSources remotos (ej: MetricsRemoteDataSource).
+  /// ¿Hacia dónde se conecta?: Backend ASP.NET Core.
+  Future<Map<String, dynamic>> get(String endpoint, {String? token}) async {
+    final url = Uri.parse('$baseUrl$endpoint');
+
+    try {
+      final response = await _client.get(url, headers: _buildHeaders(token));
+
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+      // Si el status HTTP es exitoso (200 - 299)
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return responseData;
+      }
+
+      // Extrae el mensaje de error entregado por la API
+      String errorMessage = responseData['message'] as String? ?? '';
+      if (errorMessage.isEmpty) {
+        errorMessage =
+            responseData['title'] as String? ??
+            'Error al obtener datos del servidor';
+      }
+
+      throw ApiException(errorMessage, statusCode: response.statusCode);
+    } on FormatException {
+      throw ApiException('Respuesta con formato JSON inválido del servidor');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Error de conexión con el servidor: $e');
+    }
+  }
 }
 
 /// Proveedor global de Riverpod para inyectar la instancia de ApiClient.
