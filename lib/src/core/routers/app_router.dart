@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend_landing/src/features/admin/presentation/pages/admin_dashboard_page.dart';
 import 'package:frontend_landing/src/features/auth/presentation/pages/login_page.dart';
 import 'package:frontend_landing/src/features/auth/presentation/pages/register_page.dart';
 import 'package:frontend_landing/src/features/auth/presentation/providers/auth_provider.dart';
@@ -8,33 +10,42 @@ import 'package:go_router/go_router.dart';
 
 /// Proveedor de Riverpod que genera y administra las rutas declarativas de la app.
 /// 
-/// ¿De dónde recibe datos?: Escucha el estado de sesión de authProvider.
+/// ¿De dónde recibe datos?: Escucha el estado de sesión de authProvider mediante refreshListenable.
 /// ¿Hacia dónde va / Dónde se conecta?: Consumido por MaterialApp.router en main.dart para navegación y redirecciones.
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  // Notificador que avisa a GoRouter cuando cambia la sesión sin destruir la instancia
+  final refreshNotifier = ValueNotifier<int>(0);
+  ref.listen<AuthState>(authProvider, (_, __) {
+    refreshNotifier.value++;
+  });
 
   return GoRouter(
     initialLocation: '/',
+    refreshListenable: refreshNotifier,
     redirect: (context, state) {
-
-      // return null; // quitar cuando ya se vaya a dejar
-
+      final authState = ref.read(authProvider);
       final isAuthenticated = authState.isAuthenticated;
       final isAuthRoute =
-          state.matchedLocation == '/login' || state.matchedLocation == '/register';
-      final isProtectedRoute = state.matchedLocation.startsWith('/dashboard');
+          state.matchedLocation == '/login' ||
+          state.matchedLocation == '/register';
+      final isProtectedRoute =
+          state.matchedLocation.startsWith('/dashboard') ||
+          state.matchedLocation.startsWith('/admin');
 
-      // Regla 1: Bloquea acceso a rutas privadas si no hay sesión
+      // Determina el destino según el rol del usuario ('Admin' o 'User')
+      final userRole = authState.session?.user.role ?? 'User';
+      final defaultDashboard = (userRole == 'Admin') ? '/admin' : '/dashboard';
+
+      // Regla 1: Si NO está autenticado e intenta acceder a zonas privadas -> Redirigir a /login
       if (!isAuthenticated && isProtectedRoute) {
         return '/login';
       }
 
-      // Regla 2: Redirige al dashboard si ya inició sesión e intenta ir a login/registro
+      // Regla 2: Si YA está autenticado e intenta ir a login o registro -> Redirigir a su panel
       if (isAuthenticated && isAuthRoute) {
-        return '/dashboard';
+        return defaultDashboard;
       }
 
-      // Permite la navegación normal para rutas públicas como '/'
       return null;
     },
     routes: [
@@ -57,6 +68,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/dashboard',
         name: 'dashboard',
         builder: (context, state) => const DashboardPage(),
+      ),
+      GoRoute(
+        path: '/admin',
+        name: 'admin',
+        builder: (context, state) => const AdminDashboard(),
       ),
     ],
   );
