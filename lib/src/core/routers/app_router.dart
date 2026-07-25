@@ -17,7 +17,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     redirect: (context, state) {
 
-      return null; // quitar cuando ya se vaya a dejar
+      // return null; // quitar cuando ya se vaya a dejar
 
       final isAuthenticated = authState.isAuthenticated;
       final isAuthRoute =
