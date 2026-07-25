@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
+import 'package:go_router/go_router.dart';
 
 /// Sección de llamado a la acción final (Final CTA).
 /// 
@@ -69,7 +70,7 @@ class FinalCtaSection extends StatelessWidget {
                   alignment: WrapAlignment.center,
                   children: [
                     FilledButton.icon(
-                      onPressed: () {},
+                      onPressed: () => context.push('/register'),
                       icon: const Icon(Icons.rocket_launch_rounded),
                       label: const Text('Comenzar gratis'),
                       style: FilledButton.styleFrom(
@@ -82,7 +83,7 @@ class FinalCtaSection extends StatelessWidget {
                       ),
                     ),
                     OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () {}, // pendiente
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,
                         side: const BorderSide(color: Colors.white54),

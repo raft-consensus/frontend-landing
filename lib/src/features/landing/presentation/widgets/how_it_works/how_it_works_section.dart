@@ -4,6 +4,7 @@ import 'package:frontend_landing/src/features/landing/presentation/widgets/commo
 import 'package:frontend_landing/src/features/landing/presentation/widgets/common/section_title.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/how_it_works/step_card.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/how_it_works/step_data.dart';
+import 'package:go_router/go_router.dart';
 
 /// Sección visual que explica el proceso 'Cómo Funciona' paso a paso.
 /// 
@@ -83,7 +84,7 @@ class HowItWorksSection extends StatelessWidget {
 
           // Botón de llamado a la acción al final del flujo
           FilledButton.icon(
-            onPressed: () {},
+            onPressed: () => context.push('/register'),
             icon: const Icon(Icons.rocket_launch_rounded),
             label: const Text('Crear mi primera instancia'),
             style: FilledButton.styleFrom(

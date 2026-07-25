@@ -9,13 +9,17 @@ import 'package:frontend_landing/src/features/user/presentation/pages/dashboard_
 import 'package:go_router/go_router.dart';
 
 /// Proveedor de Riverpod que genera y administra las rutas declarativas de la app.
-/// 
+///
 /// ¿De dónde recibe datos?: Escucha el estado de sesión de authProvider mediante refreshListenable.
 /// ¿Hacia dónde va / Dónde se conecta?: Consumido por MaterialApp.router en main.dart para navegación y redirecciones.
 final routerProvider = Provider<GoRouter>((ref) {
   // Notificador que avisa a GoRouter cuando cambia la sesión sin destruir la instancia
   final refreshNotifier = ValueNotifier<int>(0);
-  ref.listen<AuthState>(authProvider, (_, __) {
+
+  // Liberación de memoria cuando se destruye el provider
+  ref.onDispose(refreshNotifier.dispose);
+
+  ref.listen<AuthState>(authProvider, (previous, next) {
     refreshNotifier.value++;
   });
 
@@ -52,7 +56,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         name: 'landing',
-        builder: (context, state) => const LandingScreen(),
+        builder: (context, state) => LandingPage(),
       ),
       GoRoute(
         path: '/login',

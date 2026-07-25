@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/benefits/benefit_data.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/common/hover_card.dart';
 
 /// Tarjeta individual para presentar un caso de uso (Estudiantes, Developers, Docentes).
 /// 
@@ -19,41 +20,44 @@ class UseCaseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      padding: const EdgeInsets.all(27),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFDFE9F3)),
-      ),
-      child: Column(
-        children: [
-          // Icono circular con color transparente según el perfil
-          CircleAvatar(
-            radius: 33,
-            backgroundColor: data.color.withValues(alpha: 0.12),
-            child: Icon(data.icon, color: data.color, size: 31),
-          ),
-          const SizedBox(height: 18),
-
-          // Perfil objetivo
-          Text(
-            data.title,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 9),
-
-          // Descripción breve
-          Text(
-            data.description,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.muted,
-              height: 1.5,
+    return HoverCard(
+      borderRadius: 22,
+      child: Container(
+        width: width,
+        padding: const EdgeInsets.all(27),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFFDFE9F3)),
+        ),
+        child: Column(
+          children: [
+            // Icono circular con color transparente según el perfil
+            CircleAvatar(
+              radius: 33,
+              backgroundColor: data.color.withValues(alpha: 0.12),
+              child: Icon(data.icon, color: data.color, size: 31),
             ),
-          ),
-        ],
+            const SizedBox(height: 18),
+      
+            // Perfil objetivo
+            Text(
+              data.title,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 9),
+      
+            // Descripción breve
+            Text(
+              data.description,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.muted,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

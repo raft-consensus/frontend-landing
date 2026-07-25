@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/common/hover_card.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/how_it_works/step_data.dart';
 
 /// Tarjeta individual para presentar un paso con badge numérico y gradiente.
@@ -19,63 +20,67 @@ class StepCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      child: Column(
-        children: [
-          // Caja de icono con gradiente y badge numérico superpuesto en la esquina superior derecha
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 78,
-                height: 78,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.cyan, AppColors.blue],
+    return HoverCard(
+      borderRadius: 23,
+      showShadow: false,
+      child: SizedBox(
+        width: width,
+        child: Column(
+          children: [
+            // Caja de icono con gradiente y badge numérico superpuesto en la esquina superior derecha
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 78,
+                  height: 78,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.cyan, AppColors.blue],
+                    ),
+                    borderRadius: BorderRadius.circular(23),
                   ),
-                  borderRadius: BorderRadius.circular(23),
+                  child: Icon(data.icon, color: Colors.white, size: 34),
                 ),
-                child: Icon(data.icon, color: Colors.white, size: 34),
-              ),
-              Positioned(
-                top: -9,
-                right: -9,
-                child: CircleAvatar(
-                  radius: 17,
-                  backgroundColor: AppColors.navy,
-                  child: Text(
-                    data.number,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
+                Positioned(
+                  top: -9,
+                  right: -9,
+                  child: CircleAvatar(
+                    radius: 17,
+                    backgroundColor: AppColors.navy,
+                    child: Text(
+                      data.number,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 21),
-
-          // Título del paso
-          Text(
-            data.title,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-
-          // Descripción explicativa
-          Text(
-            data.description,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.muted,
-              height: 1.5,
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 21),
+      
+            // Título del paso
+            Text(
+              data.title,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+      
+            // Descripción explicativa
+            Text(
+              data.description,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.muted,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

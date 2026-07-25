@@ -5,41 +5,51 @@ import 'package:frontend_landing/src/features/landing/presentation/widgets/navig
 import 'package:go_router/go_router.dart';
 
 /// Barra de navegación superior (Header/Navbar) con comportamiento responsivo.
+///
+/// ¿Qué hace?: Muestra el logotipo, los enlaces a secciones con scroll y los botones de autenticación.
+/// ¿De dónde recibe datos?: Callbacks de scroll enviados desde LandingScreen.
+/// ¿Hacia dónde va / Dónde se conecta?: Incluido al inicio de LandingScreen (landing_page.dart).
 class NavigationBarSection extends StatelessWidget {
-  const NavigationBarSection({super.key});
+  const NavigationBarSection({
+    this.onMetricsTap,
+    this.onDatabasesTap,
+    this.onBenefitsTap,
+    this.onHowItWorksTap,
+    this.onFaqTap,
+    super.key,
+  });
+
+  final VoidCallback? onMetricsTap;
+  final VoidCallback? onDatabasesTap;
+  final VoidCallback? onBenefitsTap;
+  final VoidCallback? onHowItWorksTap;
+  final VoidCallback? onFaqTap;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      // Color blanco semi-transparente (96% opacidad) para dar efecto de superposición suave
-      color: Colors.white.withOpacity(0.96),
+      color: Colors.white.withValues(alpha: 0.96),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       child: Center(
         child: ConstrainedBox(
-          // Ancho máximo contenido a 1180px igual que las demás secciones
           constraints: const BoxConstraints(maxWidth: 1180),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              // Condición responsiva: si el ancho es mayor a 850px se considera escritorio
-              final desktop = constraints.maxWidth > 850;
+              final desktop = constraints.maxWidth > 950;
 
               return Row(
                 children: [
-                  // 1. Logotipo de Raft DB ubicado a la izquierda
                   const RaftLogo(),
-
-                  // 2. Empuja los siguientes elementos completamente hacia la derecha
                   const Spacer(),
-
-                  // 3. Vista de Escritorio: Enlaces y botones directos
                   if (desktop) ...[
-                    const NavLink('Bases de datos'),
-                    const NavLink('Beneficios'),
-                    const NavLink('Cómo funciona'),
-                    const NavLink('FAQ'),
+                    NavLink('Métricas', onTap: onMetricsTap),
+                    NavLink('Bases de datos', onTap: onDatabasesTap),
+                    NavLink('Beneficios', onTap: onBenefitsTap),
+                    NavLink('Cómo funciona', onTap: onHowItWorksTap),
+                    NavLink('FAQ', onTap: onFaqTap),
                     const SizedBox(width: 16),
 
-                    // Botón secundario para Iniciar sesión
+                    // Botón secundario para Iniciar sesión (con .go como indicaste)
                     TextButton(
                       onPressed: () => context.go('/login'),
                       child: const Text('Iniciar sesión'),
@@ -47,7 +57,7 @@ class NavigationBarSection extends StatelessWidget {
 
                     const SizedBox(width: 8),
 
-                    // Botón primario relleno para Crear cuenta
+                    // Botón primario para Crear cuenta (con .go como indicaste)
                     FilledButton(
                       onPressed: () => context.go('/register'),
                       style: FilledButton.styleFrom(
@@ -60,13 +70,17 @@ class NavigationBarSection extends StatelessWidget {
                       ),
                       child: const Text('Crear cuenta'),
                     ),
-                  ]
-                  // 4. Vista Móvil: Muestra un menú de hamburguesa
+                  ] 
                   else
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.menu_rounded),
-                      color: AppColors.navy,
+                    Builder(
+                      builder: (scaffoldContext) {
+                        return IconButton(
+                          onPressed: () =>
+                              Scaffold.of(scaffoldContext).openEndDrawer(),
+                          icon: const Icon(Icons.menu_rounded),
+                          color: AppColors.navy,
+                        );
+                      },
                     ),
                 ],
               );
