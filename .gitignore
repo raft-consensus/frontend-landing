@@ -44,5 +44,18 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# 
+# arreglos manuales
 /.agent
+/.dart_tool
+
+## 
+# Archivos de Variables de Entorno (Tokens, API Keys, URLs de desarrollo)
+.env
+.env.*
+*.env
+
+# Configuración personal de VS Code
+.vscode/
+
+# Archivos temporales de agentes o sistema
+.gemini/
