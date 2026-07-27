@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
 import 'package:frontend_landing/src/features/user/domain/entities/database_instance.dart'; // Domain
 import 'package:frontend_landing/src/features/user/presentation/pages/account_page.dart'; // Pages
@@ -6,6 +7,7 @@ import 'package:frontend_landing/src/features/user/presentation/pages/databases_
 import 'package:frontend_landing/src/features/user/presentation/pages/documentation_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/pages/overview_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/pages/tools_page.dart'; // Pages
+import 'package:frontend_landing/src/features/user/presentation/providers/user_databases_provider.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/create_database_dialog.dart'; // Dialogs
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_sidebar.dart'; // Layout
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_topbar.dart'; // Layout
@@ -13,63 +15,16 @@ import 'package:frontend_landing/src/features/user/presentation/widgets/layout/d
 /// ¿Qué hace?: Vista contenedora principal del Portal de Usuario que administra el estado global, navegación y las 5 pestañas.
 /// ¿De dónde trae?: Trae AppColors (core), DatabaseInstance (domain), componentes de layout, dialogs y las 5 sub-páginas (pages).
 /// ¿Hacia dónde va / Cómo se conecta?: Es la pantalla de inicio principal del panel de usuario registrada en las rutas de la aplicación.
-class DashboardPage extends StatefulWidget {
+class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
-
   @override
-  State<DashboardPage> createState() => _DashboardPageState();
+  ConsumerState<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardPageState extends ConsumerState<DashboardPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex =
       0; // 0: Resumen, 1: BD, 2: Herramientas, 3: Docs, 4: Cuenta
-
-  // Lista inicial de instancias de prueba de bases de datos del usuario
-  final List<DatabaseInstance> _instances = [
-    DatabaseInstance(
-      id: 'db-101',
-      name: 'api-tienda-demo',
-      engine: 'PostgreSQL',
-      version: '16',
-      database: 'tienda_db',
-      username: 'raft_user_84',
-      host: 'postgresql84.raftdb.dev',
-      port: 5432,
-      storageUsed: 148,
-      storageLimit: 512,
-      createdAt: '18 Jul 2026',
-      isRunning: true,
-    ),
-    DatabaseInstance(
-      id: 'db-102',
-      name: 'blog-universidad',
-      engine: 'MySQL',
-      version: '8.0',
-      database: 'blog_db',
-      username: 'raft_user_12',
-      host: 'mysql12.raftdb.dev',
-      port: 3306,
-      storageUsed: 92,
-      storageLimit: 512,
-      createdAt: '20 Jul 2026',
-      isRunning: true,
-    ),
-    DatabaseInstance(
-      id: 'db-103',
-      name: 'practica-consultas',
-      engine: 'MongoDB',
-      version: '7.0',
-      database: 'practica_db',
-      username: 'raft_user_44',
-      host: 'mongodb44.raftdb.dev',
-      port: 27017,
-      storageUsed: 86,
-      storageLimit: 512,
-      createdAt: '22 Jul 2026',
-      isRunning: false,
-    ),
-  ];
 
   // Mostrador de notificaciones flotantes de retroalimentación
   void _showMessage(String message, {bool success = true}) {
@@ -103,32 +58,23 @@ class _DashboardPageState extends State<DashboardPage> {
       context: context,
       builder: (context) => const CreateDatabaseDialog(),
     );
-
     if (result != null) {
-      setState(() => _instances.insert(0, result));
+      // Envía la nueva instancia a la estación de radio de Riverpod
+      ref.read(userDatabasesProvider.notifier).addDatabase(result);
       _showMessage('Instancia "${result.name}" creada con éxito.');
     }
   }
 
   // Alternar estado encendido/apagado de una BD
-  void _toggleInstanceState(int index) {
-    setState(() {
-      _instances[index].isRunning = !_instances[index].isRunning;
-    });
-    final instance = _instances[index];
-    _showMessage(
-      instance.isRunning
-          ? 'Instancia "${instance.name}" iniciada.'
-          : 'Instancia "${instance.name}" detenida.',
-      success: instance.isRunning,
-    );
+  void _toggleInstanceState(String id) {
+    ref.read(userDatabasesProvider.notifier).toggleInstanceState(id);
+    _showMessage('Estado de la instancia actualizado.');
   }
 
-  // Eliminar una base de datos
-  void _deleteInstance(int index) {
-    final instance = _instances[index];
-    setState(() => _instances.removeAt(index));
-    _showMessage('Instancia "${instance.name}" eliminada.', success: false);
+  // Eliminar una base de datos con Riverpod
+  void _deleteInstance(String id) {
+    ref.read(userDatabasesProvider.notifier).deleteDatabase(id);
+    _showMessage('Instancia eliminada.', success: false);
   }
 
   // Título dinámico para la barra superior
@@ -151,6 +97,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Sintoniza el proveedor global de Riverpod para obtener la lista siempre actualizada
+    final instances = ref.watch(userDatabasesProvider);
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
@@ -195,20 +143,22 @@ class _DashboardPageState extends State<DashboardPage> {
                     children: [
                       // 0: Resumen (Overview)
                       OverviewPage(
-                        instances: _instances,
+                        instances: instances,
                         onCreateDatabase: _openCreateDatabaseDialog,
                         onGoDatabases: () => setState(() => _selectedIndex = 1),
                         onGoDocumentation: () =>
                             setState(() => _selectedIndex = 3),
                       ),
-                      // 1: Bases de Datos (Databases)
                       DatabasesPage(
-                        instances: _instances,
+                        instances: instances,
                         onCreateDatabase: _openCreateDatabaseDialog,
-                        onToggleState: _toggleInstanceState,
-                        onDelete: _deleteInstance,
+                        onToggleState: (index) =>
+                            _toggleInstanceState(instances[index].id),
+                        onDelete: (index) =>
+                            _deleteInstance(instances[index].id),
                         onMessage: _showMessage,
                       ),
+
                       // 2: Herramientas (Tools)
                       ToolsPage(onMessage: _showMessage),
                       // 3: Documentación (Documentation)
