@@ -73,11 +73,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'dashboard',
         builder: (context, state) => const DashboardPage(),
       ),
-      GoRoute(
-        path: '/admin',
-        name: 'admin',
+
+      GoRoute(                                    
+        path: '/admin',                            
+        name: 'admin',                              
         builder: (context, state) => const AdminDashboard(),
-      ),
+      )
     ],
   );
 });
