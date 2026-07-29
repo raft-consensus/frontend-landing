@@ -8,7 +8,29 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend_landing/src/features/user/data/datasources/user_databases_remote_datasource.dart';
+import 'package:frontend_landing/src/features/user/data/models/provisioning_result_model.dart';
 import 'package:frontend_landing/src/features/user/domain/entities/database_instance.dart';
+
+/// Resultado de solicitar la creación de una instancia. Cuando [success] es true,
+/// [provisioning] trae la contraseña en texto plano — la UI debe mostrarla una única vez,
+/// porque no se puede volver a recuperar en texto plano después de esta respuesta.
+class CreateDatabaseResult {
+  const CreateDatabaseResult._({
+    required this.success,
+    this.provisioning,
+    this.errorMessage,
+  });
+
+  factory CreateDatabaseResult.success(ProvisioningResultModel provisioning) =>
+      CreateDatabaseResult._(success: true, provisioning: provisioning);
+
+  factory CreateDatabaseResult.failure(String errorMessage) =>
+      CreateDatabaseResult._(success: false, errorMessage: errorMessage);
+
+  final bool success;
+  final ProvisioningResultModel? provisioning;
+  final String? errorMessage;
+}
 
 /// Notificador de estado que administra la lista global de bases de datos del usuario desde la API
 class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
@@ -53,30 +75,30 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
     }
   }
 
-  /// Solicita la creación de una nueva instancia mediante la API (POST /api/database-instances)
-    /// Solicita la creación de una nueva instancia a la API real y devuelve el mensaje de error si la API rechaza la solicitud
-  Future<String?> createDatabase({
-    required String name,
-    required String engine,
-  }) async {
+  /// Solicita el aprovisionamiento de una nueva instancia MySQL propia (POST /api/me/databases).
+  /// No recibe nombre ni motor: el backend solo aprovisiona MySQL hoy y genera todo server-side.
+  Future<CreateDatabaseResult> createDatabase() async {
     final token = _token;
     if (token == null || token.isEmpty) {
-      return 'Sesión no válida. Por favor inicia sesión de nuevo.';
+      return CreateDatabaseResult.failure(
+        'Sesión no válida. Por favor inicia sesión de nuevo.',
+      );
     }
 
     try {
-      final newModel = await datasource.createDatabase(
-        name: name,
-        engine: engine,
-        token: token,
-      );
-      
-      // Si la API responde exitosamente, agrega el objeto real devuelto a la lista local
-      state = [newModel.toEntity(), ...state];
-      return null; // null significa éxito total
+      final provisioning = await datasource.createDatabase(token: token);
+
+      // Refresca desde el GET real en vez de construir la entidad a mano: la respuesta de
+      // creación no trae status/usedSpaceBytes/maxSpaceBytes/createdAt, así que el dashboard
+      // (cuotas, actividad, etc.) debe salir siempre de la fuente de verdad (GET /me/databases).
+      await fetchDatabases();
+
+      return CreateDatabaseResult.success(provisioning);
     } catch (e) {
       // Retorna el mensaje exacto entregado por la API para mostrárselo al usuario
-      return e.toString().replaceAll('ApiException: ', '');
+      return CreateDatabaseResult.failure(
+        e.toString().replaceAll('ApiException: ', ''),
+      );
     }
   }
 

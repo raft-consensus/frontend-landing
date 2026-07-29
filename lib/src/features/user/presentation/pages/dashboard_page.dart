@@ -9,6 +9,7 @@ import 'package:frontend_landing/src/features/user/presentation/pages/overview_p
 import 'package:frontend_landing/src/features/user/presentation/pages/tools_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/providers/user_databases_provider.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/create_database_dialog.dart'; // Dialogs
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/new_database_credentials_dialog.dart'; // Dialogs
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_sidebar.dart'; // Layout
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_topbar.dart'; // Layout
 
@@ -52,26 +53,39 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     );
   }
 
-    // Abre el modal de creación y notifica la respuesta real entregada por la API
+    // Abre el modal de confirmación y, si el usuario confirma, aprovisiona la instancia real
   Future<void> _openCreateDatabaseDialog() async {
-    final result = await showDialog<Map<String, String>>(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => const CreateDatabaseDialog(),
     );
 
-    if (result != null && result['name'] != null && result['engine'] != null) {
-      final errorMessage = await ref
-          .read(userDatabasesProvider.notifier)
-          .createDatabase(name: result['name']!, engine: result['engine']!);
+    if (confirmed != true) return;
 
-      if (errorMessage == null) {
-        _showMessage('Instancia "${result['name']}" creada exitosamente en el servidor.');
-      } else {
-        _showMessage(
-          'No se pudo crear la instancia: $errorMessage',
-          success: false,
-        );
-      }
+    final result = await ref.read(userDatabasesProvider.notifier).createDatabase();
+
+    if (!mounted) return;
+
+    if (!result.success) {
+      _showMessage(
+        'No se pudo crear la instancia: ${result.errorMessage}',
+        success: false,
+      );
+      return;
+    }
+
+    _showMessage('Instancia creada exitosamente en el servidor.');
+
+    // Muestra la contraseña en texto plano una única vez: el backend no la vuelve a exponer así.
+    if (result.provisioning != null) {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => NewDatabaseCredentialsDialog(
+          provisioning: result.provisioning!,
+          onMessage: _showMessage,
+        ),
+      );
     }
   }
   
