@@ -1,7 +1,6 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
-import 'package:frontend_landing/src/features/user/domain/entities/database_instance.dart'; // Domain
+// Domain
 import 'package:frontend_landing/src/features/user/domain/entities/databse_engine.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/field_label.dart'; // Common
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/info_banner.dart'; // Common
@@ -141,10 +140,12 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
                     prefixIcon: Icon(Icons.edit_outlined),
                   ),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty)
+                    if (value == null || value.trim().isEmpty) {
                       return 'Ingresa un nombre para la instancia.';
-                    if (value.trim().length < 3)
+                    }
+                    if (value.trim().length < 3) {
                       return 'El nombre debe tener al menos 3 caracteres.';
+                    }
                     return null;
                   },
                 ),

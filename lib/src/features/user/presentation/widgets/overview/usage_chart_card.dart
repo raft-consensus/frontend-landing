@@ -80,8 +80,8 @@ class UsageChartPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          AppColors.blue.withOpacity(0.25),
-          AppColors.blue.withOpacity(0.0),
+          AppColors.blue.withValues(alpha: 0.25),
+          AppColors.blue.withValues(alpha: 0.0),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 

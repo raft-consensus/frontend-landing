@@ -28,7 +28,7 @@ class UserDetailsDialog extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundColor: AppColors.blue.withOpacity(0.10),
+                    backgroundColor: AppColors.blue.withValues(alpha: 0.10),
                     child: Text(
                       initials(user.name),
                       style: const TextStyle(

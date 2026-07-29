@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
-import 'package:frontend_landing/src/features/user/domain/entities/database_instance.dart'; // Domain
+// Domain
 import 'package:frontend_landing/src/features/user/presentation/pages/account_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/pages/databases_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/pages/documentation_page.dart'; // Pages

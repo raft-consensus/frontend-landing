@@ -31,7 +31,7 @@ class DatabasesPage extends StatefulWidget {
 
 class _DatabasesPageState extends State<DatabasesPage> {
   String _selectedFilter = 'Todos'; // Filtro seleccionado ('Todos', 'PostgreSQL', etc.)
-  String _searchQuery = '';          // Cadena del buscador
+  final String _searchQuery = '';          // Cadena del buscador
 
   @override
   Widget build(BuildContext context) {

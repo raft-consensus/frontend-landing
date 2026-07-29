@@ -12,10 +12,10 @@ class PlatformPreview extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(19),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.055),
+          color: Colors.white.withValues(alpha: 0.055),
           borderRadius: BorderRadius.circular(21),
           border: Border.all(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
           ),
         ),
         child: const Column(
@@ -93,7 +93,7 @@ class PreviewInstance extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.065),
+        color: Colors.white.withValues(alpha: 0.065),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
@@ -102,7 +102,7 @@ class PreviewInstance extends StatelessWidget {
             width: 39,
             height: 39,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.17),
+              color: color.withValues(alpha: 0.17),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(

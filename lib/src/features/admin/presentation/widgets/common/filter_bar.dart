@@ -35,7 +35,7 @@ class FilterBar extends StatelessWidget {
           );
 
           final filter = DropdownButtonFormField<String>(
-            value: selectedFilter,
+            initialValue: selectedFilter,
             decoration: const InputDecoration(
               prefixIcon: Icon(Icons.filter_list_rounded),
             ),

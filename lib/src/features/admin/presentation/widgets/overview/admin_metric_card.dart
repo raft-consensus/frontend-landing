@@ -42,7 +42,7 @@ class AdminMetricCard extends StatelessWidget {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.09),
+                  color: color.withValues(alpha: 0.09),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// Columna individual de enlaces de navegación para el pie de página.
 /// 
 /// ¿Qué hace?: Renderiza un título destacado en blanco y una lista de enlaces verticales.
-/// ¿De dónde recibe datos?: String title y List<String> links desde FooterSection.
+/// ¿De dónde recibe datos?: String title y `List<String>` links desde FooterSection.
 /// ¿Hacia dónde va / Dónde se conecta?: Utilizado dentro del Wrap de columnas en FooterSection.
 class FooterColumn extends StatelessWidget {
   const FooterColumn({

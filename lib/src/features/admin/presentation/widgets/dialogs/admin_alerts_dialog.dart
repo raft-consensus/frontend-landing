@@ -70,7 +70,7 @@ class AlertItem extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: color.withOpacity(0.10),
+            backgroundColor: color.withValues(alpha: 0.10),
             child: Icon(
               Icons.notifications_active_outlined,
               color: color,

@@ -27,6 +27,7 @@ environment:
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
+
 dependencies:
   flutter:
     sdk: flutter
@@ -45,6 +46,9 @@ dependencies:
   flutter_riverpod: ^2.6.1
   # Paquete oficial multiplataforma (Web y Móvil) para abrir URLs externas
   url_launcher: ^6.3.0
+
+  flutter_web_plugins:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:

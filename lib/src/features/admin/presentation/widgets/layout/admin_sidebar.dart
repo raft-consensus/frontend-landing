@@ -42,10 +42,10 @@ class AdminSidebar extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 7),
               padding: const EdgeInsets.all(13),
               decoration: BoxDecoration(
-                color: AppColors.purple.withOpacity(0.13),
+                color: AppColors.purple.withValues(alpha: 0.13),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: AppColors.purple.withOpacity(0.22),
+                  color: AppColors.purple.withValues(alpha: 0.22),
                 ),
               ),
               child: const Row(
@@ -97,10 +97,10 @@ class AdminSidebar extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(13),
                 decoration: BoxDecoration(
-                  color: AppColors.orange.withOpacity(0.12),
+                  color: AppColors.orange.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: AppColors.orange.withOpacity(0.23),
+                    color: AppColors.orange.withValues(alpha: 0.23),
                   ),
                 ),
                 child: const Row(

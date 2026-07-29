@@ -3,7 +3,7 @@ import 'package:frontend_landing/src/features/landing/domain/entities/platform_m
 /// Modelo de datos (DTO) para la respuesta de métricas de la plataforma.
 /// 
 /// ¿Qué hace?: Extiende la entidad de dominio PlatformMetrics y añade la capacidad de ser creado a partir de JSON.
-/// ¿De dónde recibe datos?: Mapa JSON (Map<String, dynamic>) proveniente del servidor backend ASP.NET Core.
+/// ¿De dónde recibe datos?: Mapa JSON (`Map<String, dynamic>`) proveniente del servidor backend ASP.NET Core.
 /// ¿Hacia dónde va / Dónde se conecta?: Se utiliza en MetricsRemoteDataSource para deserializar la respuesta del API.
 class PlatformMetricsModel extends PlatformMetrics {
   const PlatformMetricsModel({

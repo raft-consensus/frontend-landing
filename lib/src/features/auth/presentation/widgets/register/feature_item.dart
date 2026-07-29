@@ -28,10 +28,10 @@ class FeatureItem extends StatelessWidget {
           width: 47,
           height: 47,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.07),
+            color: Colors.white.withValues(alpha: 0.07),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
             ),
           ),
           child: Icon(icon, color: AppColors.cyan, size: 23),

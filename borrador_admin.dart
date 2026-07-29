@@ -532,10 +532,10 @@ class AdminSidebar extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 7),
               padding: const EdgeInsets.all(13),
               decoration: BoxDecoration(
-                color: AppColors.purple.withOpacity(0.13),
+                color: AppColors.purple.withValues(alpha: 0.13),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: AppColors.purple.withOpacity(0.22),
+                  color: AppColors.purple.withValues(alpha: 0.22),
                 ),
               ),
               child: const Row(
@@ -587,10 +587,10 @@ class AdminSidebar extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(13),
                 decoration: BoxDecoration(
-                  color: AppColors.orange.withOpacity(0.12),
+                  color: AppColors.orange.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: AppColors.orange.withOpacity(0.23),
+                    color: AppColors.orange.withValues(alpha: 0.23),
                   ),
                 ),
                 child: const Row(
@@ -647,7 +647,7 @@ class AdminSidebarItem extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 5),
       child: Material(
         color: selected
-            ? AppColors.blue.withOpacity(0.19)
+            ? AppColors.blue.withValues(alpha: 0.19)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(13),
         child: InkWell(
@@ -662,7 +662,7 @@ class AdminSidebarItem extends StatelessWidget {
               borderRadius: BorderRadius.circular(13),
               border: selected
                   ? Border.all(
-                      color: AppColors.blue.withOpacity(0.22),
+                      color: AppColors.blue.withValues(alpha: 0.22),
                     )
                   : null,
             ),
@@ -1241,10 +1241,10 @@ class AdminWelcomeBanner extends StatelessWidget {
           final status = Container(
             padding: const EdgeInsets.all(17),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.07),
+              color: Colors.white.withValues(alpha: 0.07),
               borderRadius: BorderRadius.circular(17),
               border: Border.all(
-                color: Colors.white.withOpacity(0.10),
+                color: Colors.white.withValues(alpha: 0.10),
               ),
             ),
             child: Row(
@@ -1351,7 +1351,7 @@ class AdminMetricCard extends StatelessWidget {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.09),
+                  color: color.withValues(alpha: 0.09),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -1513,8 +1513,8 @@ class AdminChartPainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.blue.withOpacity(0.23),
-            AppColors.blue.withOpacity(0.01),
+            AppColors.blue.withValues(alpha: 0.23),
+            AppColors.blue.withValues(alpha: 0.01),
           ],
         ).createShader(Offset.zero & size),
     );
@@ -1668,7 +1668,7 @@ class EngineProgress extends StatelessWidget {
               value: count / total,
               minHeight: 7,
               color: color,
-              backgroundColor: color.withOpacity(0.09),
+              backgroundColor: color.withValues(alpha: 0.09),
             ),
           ),
         ],
@@ -1870,8 +1870,8 @@ class UserCard extends StatelessWidget {
               CircleAvatar(
                 radius: 25,
                 backgroundColor: user.suspended
-                    ? AppColors.red.withOpacity(0.10)
-                    : AppColors.blue.withOpacity(0.11),
+                    ? AppColors.red.withValues(alpha: 0.10)
+                    : AppColors.blue.withValues(alpha: 0.11),
                 child: Text(
                   initials(user.name),
                   style: TextStyle(
@@ -2754,7 +2754,7 @@ class AuditEventRow extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 19,
-                backgroundColor: style.color.withOpacity(0.10),
+                backgroundColor: style.color.withValues(alpha: 0.10),
                 child: Icon(
                   style.icon,
                   color: style.color,
@@ -3252,7 +3252,7 @@ class SettingSwitch extends StatelessWidget {
     return SwitchListTile(
       contentPadding: EdgeInsets.zero,
       value: value,
-      activeColor: dangerous ? AppColors.red : AppColors.blue,
+      activeThumbColor: dangerous ? AppColors.red : AppColors.blue,
       onChanged: onChanged,
       title: Text(
         title,
@@ -3373,7 +3373,7 @@ class UserDetailsDialog extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundColor: AppColors.blue.withOpacity(0.10),
+                    backgroundColor: AppColors.blue.withValues(alpha: 0.10),
                     child: Text(
                       initials(user.name),
                       style: const TextStyle(
@@ -3670,7 +3670,7 @@ class AlertItem extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: color.withOpacity(0.10),
+            backgroundColor: color.withValues(alpha: 0.10),
             child: Icon(
               Icons.notifications_active_outlined,
               color: color,
@@ -3800,7 +3800,7 @@ class AdminCard extends StatelessWidget {
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: AppColors.navy.withOpacity(0.035),
+            color: AppColors.navy.withValues(alpha: 0.035),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -3907,7 +3907,7 @@ class FilterBar extends StatelessWidget {
           );
 
           final filter = DropdownButtonFormField<String>(
-            value: selectedFilter,
+            initialValue: selectedFilter,
             decoration: const InputDecoration(
               prefixIcon: Icon(Icons.filter_list_rounded),
             ),
@@ -3963,7 +3963,7 @@ class ColoredIcon extends StatelessWidget {
       width: 47,
       height: 47,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Icon(icon, color: color, size: 24),
@@ -3991,7 +3991,7 @@ class StatusChip extends StatelessWidget {
         vertical: 6,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -4105,7 +4105,7 @@ class EmptyStateContent extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 33,
-          backgroundColor: AppColors.blue.withOpacity(0.10),
+          backgroundColor: AppColors.blue.withValues(alpha: 0.10),
           child: Icon(icon, color: AppColors.blue, size: 31),
         ),
         const SizedBox(height: 16),

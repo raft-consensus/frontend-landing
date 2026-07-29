@@ -21,7 +21,7 @@ class AdminSidebarItem extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 5),
       child: Material(
         color: selected
-            ? AppColors.blue.withOpacity(0.19)
+            ? AppColors.blue.withValues(alpha: 0.19)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(13),
         child: InkWell(
@@ -36,7 +36,7 @@ class AdminSidebarItem extends StatelessWidget {
               borderRadius: BorderRadius.circular(13),
               border: selected
                   ? Border.all(
-                      color: AppColors.blue.withOpacity(0.22),
+                      color: AppColors.blue.withValues(alpha: 0.22),
                     )
                   : null,
             ),

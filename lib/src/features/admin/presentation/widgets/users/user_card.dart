@@ -35,8 +35,8 @@ class UserCard extends StatelessWidget {
               CircleAvatar(
                 radius: 25,
                 backgroundColor: user.suspended
-                    ? AppColors.red.withOpacity(0.10)
-                    : AppColors.blue.withOpacity(0.11),
+                    ? AppColors.red.withValues(alpha: 0.10)
+                    : AppColors.blue.withValues(alpha: 0.11),
                 child: Text(
                   initials(user.name),
                   style: TextStyle(

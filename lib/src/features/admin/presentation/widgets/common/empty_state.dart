@@ -46,7 +46,7 @@ class EmptyStateContent extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 33,
-          backgroundColor: AppColors.blue.withOpacity(0.10),
+          backgroundColor: AppColors.blue.withValues(alpha: 0.10),
           child: Icon(icon, color: AppColors.blue, size: 31),
         ),
         const SizedBox(height: 16),

@@ -27,10 +27,10 @@ class SidebarItem extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         decoration: BoxDecoration(
-          color: selected ? AppColors.blue.withOpacity(0.10) : Colors.transparent, // Fondo azul pastel si está activo
+          color: selected ? AppColors.blue.withValues(alpha: 0.10) : Colors.transparent, // Fondo azul pastel si está activo
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? AppColors.blue.withOpacity(0.20) : Colors.transparent, // Borde fino si está activo
+            color: selected ? AppColors.blue.withValues(alpha: 0.20) : Colors.transparent, // Borde fino si está activo
           ),
         ),
         child: Row(

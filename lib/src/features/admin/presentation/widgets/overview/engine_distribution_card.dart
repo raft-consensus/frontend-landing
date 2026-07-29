@@ -122,7 +122,7 @@ class EngineProgress extends StatelessWidget {
               value: count / total,
               minHeight: 7,
               color: color,
-              backgroundColor: color.withOpacity(0.09),
+              backgroundColor: color.withValues(alpha: 0.09),
             ),
           ),
         ],

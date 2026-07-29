@@ -16,7 +16,7 @@ class RaftIllustration extends StatelessWidget {
         border: Border.all(color: const Color(0xFFDCE9F5)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.navy.withOpacity(0.12),
+            color: AppColors.navy.withValues(alpha: 0.12),
             blurRadius: 45,
             offset: const Offset(0, 22),
           ),
@@ -144,7 +144,7 @@ class ServerDisk extends StatelessWidget {
       padding: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color.withOpacity(0.72), color],
+          colors: [color.withValues(alpha: 0.72), color],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.navy, width: 4),

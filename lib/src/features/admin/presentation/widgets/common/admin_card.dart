@@ -25,7 +25,7 @@ class AdminCard extends StatelessWidget {
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: AppColors.navy.withOpacity(0.035),
+            color: AppColors.navy.withValues(alpha: 0.035),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),

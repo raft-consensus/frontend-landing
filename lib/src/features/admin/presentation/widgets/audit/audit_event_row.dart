@@ -31,7 +31,7 @@ class AuditEventRow extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 19,
-                backgroundColor: style.color.withOpacity(0.10),
+                backgroundColor: style.color.withValues(alpha: 0.10),
                 child: Icon(
                   style.icon,
                   color: style.color,

@@ -27,7 +27,7 @@ class DatabaseBackgroundPainter extends CustomPainter {
 
     // 2. Dibuja la cuadrícula sutil (grid tech)
     final gridPaint = Paint()
-      ..color = Colors.white.withOpacity(0.025)
+      ..color = Colors.white.withValues(alpha: 0.025)
       ..strokeWidth = 1;
 
     const spacing = 55.0;
@@ -55,7 +55,7 @@ class DatabaseBackgroundPainter extends CustomPainter {
 
     // Dibuja las líneas que conectan los nodos
     final linePaint = Paint()
-      ..color = AppColors.cyan.withOpacity(0.10)
+      ..color = AppColors.cyan.withValues(alpha: 0.10)
       ..strokeWidth = 1.2;
 
     for (int i = 0; i < nodes.length - 1; i++) {
@@ -70,13 +70,13 @@ class DatabaseBackgroundPainter extends CustomPainter {
       canvas.drawCircle(
         nodes[i],
         pulse + 5,
-        Paint()..color = AppColors.cyan.withOpacity(0.05),
+        Paint()..color = AppColors.cyan.withValues(alpha: 0.05),
       );
 
       canvas.drawCircle(
         nodes[i],
         pulse,
-        Paint()..color = AppColors.cyan.withOpacity(0.35),
+        Paint()..color = AppColors.cyan.withValues(alpha: 0.35),
       );
     }
 
@@ -101,11 +101,11 @@ class DatabaseBackgroundPainter extends CustomPainter {
     double width,
   ) {
     final paint = Paint()
-      ..color = AppColors.blue.withOpacity(0.08)
+      ..color = AppColors.blue.withValues(alpha: 0.08)
       ..style = PaintingStyle.fill;
 
     final stroke = Paint()
-      ..color = AppColors.cyan.withOpacity(0.13)
+      ..color = AppColors.cyan.withValues(alpha: 0.13)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.3;
 

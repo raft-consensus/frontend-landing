@@ -23,7 +23,7 @@ class SettingSwitch extends StatelessWidget {
     return SwitchListTile(
       contentPadding: EdgeInsets.zero,
       value: value,
-      activeColor: dangerous ? AppColors.red : AppColors.blue,
+      activeThumbColor: dangerous ? AppColors.red : AppColors.blue,
       onChanged: onChanged,
       title: Text(
         title,

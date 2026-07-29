@@ -47,7 +47,7 @@ class EnginePickerGrid extends StatelessWidget {
                   padding: const EdgeInsets.all(15),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? engine.color.withOpacity(0.08) // Fondo tenazmente coloreado si está activo
+                        ? engine.color.withValues(alpha: 0.08) // Fondo tenazmente coloreado si está activo
                         : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(

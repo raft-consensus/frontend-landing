@@ -22,7 +22,7 @@ class StatusBadge extends StatelessWidget {
         vertical: 6,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10), // Fondo translúcido suave del color de estado
+        color: color.withValues(alpha: 0.10), // Fondo translúcido suave del color de estado
         borderRadius: BorderRadius.circular(20), // Forma completamente ovalada (pill)
       ),
       // Texto con viñeta circular "●"

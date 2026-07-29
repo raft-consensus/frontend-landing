@@ -91,10 +91,10 @@ class StatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.cyan.withOpacity(0.1),
+        color: AppColors.cyan.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: AppColors.cyan.withOpacity(0.25),
+          color: AppColors.cyan.withValues(alpha: 0.25),
         ),
       ),
       child: const Row(

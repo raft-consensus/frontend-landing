@@ -121,8 +121,8 @@ class AdminChartPainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.blue.withOpacity(0.23),
-            AppColors.blue.withOpacity(0.01),
+            AppColors.blue.withValues(alpha: 0.23),
+            AppColors.blue.withValues(alpha: 0.01),
           ],
         ).createShader(Offset.zero & size),
     );

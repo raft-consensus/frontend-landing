@@ -16,7 +16,7 @@ class ColoredIcon extends StatelessWidget {
       width: 47,
       height: 47,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Icon(icon, color: color, size: 24),

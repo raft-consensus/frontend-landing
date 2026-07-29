@@ -28,7 +28,7 @@ class ToolCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.blue.withOpacity(0.10),
+                  color: AppColors.blue.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(tool.icon, color: AppColors.blue, size: 24),
