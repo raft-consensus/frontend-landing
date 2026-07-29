@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/features/admin/presentation/pages/admin_dashboard_page.dart';
+import 'package:frontend_landing/src/features/auth/presentation/pages/auth_callback_page.dart';
 import 'package:frontend_landing/src/features/auth/presentation/pages/login_page.dart';
 import 'package:frontend_landing/src/features/auth/presentation/pages/register_page.dart';
 import 'package:frontend_landing/src/features/auth/presentation/providers/auth_provider.dart';
@@ -27,6 +28,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
+      // Excepción: Si la ruta es el callback de OAuth, permitir que procese el token sin interferir
+      if (state.matchedLocation == '/auth/callback') {
+        return null;
+      }
+
       final authState = ref.read(authProvider);
       final isAuthenticated = authState.isAuthenticated;
       final isAuthRoute =
@@ -78,7 +84,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin',                            
         name: 'admin',                              
         builder: (context, state) => const AdminDashboard(),
+<<<<<<< HEAD
       )
+=======
+      ),
+      GoRoute(
+        path: '/auth/callback',
+        name: 'auth_callback',
+        builder: (context, state) => const AuthCallbackPage(),
+      ),
+>>>>>>> user/redir
     ],
   );
 });
