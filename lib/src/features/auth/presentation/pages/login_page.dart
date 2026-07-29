@@ -104,7 +104,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
     // 2. Abre la URL en el navegador del dispositivo (funciona en Web, Android e iOS)
     if (await canLaunchUrl(oauthUrl)) {
-      await launchUrl(oauthUrl, mode: LaunchMode.externalApplication);
+      await launchUrl(oauthUrl, mode: LaunchMode.platformDefault);
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
