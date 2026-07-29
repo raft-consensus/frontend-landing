@@ -57,8 +57,21 @@ class _CredentialsDialogState extends State<CredentialsDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Credenciales de conexión', style: TextStyle(color: AppColors.text, fontSize: 19, fontWeight: FontWeight.w900)),
-                        Text(instance.name, style: const TextStyle(color: AppColors.muted, fontSize: 12)),
+                        const Text(
+                          'Credenciales de conexión',
+                          style: TextStyle(
+                            color: AppColors.text,
+                            fontSize: 19,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        Text(
+                          instance.name,
+                          style: const TextStyle(
+                            color: AppColors.muted,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -71,10 +84,26 @@ class _CredentialsDialogState extends State<CredentialsDialog> {
               const SizedBox(height: 24),
 
               // Lista de credenciales con el sub-widget extraído CredentialItem
-              CredentialItem(label: 'Host', value: instance.host, onCopy: () => _copy('Host', instance.host)),
-              CredentialItem(label: 'Puerto', value: '${instance.port}', onCopy: () => _copy('Puerto', '${instance.port}')),
-              CredentialItem(label: 'Base de datos', value: instance.database, onCopy: () => _copy('Base de datos', instance.database)),
-              CredentialItem(label: 'Usuario', value: instance.username, onCopy: () => _copy('Usuario', instance.username)),
+              CredentialItem(
+                label: 'Host',
+                value: instance.host,
+                onCopy: () => _copy('Host', instance.host),
+              ),
+              CredentialItem(
+                label: 'Puerto',
+                value: '${instance.port}',
+                onCopy: () => _copy('Puerto', '${instance.port}'),
+              ),
+              CredentialItem(
+                label: 'Base de datos',
+                value: instance.database,
+                onCopy: () => _copy('Base de datos', instance.database),
+              ),
+              CredentialItem(
+                label: 'Usuario',
+                value: instance.username,
+                onCopy: () => _copy('Usuario', instance.username),
+              ),
 
               // Credencial de Contraseña con control de visibilidad
               CredentialItem(
@@ -85,8 +114,13 @@ class _CredentialsDialogState extends State<CredentialsDialog> {
                   children: [
                     IconButton(
                       tooltip: _showPassword ? 'Ocultar' : 'Mostrar',
-                      onPressed: () => setState(() => _showPassword = !_showPassword),
-                      icon: Icon(_showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                      onPressed: () =>
+                          setState(() => _showPassword = !_showPassword),
+                      icon: Icon(
+                        _showPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
                     ),
                     IconButton(
                       tooltip: 'Copiar',
@@ -100,7 +134,8 @@ class _CredentialsDialogState extends State<CredentialsDialog> {
 
               // Banner de advertencia con InfoBanner (common)
               const InfoBanner(
-                message: 'No compartas estas credenciales ni las publiques en repositorios de código.',
+                message:
+                    'No compartas estas credenciales ni las publiques en repositorios de código.',
                 icon: Icons.warning_amber_rounded,
                 backgroundColor: Color(0xFFFFF8E9),
                 borderColor: Color(0xFFFFE5AF),
@@ -109,22 +144,65 @@ class _CredentialsDialogState extends State<CredentialsDialog> {
               ),
               const SizedBox(height: 22),
 
-              // Botón de copia de cadena completa
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    final uri = '${instance.engine.toLowerCase()}://${instance.username}:$_password@${instance.host}:${instance.port}/${instance.database}';
-                    _copy('Cadena de conexión', uri);
-                  },
-                  icon: const Icon(Icons.link_rounded),
-                  label: const Text('Copiar cadena de conexión'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.navy,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
+              // Cadena de conexión visible formateada con botón de copia
+              Builder(
+                builder: (context) {
+                  final uri =
+                      '${instance.engine.toLowerCase()}://${instance.username}:$_password@${instance.host}:${instance.port}/${instance.database}';
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Cadena de conexión (URI):',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.text,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(
+                            0xFF1E293B,
+                          ), // Fondo oscuro tipo terminal
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: SelectableText(
+                                uri,
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  color: Color(
+                                    0xFF38BDF8,
+                                  ), // Texto cyan tipo código
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Copiar URI de conexión',
+                              onPressed: () => _copy('Cadena de conexión', uri),
+                              icon: const Icon(
+                                Icons.copy_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),

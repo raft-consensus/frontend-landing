@@ -72,12 +72,14 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
     // 3. Si el servidor responde exitosamente, navega al dashboard
     if (success) {
-      context.go('/dashboard');
+      // Consulta el rol del usuario autenticado ('Admin' o 'User')
+      final userRole = ref.read(authProvider).session?.user.role ?? 'User';
+      final destination = (userRole == 'Admin') ? '/admin' : '/dashboard';
+      // Navega al panel correspondiente según el rol
+      context.go(destination);
     } else {
-      // 4. Si el servidor rechaza las credenciales, muestra el mensaje de error
       final errorMessage =
-          ref.read(authProvider).errorMessage ??
-          'Correo o contraseña incorrectos';
+          ref.read(authProvider).errorMessage ?? 'Error al iniciar sesión.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
@@ -87,7 +89,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     }
   }
 
-    /// Maneja el inicio de sesión social redirigiendo al proveedor OAuth (Web y Móvil)
+  /// Maneja el inicio de sesión social redirigiendo al proveedor OAuth (Web y Móvil)
   Future<void> _socialLogin(String provider) async {
     final baseUrl = ApiClient.baseUrl;
     final providerEndpoint = provider.toLowerCase();

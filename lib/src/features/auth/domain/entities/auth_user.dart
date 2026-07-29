@@ -7,6 +7,7 @@ class AuthUser {
     required this.id,
     required this.name,
     required this.email,
+    this.role = 'User',
     this.avatarUrl,
     this.createdAt,
   });
@@ -14,6 +15,7 @@ class AuthUser {
   final String id;
   final String name;
   final String email;
+  final String role;
   final String? avatarUrl;
   final String? createdAt;
 }

@@ -48,7 +48,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Revisa al iniciar la app si existe un token guardado localmente.
   Future<void> checkAuthStatus() async {
-    state = state.copyWith(isLoading: true);
     final token = await repository.getSavedToken();
 
     if (token != null && token.isNotEmpty) {

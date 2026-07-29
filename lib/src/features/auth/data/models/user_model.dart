@@ -9,6 +9,7 @@ class UserModel extends AuthUser {
     required super.id,
     required super.name,
     required super.email,
+    super.role = 'User', // 'User' o 'Admin'
     super.avatarUrl,
     super.createdAt,
   });
@@ -19,6 +20,7 @@ class UserModel extends AuthUser {
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
       email: json['email'] as String? ?? '',
+      role: json['role'] as String? ?? 'User',
       avatarUrl: json['avatarUrl'] as String?,
       createdAt: json['createdAt'] as String?,
     );
