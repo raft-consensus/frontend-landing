@@ -84,16 +84,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin',                            
         name: 'admin',                              
         builder: (context, state) => const AdminDashboard(),
-<<<<<<< HEAD
-      )
-=======
       ),
       GoRoute(
         path: '/auth/callback',
         name: 'auth_callback',
         builder: (context, state) => const AuthCallbackPage(),
       ),
->>>>>>> user/redir
     ],
   );
 });
