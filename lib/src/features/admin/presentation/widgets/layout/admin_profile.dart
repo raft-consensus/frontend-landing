@@ -1,15 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
+import 'package:frontend_landing/src/features/auth/presentation/providers/auth_provider.dart'; // Provider de auth
 
-
-class AdminProfile extends StatelessWidget {
+/// Tarjeta inferior del Sidebar de Admin: avatar, nombre, rol y botón de logout.
+///
+/// ¿De dónde recibe datos?: Consume authProvider (Riverpod) para ejecutar el logout.
+/// ¿Hacia dónde va?: Al pulsar el ícono, cierra sesión y redirige a la landing page ('/').
+class AdminProfile extends ConsumerWidget {
   const AdminProfile({super.key});
 
+  Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
+    // 1. Cierra la sesión: borra el token y actualiza el estado global de auth.
+    await ref.read(authProvider.notifier).logout();
+
+    // 2. Verifica que el widget siga montado antes de navegar.
+    if (!context.mounted) return;
+
+    // 3. Redirige a la landing page.
+    context.go('/');
+  }
+
   @override
-  Widget build(BuildContext context) {
-    return const Row(
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Row(
       children: [
-        CircleAvatar(
+        const CircleAvatar(
           radius: 20,
           backgroundColor: Color(0xFF18375F),
           child: Text(
@@ -21,8 +38,8 @@ class AdminProfile extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(width: 11),
-        Expanded(
+        const SizedBox(width: 11),
+        const Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -45,10 +62,20 @@ class AdminProfile extends StatelessWidget {
             ],
           ),
         ),
-        Icon(
-          Icons.logout_rounded,
-          color: Color(0xFF8094AD),
-          size: 19,
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => _handleLogout(context, ref),
+            child: const Padding(
+              padding: EdgeInsets.all(6),
+              child: Icon(
+                Icons.logout_rounded,
+                color: Color(0xFF8094AD),
+                size: 19,
+              ),
+            ),
+          ),
         ),
       ],
     );

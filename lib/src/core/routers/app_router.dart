@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend_landing/src/features/admin/presentation/pages/admin_dashboard_page.dart';
 import 'package:frontend_landing/src/features/auth/presentation/pages/login_page.dart';
 import 'package:frontend_landing/src/features/auth/presentation/pages/register_page.dart';
 import 'package:frontend_landing/src/features/auth/presentation/providers/auth_provider.dart';
@@ -58,6 +59,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'dashboard',
         builder: (context, state) => const DashboardPage(),
       ),
+      GoRoute(                                    
+        path: '/admin',                            
+        name: 'admin',                              
+        builder: (context, state) => const AdminDashboard(),
+      )
+      
     ],
   );
 });
