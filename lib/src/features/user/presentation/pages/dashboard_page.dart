@@ -52,19 +52,29 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     );
   }
 
-  // Abre el modal de creación de BD
+    // Abre el modal de creación y notifica la respuesta real entregada por la API
   Future<void> _openCreateDatabaseDialog() async {
-    final result = await showDialog<DatabaseInstance>(
+    final result = await showDialog<Map<String, String>>(
       context: context,
       builder: (context) => const CreateDatabaseDialog(),
     );
-    if (result != null) {
-      // Envía la nueva instancia a la estación de radio de Riverpod
-      ref.read(userDatabasesProvider.notifier).addDatabase(result);
-      _showMessage('Instancia "${result.name}" creada con éxito.');
+
+    if (result != null && result['name'] != null && result['engine'] != null) {
+      final errorMessage = await ref
+          .read(userDatabasesProvider.notifier)
+          .createDatabase(name: result['name']!, engine: result['engine']!);
+
+      if (errorMessage == null) {
+        _showMessage('Instancia "${result['name']}" creada exitosamente en el servidor.');
+      } else {
+        _showMessage(
+          'No se pudo crear la instancia: $errorMessage',
+          success: false,
+        );
+      }
     }
   }
-
+  
   // Alternar estado encendido/apagado de una BD
   void _toggleInstanceState(String id) {
     ref.read(userDatabasesProvider.notifier).toggleInstanceState(id);

@@ -39,7 +39,7 @@ class ApiClient {
     return headers;
   }
 
-  /// Realiza peticiones HTTP POST codificando el cuerpo a JSON y leyendo la respuesta.
+  /// Realiza peticiones HTTP POST codificando el cuerpo a JSON y leyendo la respuesta del servidor.
   Future<Map<String, dynamic>> post(
     String endpoint, {
     required Map<String, dynamic> body,
@@ -54,17 +54,41 @@ class ApiClient {
         body: jsonEncode(body),
       );
 
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      // Si el servidor devuelve un cuerpo no-JSON en errores HTTP (ej: 403 Forbidden o 401)
+      Map<String, dynamic> responseData = {};
+      if (response.body.isNotEmpty) {
+        try {
+          responseData = jsonDecode(response.body) as Map<String, dynamic>;
+        } catch (_) {
+          // Si el cuerpo no es JSON, evalúa los códigos de estado HTTP estándar
+          if (response.statusCode == 403) {
+            throw ApiException(
+              'Acceso denegado (HTTP 403 Forbidden). La API requiere permisos de Administrador.',
+              statusCode: 403,
+            );
+          } else if (response.statusCode == 401) {
+            throw ApiException(
+              'Sesión no autorizada o expirada (HTTP 401 Unauthorized).',
+              statusCode: 401,
+            );
+          } else if (response.statusCode >= 400) {
+            throw ApiException(
+              'El servidor devolvió el código HTTP ${response.statusCode}.',
+              statusCode: response.statusCode,
+            );
+          }
+        }
+      }
 
       // Si el status HTTP es exitoso (200 - 299)
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return responseData;
       }
 
-      // Extrae el mensaje de error de la API (soporta respuestas estándar y errores de validación de ASP.NET)
+      // Extrae el mensaje de error entregado por la API
       String errorMessage = responseData['message'] as String? ?? '';
 
-      // Si message viene vacío, revisamos el mapa de errores de validación (errors)
+      // Si message viene vacío, revisamos el mapa de errores de validación de ASP.NET (errors)
       if (errorMessage.isEmpty && responseData['errors'] is Map) {
         final Map<String, dynamic> errorsMap =
             responseData['errors'] as Map<String, dynamic>;
@@ -76,15 +100,13 @@ class ApiClient {
         }
       }
 
-      // Si aún sigue vacío, intenta leer la propiedad title de ASP.NET
       if (errorMessage.isEmpty) {
         errorMessage =
-            responseData['title'] as String? ?? 'Ocurrió un error inesperado';
+            responseData['title'] as String? ??
+            'Ocurrió un error inesperado (HTTP ${response.statusCode})';
       }
 
       throw ApiException(errorMessage, statusCode: response.statusCode);
-    } on FormatException {
-      throw ApiException('Respuesta con formato JSON inválido del servidor');
     } catch (e) {
       if (e is ApiException) rethrow;
       throw ApiException('Error de conexión con el servidor: $e');

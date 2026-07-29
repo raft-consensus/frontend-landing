@@ -1,66 +1,86 @@
+// ==========================================
+// Archivo: lib/src/features/user/presentation/providers/user_databases_provider.dart
+// Qué hace: Administra el estado global de las bases de datos consumiendo únicamente la API real.
+// Dónde se conecta: Consumido por DashboardPage, OverviewPage, DatabasesPage y CreateDatabaseDialog.
+// De dónde recibe datos: Invoca a UserDatabasesRemoteDatasource y escucha el token de authProvider.
+// ==========================================
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend_landing/src/features/auth/presentation/providers/auth_provider.dart';
+import 'package:frontend_landing/src/features/user/data/datasources/user_databases_remote_datasource.dart';
 import 'package:frontend_landing/src/features/user/domain/entities/database_instance.dart';
 
-/// Notificador de estado que administra la lista global de bases de datos del usuario.
-/// 
-/// ¿Qué hace?: Permite listar, agregar, alternar encendido/apagado y eliminar instancias de BD.
-/// ¿De dónde trae datos?: Carga datos de prueba iniciales (preparado para conectar ApiClient).
-/// ¿Hacia dónde va / Dónde se conecta?: Consumido por DashboardPage, OverviewPage, DatabasesPage y CreateDatabaseDialog.
+/// Notificador de estado que administra la lista global de bases de datos del usuario desde la API
 class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
-  UserDatabasesNotifier() : super(_initialInstances);
-
-  // Lista inicial de instancias de prueba para el usuario
-  static final List<DatabaseInstance> _initialInstances = [
-    DatabaseInstance(
-      id: 'db-101',
-      name: 'api-tienda-demo',
-      engine: 'PostgreSQL',
-      version: '16',
-      database: 'tienda_db',
-      username: 'raft_user_84',
-      host: 'postgresql84.raftdb.dev',
-      port: 5432,
-      storageUsed: 148,
-      storageLimit: 512,
-      createdAt: '18 Jul 2026',
-      isRunning: true,
-    ),
-    DatabaseInstance(
-      id: 'db-102',
-      name: 'blog-universidad',
-      engine: 'MySQL',
-      version: '8.0',
-      database: 'blog_db',
-      username: 'raft_user_12',
-      host: 'mysql12.raftdb.dev',
-      port: 3306,
-      storageUsed: 92,
-      storageLimit: 512,
-      createdAt: '20 Jul 2026',
-      isRunning: true,
-    ),
-    DatabaseInstance(
-      id: 'db-103',
-      name: 'practica-consultas',
-      engine: 'MongoDB',
-      version: '7.0',
-      database: 'practica_db',
-      username: 'raft_user_44',
-      host: 'mongodb44.raftdb.dev',
-      port: 27017,
-      storageUsed: 86,
-      storageLimit: 512,
-      createdAt: '22 Jul 2026',
-      isRunning: false,
-    ),
-  ];
-
-  /// Agrega una nueva base de datos al inicio de la lista
-  void addDatabase(DatabaseInstance instance) {
-    state = [instance, ...state];
+  UserDatabasesNotifier({
+    required this.datasource,
+    required this.ref,
+  }) : super(const []) {
+    fetchDatabases();
   }
 
-  /// Alterna el estado encendido / apagado de una instancia por su ID
+  final UserDatabasesRemoteDatasource datasource;
+  final Ref ref;
+
+  /// Obtiene el token JWT del usuario actualmente autenticado
+  String? get _token => ref.read(authProvider).session?.accessToken;
+
+  /// Consulta las bases de datos reales desde el servidor backend (GET /api/me/databases)
+  Future<void> fetchDatabases() async {
+    final token = _token;
+    if (token == null || token.isEmpty) {
+      state = const [];
+      return;
+    }
+
+    try {
+      final models = await datasource.getMyDatabases(token);
+      state = models.map((m) => m.toEntity()).toList();
+    } catch (_) {
+      state = const []; // Si no hay datos o la respuesta está vacía, el estado queda limpio
+    }
+  }
+
+  /// Revela la contraseña real de una instancia (GET /api/me/databases/{id}/password)
+  Future<String?> revealPassword(int instanceId) async {
+    final token = _token;
+    if (token == null || token.isEmpty) return null;
+
+    try {
+      return await datasource.revealPassword(instanceId, token);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Solicita la creación de una nueva instancia mediante la API (POST /api/database-instances)
+    /// Solicita la creación de una nueva instancia a la API real y devuelve el mensaje de error si la API rechaza la solicitud
+  Future<String?> createDatabase({
+    required String name,
+    required String engine,
+  }) async {
+    final token = _token;
+    if (token == null || token.isEmpty) {
+      return 'Sesión no válida. Por favor inicia sesión de nuevo.';
+    }
+
+    try {
+      final newModel = await datasource.createDatabase(
+        name: name,
+        engine: engine,
+        token: token,
+      );
+      
+      // Si la API responde exitosamente, agrega el objeto real devuelto a la lista local
+      state = [newModel.toEntity(), ...state];
+      return null; // null significa éxito total
+    } catch (e) {
+      // Retorna el mensaje exacto entregado por la API para mostrárselo al usuario
+      return e.toString().replaceAll('ApiException: ', '');
+    }
+  }
+
+  /// Alterna el estado activo/inactivo de una instancia en la vista local
   void toggleInstanceState(String id) {
     state = [
       for (final db in state)
@@ -84,14 +104,15 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
     ];
   }
 
-  /// Elimina una instancia por su ID
+  /// Elimina visualmente una instancia por su ID
   void deleteDatabase(String id) {
     state = state.where((db) => db.id != id).toList();
   }
 }
 
-/// Proveedor global de Riverpod para consultar y modificar las BDs del usuario
+/// Proveedor global de Riverpod para consultar y refrescar las BDs del usuario
 final userDatabasesProvider =
     StateNotifierProvider<UserDatabasesNotifier, List<DatabaseInstance>>((ref) {
-  return UserDatabasesNotifier();
+  final datasource = ref.watch(userDatabasesRemoteDatasourceProvider);
+  return UserDatabasesNotifier(datasource: datasource, ref: ref);
 });

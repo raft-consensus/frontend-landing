@@ -22,10 +22,34 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
   final _nameController = TextEditingController();
 
   final List<DatabaseEngine> _engines = const [
-    DatabaseEngine(name: 'PostgreSQL', version: '16', port: 5432, color: Color(0xFF3977A8), icon: Icons.storage_rounded),
-    DatabaseEngine(name: 'MySQL', version: '8.0', port: 3306, color: AppColors.blue, icon: Icons.dns_rounded),
-    DatabaseEngine(name: 'SQL Server', version: '2022', port: 1433, color: AppColors.red, icon: Icons.table_chart_rounded),
-    DatabaseEngine(name: 'MongoDB', version: '7.0', port: 27017, color: AppColors.green, icon: Icons.eco_rounded),
+    DatabaseEngine(
+      name: 'PostgreSQL',
+      version: '16',
+      port: 5432,
+      color: Color(0xFF3977A8),
+      icon: Icons.storage_rounded,
+    ),
+    DatabaseEngine(
+      name: 'MySQL',
+      version: '8.0',
+      port: 3306,
+      color: AppColors.blue,
+      icon: Icons.dns_rounded,
+    ),
+    DatabaseEngine(
+      name: 'SQL Server',
+      version: '2022',
+      port: 1433,
+      color: AppColors.red,
+      icon: Icons.table_chart_rounded,
+    ),
+    DatabaseEngine(
+      name: 'MongoDB',
+      version: '7.0',
+      port: 27017,
+      color: AppColors.green,
+      icon: Icons.eco_rounded,
+    ),
   ];
 
   int _selectedEngine = 0;
@@ -40,33 +64,15 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
   Future<void> _create() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Dispara el estado de carga visual en el botón
     setState(() => _creating = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
-
-    if (!mounted) return;
 
     final engine = _engines[_selectedEngine];
-    final slug = _nameController.text.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
-    final random = math.Random().nextInt(80) + 10;
 
-    // Cierra el modal retornando la instancia creada a la página
-    Navigator.pop(
-      context,
-      DatabaseInstance(
-        id: 'db-${DateTime.now().millisecondsSinceEpoch}',
-        name: _nameController.text.trim(),
-        engine: engine.name,
-        version: engine.version,
-        database: '${slug}_db',
-        username: 'raft_user_$random',
-        host: '${engine.name.toLowerCase().replaceAll(' ', '')}$random.raftdb.dev',
-        port: engine.port,
-        storageUsed: 0,
-        storageLimit: 512,
-        createdAt: '23 Jul 2026',
-      ),
-    );
+    // Cierra el modal retornando los datos requeridos para la API al Dashboard
+    Navigator.pop(context, {
+      'name': _nameController.text.trim(),
+      'engine': engine.name,
+    });
   }
 
   @override
@@ -94,13 +100,28 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Crear nueva instancia', style: TextStyle(color: AppColors.text, fontSize: 20, fontWeight: FontWeight.w900)),
-                          Text('Selecciona el motor para tu proyecto.', style: TextStyle(color: AppColors.muted, fontSize: 12)),
+                          Text(
+                            'Crear nueva instancia',
+                            style: TextStyle(
+                              color: AppColors.text,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          Text(
+                            'Selecciona el motor para tu proyecto.',
+                            style: TextStyle(
+                              color: AppColors.muted,
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     IconButton(
-                      onPressed: _creating ? null : () => Navigator.pop(context),
+                      onPressed: _creating
+                          ? null
+                          : () => Navigator.pop(context),
                       icon: const Icon(Icons.close_rounded),
                     ),
                   ],
@@ -120,8 +141,10 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
                     prefixIcon: Icon(Icons.edit_outlined),
                   ),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Ingresa un nombre para la instancia.';
-                    if (value.trim().length < 3) return 'El nombre debe tener al menos 3 caracteres.';
+                    if (value == null || value.trim().isEmpty)
+                      return 'Ingresa un nombre para la instancia.';
+                    if (value.trim().length < 3)
+                      return 'El nombre debe tener al menos 3 caracteres.';
                     return null;
                   },
                 ),
@@ -136,13 +159,15 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
                   engines: _engines,
                   selectedIndex: _selectedEngine,
                   disabled: _creating,
-                  onSelectEngine: (index) => setState(() => _selectedEngine = index),
+                  onSelectEngine: (index) =>
+                      setState(() => _selectedEngine = index),
                 ),
                 const SizedBox(height: 23),
 
                 // Uso de Widget Reutilizable: InfoBanner (common)
                 const InfoBanner(
-                  message: 'La instancia gratuita incluye 512 MB de almacenamiento y acceso remoto.',
+                  message:
+                      'La instancia gratuita incluye 512 MB de almacenamiento y acceso remoto.',
                   icon: Icons.info_outline_rounded,
                   iconColor: AppColors.blue,
                 ),
@@ -153,7 +178,9 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: _creating ? null : () => Navigator.pop(context),
+                      onPressed: _creating
+                          ? null
+                          : () => Navigator.pop(context),
                       child: const Text('Cancelar'),
                     ),
                     const SizedBox(width: 10),
@@ -161,10 +188,20 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
                     FilledButton.icon(
                       onPressed: _creating ? null : _create,
                       icon: _creating
-                          ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          ? const SizedBox(
+                              width: 17,
+                              height: 17,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
                           : const Icon(Icons.rocket_launch_rounded),
                       label: Text(_creating ? 'Creando...' : 'Crear instancia'),
-                      style: FilledButton.styleFrom(backgroundColor: AppColors.navy, foregroundColor: Colors.white),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.navy,
+                        foregroundColor: Colors.white,
+                      ),
                     ),
                   ],
                 ),
