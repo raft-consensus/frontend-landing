@@ -8,6 +8,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/core/network/api_client.dart';
 import 'package:frontend_landing/src/features/user/data/models/database_model.dart';
+import 'package:frontend_landing/src/features/user/data/models/provisioning_result_model.dart';
 
 /// Fuente de datos remota encargada de consumir los endpoints de bases de datos del usuario
 class UserDatabasesRemoteDatasource {
@@ -40,37 +41,16 @@ class UserDatabasesRemoteDatasource {
     return data?['password'] as String? ?? '';
   }
 
-  /// Envía la solicitud para crear una instancia de SQL Server en nuestra VPS (POST /api/database-instances)
-  Future<DatabaseModel> createDatabase({
-    required String name,
-    required String engine,
-    required String token,
-  }) async {
-    // Genera un nombre de base de datos y usuario seguros a partir del nombre ingresado
-    final slug = name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
-    final isSqlServer = engine.toLowerCase().contains('sql');
-
-    final body = {
-      'host': 'api.raft.andrescortes.dev',
-      'port': isSqlServer
-          ? 1433
-          : 3306, // Puerto 1433 asignado a nuestra VPS para SQL Server
-      'databaseName': '${slug}_db',
-      'databaseUser': 'user_$slug',
-      'engine': engine,
-      'status': 'Active',
-      'usedSpaceBytes': 0,
-      'maxSpaceBytes': 524288000, // 512 MB de espacio limite
-    };
-
-    final response = await apiClient.post(
-      '/api/database-instances',
-      body: body,
-      token: token,
-    );
+  /// Solicita el aprovisionamiento de una nueva instancia MySQL propia (POST /api/me/databases).
+  ///
+  /// A diferencia del endpoint admin (/api/database-instances), este NO recibe body: el
+  /// nombre, usuario y contraseña los genera el servidor (ver MySqlProvisioningService en
+  /// el backend). El userId se resuelve del JWT, nunca se envía en el request.
+  Future<ProvisioningResultModel> createDatabase({required String token}) async {
+    final response = await apiClient.post('/api/me/databases', token: token);
 
     final data = response['data'] as Map<String, dynamic>;
-    return DatabaseModel.fromJson(data);
+    return ProvisioningResultModel.fromJson(data);
   }
 }
 

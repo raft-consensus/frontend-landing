@@ -42,7 +42,7 @@ class ApiClient {
   /// Realiza peticiones HTTP POST codificando el cuerpo a JSON y leyendo la respuesta del servidor.
   Future<Map<String, dynamic>> post(
     String endpoint, {
-    required Map<String, dynamic> body,
+    Map<String, dynamic>? body,
     String? token,
   }) async {
     final url = Uri.parse('$baseUrl$endpoint');
@@ -51,7 +51,7 @@ class ApiClient {
       final response = await _client.post(
         url,
         headers: _buildHeaders(token),
-        body: jsonEncode(body),
+        body: jsonEncode(body ?? const {}),
       );
 
       // Si el servidor devuelve un cuerpo no-JSON en errores HTTP (ej: 403 Forbidden o 401)

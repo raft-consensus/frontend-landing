@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/create_database_dialog.dart'; // Dialogs
 import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/notifications_dialog.dart'; // Dialogs
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/raft_logo.dart'; // Layout
 
 /// ¿Qué hace?: Barra superior responsiva con buscador, campana de notificaciones, botón "Nueva Base de Datos" y menú hamburguesa para móvil.
-/// ¿De dónde trae?: Trae AppColors (core), CreateDatabaseDialog y NotificationsDialog (dialogs), y RaftLogo (layout).
+/// ¿De dónde trae?: Trae AppColors (core), NotificationsDialog (dialogs), y RaftLogo (layout). CreateDatabaseDialog se abre desde DashboardPage vía onCreateDatabase.
 /// ¿Hacia dónde va / Cómo se conecta?: Se coloca en la parte superior de DashboardPage.
 class DashboardTopbar extends StatelessWidget {
   const DashboardTopbar({
@@ -88,18 +87,10 @@ class DashboardTopbar extends StatelessWidget {
           ),
           const SizedBox(width: 8),
 
-          // Botón principal azúl "+ Nueva Base de Datos" que abre CreateDatabaseDialog
+          // Botón principal azúl "+ Nueva Base de Datos": delega en DashboardPage, que es
+          // quien abre CreateDatabaseDialog una sola vez y orquesta la creación real.
           FilledButton.icon(
-            onPressed: () async {
-              final result = await showDialog(
-                context: context,
-                builder: (context) => const CreateDatabaseDialog(), // Llama a CreateDatabaseDialog de dialogs/
-              );
-
-              if (result != null) {
-                onCreateDatabase(); // Notifica la creación a la página principal
-              }
-            },
+            onPressed: onCreateDatabase,
             icon: const Icon(Icons.add_rounded, size: 18),
             label: Text(isDesktop ? 'Nueva base de datos' : 'Nueva'),
             style: FilledButton.styleFrom(
