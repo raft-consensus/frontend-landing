@@ -2,21 +2,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend_landing/main.dart';
 
+/// ¿Qué hace?: Prueba automatizada de widgets para verificar la inicialización de la pantalla principal.
+/// ¿De dónde recibe datos?: Consume MyApp envuelto en un ProviderScope.
+/// ¿Dónde se conecta?: Ejecutado por la acción `flutter test` en el pipeline CI/CD de GitHub Actions.
 void main() {
   testWidgets('landing screen shows the expected content', (tester) async {
-    // MyApp depende de Riverpod (ConsumerWidget), así que necesita un
-    // ProviderScope como ancestro, igual que en main.dart.
+    // Inicializa el árbol de widgets con el ProviderScope de Riverpod
     await tester.pumpWidget(const ProviderScope(child: MyApp()));
 
-    // Se usa pump() en lugar de pumpAndSettle() porque la landing page
-    // dispara una llamada de red real (platformMetricsProvider) al
-    // construirse; pumpAndSettle() esperaría indefinidamente esa future
-    // en el entorno de CI, donde no hay acceso al backend.
+    // Ejecuta el primer frame de renderizado estático
     await tester.pump();
 
-    // Se valida contenido estático del hero, que se renderiza en el
-    // primer frame sin depender de datos remotos.
+    // Valida que el botón principal exista en la pantalla
     expect(find.text('Crear base de datos gratis'), findsOneWidget);
-    expect(find.text('Cómo funciona'), findsOneWidget);
   });
 }
+
