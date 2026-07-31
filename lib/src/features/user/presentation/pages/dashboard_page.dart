@@ -8,6 +8,7 @@ import 'package:frontend_landing/src/features/user/presentation/pages/documentat
 import 'package:frontend_landing/src/features/user/presentation/pages/overview_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/pages/tools_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/providers/user_databases_provider.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/create_database_dialog.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_sidebar.dart'; // Layout
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_topbar.dart'; // Layout
 
@@ -51,44 +52,26 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     );
   }
 
-  // ¿Qué hace?: Abre el modal de confirmación y procesa el resultado del aprovisionamiento.
+  // ¿Qué hace?: Abre el modal oficial CreateDatabaseDialog y procesa la respuesta devuelta por el servidor backend C#.
+  /// Abre el modal oficial para la selección de motor e inicio de aprovisionamiento
   Future<void> _openCreateDatabaseDialog() async {
-    final confirmed = await showDialog<bool>(
+    // Abre el modal oficial CreateDatabaseDialog
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text('Confirmar Aprovisionamiento'),
-        content: const Text(
-          'Se aprovisionará automáticamente una nueva instancia de SQL Server en el servidor.\n\n'
-          'La contraseña asignada se mostrará una sola vez.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.navy),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Aprovisionar SQL Server',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
+      builder: (context) => const CreateDatabaseDialog(),
     );
-    if (confirmed == true) {
+    // Si el usuario seleccionó un motor activo e ingresó un nombre válido
+    if (result != null && result.containsKey('engine')) {
+      final engineName = result['engine'] as String;
       _showMessage('Procesando solicitud de aprovisionamiento...');
-      // Llama la función especificando el motor "SQL Server"
-      final result = await ref
+      // Petición al backend con el motor seleccionado (ej: "SQL Server")
+      final response = await ref
           .read(userDatabasesProvider.notifier)
-          .createDatabase(engine: 'SQL Server');
-      if (result.error == null && result.data != null) {
-        final data = result.data!;
-        
-        // Muestra modal con la contraseña de única visualización
+          .createDatabase(engine: engineName);
+      if (response.error == null && response.data != null) {
+        final data = response.data!;
         if (mounted) {
+          // Modal de única visualización para guardar la contraseña generada
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -112,13 +95,13 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         }
       } else {
         _showMessage(
-          'No se pudo crear la instancia: ${result.error}',
+          'No se pudo crear la instancia: ${response.error}',
           success: false,
         );
       }
     }
   }
-
+  
   // Alternar estado encendido/apagado de una BD
   void _toggleInstanceState(String id) {
     ref.read(userDatabasesProvider.notifier).toggleInstanceState(id);

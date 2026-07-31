@@ -50,26 +50,26 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   final AuthRepositoryImpl repository;
 
-  /// Verifica si existe un token guardado localmente al iniciar la app
+  // ¿Qué hace?: Verifica la validez y expiración del Token JWT guardado en el dispositivo.
+  /// Verifica si existe un token guardado localmente y valida que no haya expirado
   Future<void> checkAuthStatus() async {
     final token = await repository.getSavedToken();
-
     if (token != null && token.isNotEmpty) {
+      final isExpired = _isJwtExpired(token);
+      if (isExpired) {
+        // Si el token expiró, limpia el almacenamiento y cierra la sesión
+        await repository.logout();
+        state = state.copyWith(isLoading: false, isAuthenticated: false);
+        return;
+      }
       final user = _parseUserFromJwt(token, 'Local');
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
-        session: AuthSession(
-          accessToken: token,
-          provider: 'Local',
-          user: user,
-        ),
+        session: AuthSession(accessToken: token, provider: 'Local', user: user),
       );
     } else {
-      state = state.copyWith(
-        isLoading: false,
-        isAuthenticated: false,
-      );
+      state = state.copyWith(isLoading: false, isAuthenticated: false);
     }
   }
 
@@ -86,11 +86,28 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       return true;
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
       return false;
+    }
+  }
+
+  /// Verifica si la fecha de expiración ('exp') del JWT ya se cumplió
+  bool _isJwtExpired(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return true;
+      final payload = parts[1];
+      final normalized = base64Url.normalize(payload);
+      final decodedString = utf8.decode(base64Url.decode(normalized));
+      final Map<String, dynamic> claims = jsonDecode(decodedString);
+      if (claims.containsKey('exp')) {
+        final expTimestamp = claims['exp'] as int;
+        final expiryDate = DateTime.fromMillisecondsSinceEpoch(expTimestamp * 1000);
+        return DateTime.now().isAfter(expiryDate); // Devuelve true si el token ya venció
+      }
+      return false;
+    } catch (_) {
+      return true; // Ante cualquier error de parseo se asume expirado
     }
   }
 
@@ -107,10 +124,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       return true;
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
       return false;
     }
   }
@@ -158,24 +172,28 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final Map<String, dynamic> claims = jsonDecode(decodedString);
 
       // Mapeo del claim de Rol
-      final roleClaim = claims['role'] ??
+      final roleClaim =
+          claims['role'] ??
           claims['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ??
           'User';
 
       // Mapeo del claim de ID
-      final idClaim = claims['sub'] ??
+      final idClaim =
+          claims['sub'] ??
           claims['nameid'] ??
           claims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ??
           '0';
 
       // Mapeo del claim de Nombre
-      final nameClaim = claims['name'] ??
+      final nameClaim =
+          claims['name'] ??
           claims['unique_name'] ??
           claims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
           'Usuario $provider';
 
       // Mapeo del claim de Email
-      final emailClaim = claims['email'] ??
+      final emailClaim =
+          claims['email'] ??
           claims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ??
           '';
 

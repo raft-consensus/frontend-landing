@@ -5,6 +5,7 @@
 // De dónde recibe datos: Invoca a UserDatabasesRemoteDatasource y escucha el token de authProvider.
 // ==========================================
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend_landing/src/features/user/data/datasources/user_databases_remote_datasource.dart';
@@ -23,34 +24,54 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
   /// Obtiene el token JWT del usuario actualmente autenticado
   String? get _token => ref.read(authProvider).session?.accessToken;
 
-  /// Consulta las bases de datos reales desde el servidor backend (GET /api/me/databases)
-  Future<void> fetchDatabases() async {
+  /// Consulta las bases de datos reales desde el servidor backend
+  Future<String?> fetchDatabases() async {
     final token = _token;
     if (token == null || token.isEmpty) {
       state = const [];
-      return;
+      return null;
     }
-
     try {
       final models = await datasource.getMyDatabases(token);
       state = models.map((m) => m.toEntity()).toList();
-    } catch (_) {
-      state =
-          const []; // Si no hay datos o la respuesta está vacía, el estado queda limpio
+      return null; // Éxito
+    } catch (e, stackTrace) {
+      // 1. Log técnico preciso en la consola del desarrollador
+      debugPrint('[UserDatabasesNotifier] Fallo al consultar GET /api/me/databases: $e');
+      debugPrint('[StackTrace] $stackTrace');
+      // Mantiene el estado anterior para no borrar lo que el usuario estaba viendo
+      final errorMessage = e.toString().replaceAll('ApiException: ', '');
+      return errorMessage.isEmpty 
+          ? 'Error al conectar con el servidor de bases de datos.' 
+          : errorMessage;
     }
   }
 
-  /// Revela la contraseña real de una instancia (GET /api/me/databases/{id}/password)
-  Future<String?> revealPassword(int instanceId) async {
+  /// Revela la contraseña real de una instancia
+  /// Imprime el error exacto en consola para el dev y retorna un mensaje amable para el usuario
+  Future<({String? password, String? error})> revealPassword(int instanceId) async {
     final token = _token;
-    if (token == null || token.isEmpty) return null;
-
+    if (token == null || token.isEmpty) {
+      return (password: null, error: 'Sesión expirada. Inicia sesión de nuevo.');
+    }
     try {
-      return await datasource.revealPassword(instanceId, token);
-    } catch (e) {
-      return null;
+      final password = await datasource.revealPassword(instanceId, token);
+      return (password: password, error: null);
+    } catch (e, stackTrace) {
+      // 1. Registro técnico detallado en la consola del desarrollador (Terminal / Chrome DevTools)
+      debugPrint('[UserDatabasesNotifier] Error al revelar contraseña para ID $instanceId: $e');
+      debugPrint('[StackTrace] $stackTrace');
+      // 2. Mensaje controlado y limpio que se retornará hacia la interfaz de usuario (UI)
+      final userMessage = e.toString().replaceAll('ApiException: ', '');
+      return (
+        password: null,
+        error: userMessage.isEmpty 
+            ? 'No se pudo obtener la contraseña. Intenta nuevamente.' 
+            : userMessage,
+      );
     }
   }
+
 
   // ¿Qué hace?: Notificador Riverpod para la gestión de estado de BDs.
 // ¿De dónde recibe datos?: Invocado desde los botones de la interfaz de usuario.

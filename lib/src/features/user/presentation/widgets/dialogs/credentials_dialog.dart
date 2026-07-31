@@ -37,36 +37,38 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
   /// Retorna la contraseña activa o la máscara de ocultación
   String get _displayPassword => _realPassword ?? '••••••••••••••';
 
+  // ¿Qué hace?: Solcita la contraseña a la API y notifica al usuario si existe algún error de límite o red.
   /// Solicita la contraseña a la API únicamente cuando el usuario presiona "Mostrar"
   Future<void> _togglePasswordVisibility() async {
     if (_showPassword) {
       setState(() => _showPassword = false);
       return;
     }
-
     if (_realPassword != null) {
       setState(() => _showPassword = true);
       return;
     }
-
     setState(() => _loadingPassword = true);
-
     final instanceIdInt = int.tryParse(widget.instance.id) ?? 0;
-    final password = await ref
+    // Llama al notifier de Riverpod y desempaqueta la respuesta del servidor
+    final result = await ref
         .read(userDatabasesProvider.notifier)
         .revealPassword(instanceIdInt);
-
     if (!mounted) return;
-
-    if (password != null && password.isNotEmpty) {
+    if (result.password != null && result.password!.isNotEmpty) {
+      // Si la API devolvió la contraseña con éxito
       setState(() {
-        _realPassword = password;
+        _realPassword = result.password;
         _showPassword = true;
         _loadingPassword = false;
       });
     } else {
+      // Si ocurrió una falla (ej: Rate limit de 5 peticiones por minuto o fallo de red)
       setState(() => _loadingPassword = false);
-      widget.onMessage('No se pudo obtener la contraseña del servidor.', success: false);
+      widget.onMessage(
+        result.error ?? 'No se pudo obtener la contraseña del servidor.',
+        success: false,
+      );
     }
   }
 
@@ -96,10 +98,26 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
               const SizedBox(height: 20),
 
               // 2. Lista de credenciales de conexión
-              CredentialItem(label: 'Host', value: instance.host, onCopy: () => _copy('Host', instance.host)),
-              CredentialItem(label: 'Puerto', value: '${instance.port}', onCopy: () => _copy('Puerto', '${instance.port}')),
-              CredentialItem(label: 'Base de datos', value: instance.database, onCopy: () => _copy('Base de datos', instance.database)),
-              CredentialItem(label: 'Usuario', value: instance.username, onCopy: () => _copy('Usuario', instance.username)),
+              CredentialItem(
+                label: 'Host',
+                value: instance.host,
+                onCopy: () => _copy('Host', instance.host),
+              ),
+              CredentialItem(
+                label: 'Puerto',
+                value: '${instance.port}',
+                onCopy: () => _copy('Puerto', '${instance.port}'),
+              ),
+              CredentialItem(
+                label: 'Base de datos',
+                value: instance.database,
+                onCopy: () => _copy('Base de datos', instance.database),
+              ),
+              CredentialItem(
+                label: 'Usuario',
+                value: instance.username,
+                onCopy: () => _copy('Usuario', instance.username),
+              ),
 
               // 3. Fila de la Contraseña con control de visibilidad
               _buildPasswordItem(),
@@ -107,7 +125,8 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
 
               // 4. Banner de advertencia de seguridad
               const InfoBanner(
-                message: 'No compartas estas credenciales ni las publiques en repositorios.',
+                message:
+                    'No compartas estas credenciales ni las publiques en repositorios.',
                 icon: Icons.warning_amber_rounded,
                 backgroundColor: Color(0xFFFFF8E9),
                 borderColor: Color(0xFFFFE5AF),
@@ -138,8 +157,18 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Credenciales de conexión', style: TextStyle(color: AppColors.text, fontSize: 18, fontWeight: FontWeight.w900)),
-              Text(title, style: const TextStyle(color: AppColors.muted, fontSize: 12)),
+              const Text(
+                'Credenciales de conexión',
+                style: TextStyle(
+                  color: AppColors.text,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Text(
+                title,
+                style: const TextStyle(color: AppColors.muted, fontSize: 12),
+              ),
             ],
           ),
         ),
@@ -160,12 +189,20 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (_loadingPassword)
-            const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
           else
             IconButton(
               tooltip: _showPassword ? 'Ocultar' : 'Mostrar',
               onPressed: _togglePasswordVisibility,
-              icon: Icon(_showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+              icon: Icon(
+                _showPassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+              ),
             ),
           IconButton(
             tooltip: 'Copiar',
@@ -184,7 +221,14 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Cadena de conexión (URI):', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.text, fontSize: 13)),
+        const Text(
+          'Cadena de conexión (URI):',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.text,
+            fontSize: 13,
+          ),
+        ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -197,13 +241,22 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
               Expanded(
                 child: SelectableText(
                   uri,
-                  style: const TextStyle(fontFamily: 'monospace', color: Color(0xFF38BDF8), fontSize: 12, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    color: Color(0xFF38BDF8),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               IconButton(
                 tooltip: 'Copiar URI',
                 onPressed: () => _copy('Cadena de conexión', uri),
-                icon: const Icon(Icons.copy_rounded, color: Colors.white, size: 18),
+                icon: const Icon(
+                  Icons.copy_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
               ),
             ],
           ),
