@@ -8,7 +8,6 @@ import 'package:frontend_landing/src/features/user/presentation/pages/documentat
 import 'package:frontend_landing/src/features/user/presentation/pages/overview_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/pages/tools_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/providers/user_databases_provider.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/create_database_dialog.dart'; // Dialogs
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_sidebar.dart'; // Layout
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_topbar.dart'; // Layout
 
@@ -52,20 +51,45 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     );
   }
 
-    // Abre el modal de creación y notifica la respuesta real entregada por la API
+  /// Abre un modal de confirmación antes de enviar la solicitud de aprovisionamiento a la API
   Future<void> _openCreateDatabaseDialog() async {
-    final result = await showDialog<Map<String, String>>(
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => const CreateDatabaseDialog(),
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.cyan,
+        title: const Text('Confirmar Aprovisionamiento'),
+        content: const Text(
+          'Se aprovisionará automáticamente una nueva instancia de MySQL en el servidor VPS.\n\n'
+          'Recuerda que el servidor permite un máximo de 3 solicitudes cada 10 minutos.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.navy),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Aprovisionar Ahora',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
     );
 
-    if (result != null && result['name'] != null && result['engine'] != null) {
+    // Solo si el usuario presiona "Aprovisionar Ahora", se envía la llamada HTTP
+    if (confirmed == true) {
+      _showMessage('Procesando solicitud de aprovisionamiento...');
       final errorMessage = await ref
           .read(userDatabasesProvider.notifier)
-          .createDatabase(name: result['name']!, engine: result['engine']!);
+          .createDatabase();
 
       if (errorMessage == null) {
-        _showMessage('Instancia "${result['name']}" creada exitosamente en el servidor.');
+        _showMessage(
+          'Base de datos aprovisionada exitosamente en el servidor.',
+        );
       } else {
         _showMessage(
           'No se pudo crear la instancia: $errorMessage',
@@ -74,7 +98,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       }
     }
   }
-  
+
   // Alternar estado encendido/apagado de una BD
   void _toggleInstanceState(String id) {
     ref.read(userDatabasesProvider.notifier).toggleInstanceState(id);

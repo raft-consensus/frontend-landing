@@ -40,37 +40,28 @@ class UserDatabasesRemoteDatasource {
     return data?['password'] as String? ?? '';
   }
 
-  /// Envía la solicitud para crear una instancia de SQL Server en nuestra VPS (POST /api/database-instances)
-  Future<DatabaseModel> createDatabase({
-    required String name,
-    required String engine,
-    required String token,
-  }) async {
-    // Genera un nombre de base de datos y usuario seguros a partir del nombre ingresado
-    final slug = name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
-    final isSqlServer = engine.toLowerCase().contains('sql');
-
-    final body = {
-      'host': 'api.raft.andrescortes.dev',
-      'port': isSqlServer
-          ? 1433
-          : 3306, // Puerto 1433 asignado a nuestra VPS para SQL Server
-      'databaseName': '${slug}_db',
-      'databaseUser': 'user_$slug',
-      'engine': engine,
-      'status': 'Active',
-      'usedSpaceBytes': 0,
-      'maxSpaceBytes': 524288000, // 512 MB de espacio limite
-    };
-
+  /// ¿Hacia dónde se conecta?: Backend ASP.NET Core (`POST /api/me/databases`).
+  Future<DatabaseModel> createDatabase({required String token}) async {
+    // El endpoint de autoservicio no requiere cuerpo en el request; la VPS genera la BD y las credenciales automáticamente.
     final response = await apiClient.post(
-      '/api/database-instances',
-      body: body,
+      '/api/me/databases',
+      body: {},
       token: token,
     );
-
+    // Mapea la propiedad 'data' del JSON recibido hacia el modelo de dominio DatabaseModel
     final data = response['data'] as Map<String, dynamic>;
-    return DatabaseModel.fromJson(data);
+    return DatabaseModel.fromJson({
+      'databaseInstanceId': data['databaseInstanceId'] ?? 0,
+      'host': data['host'] ?? '',
+      'port': data['port'] ?? 3306,
+      'databaseName': data['databaseName'] ?? '',
+      'databaseUser': data['databaseUser'] ?? '',
+      'engine': data['engine'] ?? 'MySQL',
+      'status': 'Active',
+      'usedSpaceBytes': 0,
+      'maxSpaceBytes': 20971520, // 20 MB límite asignado por el backend
+      'createdAt': DateTime.now().toIso8601String(),
+    });
   }
 }
 

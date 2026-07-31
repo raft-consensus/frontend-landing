@@ -103,8 +103,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
     );
 
     // 2. Abre la URL en el navegador del dispositivo (funciona en Web, Android e iOS)
+    // 2. Abre la URL en la MISMA pestaña del navegador (_self)
     if (await canLaunchUrl(oauthUrl)) {
-      await launchUrl(oauthUrl, mode: LaunchMode.platformDefault);
+      await launchUrl(
+        oauthUrl,
+        webOnlyWindowName:
+            '_self', // Evita abrir pestañas duplicadas en Flutter Web
+      );
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

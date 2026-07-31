@@ -71,10 +71,10 @@ class ApiClient {
               'Sesión no autorizada o expirada (HTTP 401 Unauthorized).',
               statusCode: 401,
             );
-          } else if (response.statusCode >= 400) {
+          } else if (response.statusCode == 429) {
             throw ApiException(
-              'El servidor devolvió el código HTTP ${response.statusCode}.',
-              statusCode: response.statusCode,
+              'Has alcanzado el límite de intentos (máximo 3 peticiones por minuto). Por favor espera un momento.',
+              statusCode: 429,
             );
           }
         }

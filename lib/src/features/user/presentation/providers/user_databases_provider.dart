@@ -12,10 +12,8 @@ import 'package:frontend_landing/src/features/user/domain/entities/database_inst
 
 /// Notificador de estado que administra la lista global de bases de datos del usuario desde la API
 class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
-  UserDatabasesNotifier({
-    required this.datasource,
-    required this.ref,
-  }) : super(const []) {
+  UserDatabasesNotifier({required this.datasource, required this.ref})
+    : super(const []) {
     fetchDatabases();
   }
 
@@ -37,7 +35,8 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
       final models = await datasource.getMyDatabases(token);
       state = models.map((m) => m.toEntity()).toList();
     } catch (_) {
-      state = const []; // Si no hay datos o la respuesta está vacía, el estado queda limpio
+      state =
+          const []; // Si no hay datos o la respuesta está vacía, el estado queda limpio
     }
   }
 
@@ -53,29 +52,26 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
     }
   }
 
-  /// Solicita la creación de una nueva instancia mediante la API (POST /api/database-instances)
-    /// Solicita la creación de una nueva instancia a la API real y devuelve el mensaje de error si la API rechaza la solicitud
-  Future<String?> createDatabase({
-    required String name,
-    required String engine,
-  }) async {
+  /// Solicita el aprovisionamiento de una nueva instancia a la API real y refresca el estado
+  ///
+  /// ¿De dónde recibe datos?: Invocado por el botón "Crear Base de Datos" en Dashboard/Databases page.
+  /// ¿Hacia dónde va?: Llama al RemoteDataSource y ejecuta fetchDatabases() al finalizar con éxito.
+  Future<String?> createDatabase() async {
     final token = _token;
     if (token == null || token.isEmpty) {
       return 'Sesión no válida. Por favor inicia sesión de nuevo.';
     }
 
     try {
-      final newModel = await datasource.createDatabase(
-        name: name,
-        engine: engine,
-        token: token,
-      );
-      
-      // Si la API responde exitosamente, agrega el objeto real devuelto a la lista local
-      state = [newModel.toEntity(), ...state];
-      return null; // null significa éxito total
+      // Envía la orden de aprovisionamiento al backend
+      await datasource.createDatabase(token: token);
+
+      // Refresca la lista completa de bases de datos desde el backend
+      await fetchDatabases();
+
+      return null; // null indica que se creó con éxito
     } catch (e) {
-      // Retorna el mensaje exacto entregado por la API para mostrárselo al usuario
+      // Retorna el mensaje exacto entregado por el backend (ej: si excedió el límite de BDs por cuenta)
       return e.toString().replaceAll('ApiException: ', '');
     }
   }
@@ -113,6 +109,6 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
 /// Proveedor global de Riverpod para consultar y refrescar las BDs del usuario
 final userDatabasesProvider =
     StateNotifierProvider<UserDatabasesNotifier, List<DatabaseInstance>>((ref) {
-  final datasource = ref.watch(userDatabasesRemoteDatasourceProvider);
-  return UserDatabasesNotifier(datasource: datasource, ref: ref);
-});
+      final datasource = ref.watch(userDatabasesRemoteDatasourceProvider);
+      return UserDatabasesNotifier(datasource: datasource, ref: ref);
+    });
