@@ -1,34 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
 
-/// ¿Qué hace?: Widget que renderiza el isotipo (imagen de logo) y el texto "Raft DB".
-/// ¿De dónde recibe?: Recibe el parámetro opcional `light` para alternar colores en fondos oscuros.
-/// ¿Dónde se conecta?: Se importa en NavigationBarSection y FooterSection de la landing.
+/// Widget de logotipo oficial de Raft DB.
 class RaftLogo extends StatelessWidget {
   const RaftLogo({super.key, this.light = false});
 
-  /// Si es true, el texto "Raft" se muestra en blanco.
+  /// Si es true, el texto "Raft" se muestra en blanco (para usar en el Footer u otro fondo oscuro).
   final bool light;
 
   @override
   Widget build(BuildContext context) {
-    // Determina el color del texto "Raft" según el fondo (claro u oscuro)
+    // Determina el color del texto "Raft" según la variante (clara u oscura)
     final color = light ? Colors.white : AppColors.navy;
 
     return Row(
-      mainAxisSize: MainAxisSize.min, // Ocupa únicamente el ancho del contenido
+      mainAxisSize: MainAxisSize.min, // Ocupa únicamente el ancho del contenido interno
       children: [
-        // Imagen del logo reemplazando el icono estático
-        ClipRRect(
-          borderRadius: BorderRadius.circular(13), // Bordes redondeados según diseño
-          child: Image.asset(
-            'lib/src/img/image_logo.png', // Ruta de la imagen declarada en pubspec.yaml
-            width: 44, // Ancho fijo del logo
-            height: 44, // Alto fijo del logo
-            fit: BoxFit.cover, // Cubre el espacio manteniendo proporciones
+        // Caja de icono del logo con degradado de color cyan a blue
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppColors.cyan, AppColors.blue],
+            ),
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: const Icon(
+            Icons.sailing_rounded, // Icono del velero/balsa
+            color: Colors.white,
+            size: 27,
           ),
         ),
-        const SizedBox(width: 10), // Separación entre imagen y texto
+        const SizedBox(width: 10),
 
         // Texto principal "Raft"
         Text(
@@ -41,7 +45,7 @@ class RaftLogo extends StatelessWidget {
         ),
         const SizedBox(width: 3),
 
-        // Texto secundario "DB"
+        // Texto secundario "DB" en color Cyan destacado
         const Text(
           'DB',
           style: TextStyle(

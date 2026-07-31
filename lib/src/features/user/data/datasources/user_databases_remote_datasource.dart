@@ -40,28 +40,21 @@ class UserDatabasesRemoteDatasource {
     return data?['password'] as String? ?? '';
   }
 
-  /// ¿Hacia dónde se conecta?: Backend ASP.NET Core (`POST /api/me/databases`).
-  Future<DatabaseModel> createDatabase({required String token}) async {
-    // El endpoint de autoservicio no requiere cuerpo en el request; la VPS genera la BD y las credenciales automáticamente.
+  // ¿Qué hace?: Realiza la petición POST enviando el motor especificado.
+// ¿De dónde recibe datos?: Recibe el nombre del motor (ej: "SQL Server") y el JWT token.
+// ¿Hacia dónde se conecta?: Backend C# (POST /api/me/databases).
+  /// Envía la solicitud de aprovisionamiento con el motor seleccionado
+  Future<Map<String, dynamic>> createDatabase({
+    required String engine,
+    required String token,
+  }) async {
     final response = await apiClient.post(
       '/api/me/databases',
-      body: {},
+      body: {'engine': engine}, // Envía {"engine": "SQL Server"} en el cuerpo HTTP
       token: token,
     );
-    // Mapea la propiedad 'data' del JSON recibido hacia el modelo de dominio DatabaseModel
-    final data = response['data'] as Map<String, dynamic>;
-    return DatabaseModel.fromJson({
-      'databaseInstanceId': data['databaseInstanceId'] ?? 0,
-      'host': data['host'] ?? '',
-      'port': data['port'] ?? 3306,
-      'databaseName': data['databaseName'] ?? '',
-      'databaseUser': data['databaseUser'] ?? '',
-      'engine': data['engine'] ?? 'MySQL',
-      'status': 'Active',
-      'usedSpaceBytes': 0,
-      'maxSpaceBytes': 20971520, // 20 MB límite asignado por el backend
-      'createdAt': DateTime.now().toIso8601String(),
-    });
+    // Retorna el objeto 'data' entregado por el backend C#
+    return response['data'] as Map<String, dynamic>;
   }
 }
 

@@ -52,27 +52,31 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
     }
   }
 
-  /// Solicita el aprovisionamiento de una nueva instancia a la API real y refresca el estado
-  ///
-  /// ¿De dónde recibe datos?: Invocado por el botón "Crear Base de Datos" en Dashboard/Databases page.
-  /// ¿Hacia dónde va?: Llama al RemoteDataSource y ejecuta fetchDatabases() al finalizar con éxito.
-  Future<String?> createDatabase() async {
+  // ¿Qué hace?: Notificador Riverpod para la gestión de estado de BDs.
+// ¿De dónde recibe datos?: Invocado desde los botones de la interfaz de usuario.
+// ¿Dónde se conecta?: Llama al datasource remoto y actualiza el estado.
+  /// Solicita el aprovisionamiento enviando el motor especificado
+  Future<({Map<String, dynamic>? data, String? error})> createDatabase({
+    String engine = 'SQL Server', // Motor por defecto
+  }) async {
     final token = _token;
     if (token == null || token.isEmpty) {
-      return 'Sesión no válida. Por favor inicia sesión de nuevo.';
+      return (data: null, error: 'Sesión no válida. Por favor inicia sesión de nuevo.');
     }
-
     try {
-      // Envía la orden de aprovisionamiento al backend
-      await datasource.createDatabase(token: token);
-
-      // Refresca la lista completa de bases de datos desde el backend
+      // Solicita al backend C# crear la instancia con el motor elegido
+      final createdData = await datasource.createDatabase(
+        engine: engine,
+        token: token,
+      );
+      // Refresca la lista de bases de datos registradas
       await fetchDatabases();
-
-      return null; // null indica que se creó con éxito
+      return (data: createdData, error: null); // Retorna los datos con éxito
     } catch (e) {
-      // Retorna el mensaje exacto entregado por el backend (ej: si excedió el límite de BDs por cuenta)
-      return e.toString().replaceAll('ApiException: ', '');
+      return (
+        data: null,
+        error: e.toString().replaceAll('ApiException: ', ''),
+      );
     }
   }
 

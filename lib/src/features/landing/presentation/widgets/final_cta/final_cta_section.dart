@@ -82,18 +82,18 @@ class FinalCtaSection extends StatelessWidget {
                         ),
                       ),
                     ),
-                    OutlinedButton(
-                      onPressed: () {}, // pendiente
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.white54),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 26,
-                          vertical: 20,
-                        ),
-                      ),
-                      child: const Text('Ver documentación'),
-                    ),
+                    // OutlinedButton(
+                    //   onPressed: () {}, // pendiente
+                    //   style: OutlinedButton.styleFrom(
+                    //     foregroundColor: Colors.white,
+                    //     side: const BorderSide(color: Colors.white54),
+                    //     padding: const EdgeInsets.symmetric(
+                    //       horizontal: 26,
+                    //       vertical: 20,
+                    //     ),
+                    //   ),
+                    //   child: const Text('Ver documentación'),
+                    // ),
                   ],
                 ),
               ],

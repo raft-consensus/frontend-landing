@@ -51,16 +51,16 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     );
   }
 
-  /// Abre un modal de confirmación antes de enviar la solicitud de aprovisionamiento a la API
+  // ¿Qué hace?: Abre el modal de confirmación y procesa el resultado del aprovisionamiento.
   Future<void> _openCreateDatabaseDialog() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.cyan,
+        backgroundColor: Colors.white,
         title: const Text('Confirmar Aprovisionamiento'),
         content: const Text(
-          'Se aprovisionará automáticamente una nueva instancia de MySQL en el servidor VPS.\n\n'
-          'Recuerda que el servidor permite un máximo de 3 solicitudes cada 10 minutos.',
+          'Se aprovisionará automáticamente una nueva instancia de SQL Server en el servidor.\n\n'
+          'La contraseña asignada se mostrará una sola vez.',
         ),
         actions: [
           TextButton(
@@ -71,28 +71,48 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.navy),
             onPressed: () => Navigator.of(context).pop(true),
             child: const Text(
-              'Aprovisionar Ahora',
+              'Aprovisionar SQL Server',
               style: TextStyle(color: Colors.white),
             ),
           ),
         ],
       ),
     );
-
-    // Solo si el usuario presiona "Aprovisionar Ahora", se envía la llamada HTTP
     if (confirmed == true) {
       _showMessage('Procesando solicitud de aprovisionamiento...');
-      final errorMessage = await ref
+      // Llama la función especificando el motor "SQL Server"
+      final result = await ref
           .read(userDatabasesProvider.notifier)
-          .createDatabase();
-
-      if (errorMessage == null) {
-        _showMessage(
-          'Base de datos aprovisionada exitosamente en el servidor.',
-        );
+          .createDatabase(engine: 'SQL Server');
+      if (result.error == null && result.data != null) {
+        final data = result.data!;
+        
+        // Muestra modal con la contraseña de única visualización
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('¡Base de Datos Creada!'),
+              content: SelectableText(
+                'Guarda la contraseña ahora, no se volverá a mostrar completa:\n\n'
+                '• Host: ${data['host']}:${data['port']}\n'
+                '• Base de datos: ${data['databaseName']}\n'
+                '• Usuario: ${data['databaseUser']}\n'
+                '• Contraseña: ${data['password']}\n'
+                '• Motor: ${data['engine']}',
+              ),
+              actions: [
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Entendido'),
+                ),
+              ],
+            ),
+          );
+        }
       } else {
         _showMessage(
-          'No se pudo crear la instancia: $errorMessage',
+          'No se pudo crear la instancia: ${result.error}',
           success: false,
         );
       }

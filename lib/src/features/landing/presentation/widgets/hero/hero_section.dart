@@ -84,21 +84,21 @@ class HeroSection extends StatelessWidget {
                               ),
                             ),
 
-                            OutlinedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.play_circle_outline),
-                              label: const Text('Cómo funciona'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.navy,
-                                side: const BorderSide(
-                                  color: Color(0xFFBCCCE0),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 25,
-                                  vertical: 20,
-                                ),
-                              ),
-                            ),
+                            // OutlinedButton.icon(
+                            //   onPressed: () {},
+                            //   icon: const Icon(Icons.play_circle_outline),
+                            //   label: const Text('Cómo funciona'),
+                            //   style: OutlinedButton.styleFrom(
+                            //     foregroundColor: AppColors.navy,
+                            //     side: const BorderSide(
+                            //       color: Color(0xFFBCCCE0),
+                            //     ),
+                            //     padding: const EdgeInsets.symmetric(
+                            //       horizontal: 25,
+                            //       vertical: 20,
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         ),
                         const SizedBox(height: 27),
