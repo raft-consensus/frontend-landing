@@ -24,6 +24,8 @@ class AdminSidebar extends StatelessWidget {
       SidebarData(Icons.dashboard_rounded, 'Resumen'),
       SidebarData(Icons.people_alt_rounded, 'Usuarios'),
       SidebarData(Icons.storage_rounded, 'Bases de datos'),
+      SidebarData(Icons.smart_toy_rounded, 'IA'),
+      SidebarData(Icons.hub_rounded, 'N8N'),
       SidebarData(Icons.dns_rounded, 'Infraestructura'),
       SidebarData(Icons.policy_rounded, 'Auditoría'),
       SidebarData(Icons.settings_rounded, 'Configuración'),

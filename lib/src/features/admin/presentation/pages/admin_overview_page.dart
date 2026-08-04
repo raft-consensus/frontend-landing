@@ -140,7 +140,7 @@ class AdminOverviewPage extends StatelessWidget {
             title: 'Estado de infraestructura',
             subtitle: 'Vista rápida de los servicios principales.',
             action: 'Ver infraestructura',
-            onAction: () => onNavigate(3),
+            onAction: () => onNavigate(5),
           ),
           const SizedBox(height: 14),
           LayoutBuilder(
@@ -165,7 +165,7 @@ class AdminOverviewPage extends StatelessWidget {
                   ServiceStatusCard(
                     name: 'Clúster de bases de datos',
                     detail: '5 nodos saludables',
-                    icon: Icons.hub_rounded,
+                    icon: Icons.storage_rounded,
                     color: AppColors.green,
                   ),
                   ServiceStatusCard(
@@ -173,6 +173,18 @@ class AdminOverviewPage extends StatelessWidget {
                     detail: 'OAuth operativo',
                     icon: Icons.security_rounded,
                     color: AppColors.purple,
+                  ),
+                  ServiceStatusCard(
+                    name: 'Servicio de IA',
+                    detail: 'Nodo de inferencia disponible',
+                    icon: Icons.smart_toy_rounded,
+                    color: AppColors.purple,
+                  ),
+                  ServiceStatusCard(
+                    name: 'Servicio N8N',
+                    detail: 'Motor de workflows disponible',
+                    icon: Icons.hub_rounded,
+                    color: AppColors.cyan,
                   ),
                 ]
                     .map(
@@ -190,7 +202,7 @@ class AdminOverviewPage extends StatelessWidget {
             title: 'Eventos recientes',
             subtitle: 'Actividad administrativa y de seguridad.',
             action: 'Ver auditoría',
-            onAction: () => onNavigate(4),
+            onAction: () => onNavigate(6),
           ),
           const SizedBox(height: 14),
           AdminCard(

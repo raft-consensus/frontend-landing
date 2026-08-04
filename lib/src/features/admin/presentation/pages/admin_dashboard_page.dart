@@ -3,9 +3,13 @@ import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
 import 'package:frontend_landing/src/features/admin/domain/entities/platform_user.dart'; // Domain
 import 'package:frontend_landing/src/features/admin/domain/entities/managed_database.dart'; // Domain
 import 'package:frontend_landing/src/features/admin/domain/entities/audit_event.dart'; // Domain
+import 'package:frontend_landing/src/features/admin/domain/entities/ai_workspace.dart'; // Domain
+import 'package:frontend_landing/src/features/admin/domain/entities/n8n_instance.dart'; // Domain
 import 'package:frontend_landing/src/features/admin/presentation/pages/admin_overview_page.dart'; // Page
 import 'package:frontend_landing/src/features/admin/presentation/pages/users_page.dart'; // Page
 import 'package:frontend_landing/src/features/admin/presentation/pages/admin_databases_page.dart'; // Page
+import 'package:frontend_landing/src/features/admin/presentation/pages/ai_page.dart'; // Page
+import 'package:frontend_landing/src/features/admin/presentation/pages/n8n_page.dart'; // Page
 import 'package:frontend_landing/src/features/admin/presentation/pages/infrastructure_page.dart'; // Page
 import 'package:frontend_landing/src/features/admin/presentation/pages/audit_page.dart'; // Page
 import 'package:frontend_landing/src/features/admin/presentation/pages/admin_settings_page.dart'; // Page
@@ -13,6 +17,8 @@ import 'package:frontend_landing/src/features/admin/presentation/widgets/layout/
 import 'package:frontend_landing/src/features/admin/presentation/widgets/layout/admin_topbar.dart'; // Widget
 import 'package:frontend_landing/src/features/admin/presentation/widgets/dialogs/confirmation_dialog.dart'; // Widget
 import 'package:frontend_landing/src/features/admin/presentation/widgets/dialogs/database_details_dialog.dart'; // Widget
+import 'package:frontend_landing/src/features/admin/presentation/widgets/dialogs/ai_workspace_details_dialog.dart'; // Widget
+import 'package:frontend_landing/src/features/admin/presentation/widgets/dialogs/n8n_instance_details_dialog.dart'; // Widget
 
 /// ¿Qué hace?: Vista contenedora principal del Panel Administrativo que administra el estado global, navegación y las 6 secciones.
 /// ¿De dónde trae?: Trae las entidades de dominio, las 6 sub-páginas (pages) y los componentes de layout (sidebar y topbar).
@@ -111,6 +117,64 @@ class _AdminDashboardState extends State<AdminDashboard> {
     ),
   ];
 
+  final List<AiWorkspace> _aiWorkspaces = [
+    AiWorkspace(
+      name: 'asistente-tesis',
+      owner: 'Alex Developer',
+      provider: 'OpenAI-compatible',
+      model: 'raft-llm-8b-instruct',
+      requestsUsed: 1240,
+      requestsLimit: 2000,
+      createdAt: '19 Jul 2026',
+    ),
+    AiWorkspace(
+      name: 'chatbot-practicas',
+      owner: 'María Estudiante',
+      provider: 'Modelo local (self-hosted)',
+      model: 'raft-llm-3b-chat',
+      requestsUsed: 480,
+      requestsLimit: 1000,
+      createdAt: '21 Jul 2026',
+    ),
+    AiWorkspace(
+      name: 'clasificador-notas',
+      owner: 'José Martínez',
+      provider: 'OpenAI-compatible',
+      model: 'raft-llm-8b-instruct',
+      requestsUsed: 1950,
+      requestsLimit: 2000,
+      createdAt: '22 Jul 2026',
+    ),
+  ];
+
+  final List<N8nInstance> _n8nInstances = [
+    N8nInstance(
+      name: 'automatizacion-inscripciones',
+      owner: 'Alex Developer',
+      host: 'n8n01.raftdb.dev',
+      workflows: 6,
+      executions30d: 312,
+      createdAt: '18 Jul 2026',
+    ),
+    N8nInstance(
+      name: 'notificaciones-tareas',
+      owner: 'Carlos Ramírez',
+      host: 'n8n02.raftdb.dev',
+      workflows: 2,
+      executions30d: 54,
+      createdAt: '20 Jul 2026',
+      running: false,
+    ),
+    N8nInstance(
+      name: 'sync-repositorios',
+      owner: 'José Martínez',
+      host: 'n8n03.raftdb.dev',
+      workflows: 4,
+      executions30d: 190,
+      createdAt: '22 Jul 2026',
+    ),
+  ];
+
   final List<AuditEvent> _events = const [
     AuditEvent(
       action: 'Cuenta suspendida',
@@ -158,6 +222,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
     'Resumen administrativo',
     'Usuarios',
     'Bases de datos',
+    'IA',
+    'N8N',
     'Infraestructura',
     'Auditoría',
     'Configuración',
@@ -246,6 +312,80 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
+  void _toggleAiWorkspace(AiWorkspace workspace) {
+    setState(() => workspace.active = !workspace.active);
+
+    _showMessage(
+      workspace.active
+          ? '${workspace.name} fue reactivado.'
+          : '${workspace.name} fue suspendido.',
+      success: workspace.active,
+    );
+  }
+
+  Future<void> _deleteAiWorkspace(AiWorkspace workspace) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => ConfirmationDialog(
+        title: 'Eliminar workspace de IA',
+        message:
+            '¿Deseas eliminar "${workspace.name}" de ${workspace.owner}?\n\n'
+            'Esta operación no se puede deshacer.',
+        confirmText: 'Eliminar workspace',
+        dangerous: true,
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _aiWorkspaces.remove(workspace));
+    _showMessage('El workspace de IA fue eliminado.');
+  }
+
+  void _showAiWorkspaceDetails(AiWorkspace workspace) {
+    showDialog(
+      context: context,
+      builder: (context) => AiWorkspaceDetailsDialog(workspace: workspace),
+    );
+  }
+
+  void _toggleN8nInstance(N8nInstance instance) {
+    setState(() => instance.running = !instance.running);
+
+    _showMessage(
+      instance.running
+          ? '${instance.name} se está iniciando.'
+          : '${instance.name} fue detenida.',
+      success: instance.running,
+    );
+  }
+
+  Future<void> _deleteN8nInstance(N8nInstance instance) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => ConfirmationDialog(
+        title: 'Eliminar instancia N8N',
+        message:
+            '¿Deseas eliminar "${instance.name}" de ${instance.owner}?\n\n'
+            'Esta operación no se puede deshacer.',
+        confirmText: 'Eliminar instancia',
+        dangerous: true,
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _n8nInstances.remove(instance));
+    _showMessage('La instancia de N8N fue eliminada.');
+  }
+
+  void _showN8nInstanceDetails(N8nInstance instance) {
+    showDialog(
+      context: context,
+      builder: (context) => N8nInstanceDetailsDialog(instance: instance),
+    );
+  }
+
   Widget _buildPage() {
     switch (_selectedPage) {
       case 0:
@@ -273,13 +413,29 @@ class _AdminDashboardState extends State<AdminDashboard> {
           onMessage: _showMessage,
         );
       case 3:
+        return AiPage(
+          workspaces: _aiWorkspaces,
+          onToggle: _toggleAiWorkspace,
+          onDelete: _deleteAiWorkspace,
+          onDetails: _showAiWorkspaceDetails,
+          onMessage: _showMessage,
+        );
+      case 4:
+        return N8nPage(
+          instances: _n8nInstances,
+          onToggle: _toggleN8nInstance,
+          onDelete: _deleteN8nInstance,
+          onDetails: _showN8nInstanceDetails,
+          onMessage: _showMessage,
+        );
+      case 5:
         return InfrastructurePage(
           maintenanceMode: _maintenanceMode,
           onMessage: _showMessage,
         );
-      case 4:
+      case 6:
         return AuditPage(events: _events);
-      case 5:
+      case 7:
         return AdminSettingsPage(
           maintenanceMode: _maintenanceMode,
           onMaintenanceChanged: (value) {
