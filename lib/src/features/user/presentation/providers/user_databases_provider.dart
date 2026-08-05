@@ -2,7 +2,7 @@
 // Archivo: lib/src/features/user/presentation/providers/user_databases_provider.dart
 // Qué hace: Administra el estado global de las bases de datos consumiendo únicamente la API real.
 // Dónde se conecta: Consumido por DashboardPage, OverviewPage, DatabasesPage y CreateDatabaseDialog.
-// De dónde recibe datos: Invoca a UserDatabasesRemoteDatasource y escucha el token de authProvider.
+// De dónde recibe datos: Invoca a UserDatabasesRemoteDatasource y escucha el token/id de authProvider.
 // ==========================================
 
 import 'package:flutter/material.dart';
@@ -36,10 +36,8 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
       state = models.map((m) => m.toEntity()).toList();
       return null; // Éxito
     } catch (e, stackTrace) {
-      // 1. Log técnico preciso en la consola del desarrollador
       debugPrint('[UserDatabasesNotifier] Fallo al consultar GET /api/me/databases: $e');
       debugPrint('[StackTrace] $stackTrace');
-      // Mantiene el estado anterior para no borrar lo que el usuario estaba viendo
       final errorMessage = e.toString().replaceAll('ApiException: ', '');
       return errorMessage.isEmpty 
           ? 'Error al conectar con el servidor de bases de datos.' 
@@ -48,7 +46,6 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
   }
 
   /// Revela la contraseña real de una instancia
-  /// Imprime el error exacto en consola para el dev y retorna un mensaje amable para el usuario
   Future<({String? password, String? error})> revealPassword(int instanceId) async {
     final token = _token;
     if (token == null || token.isEmpty) {
@@ -58,10 +55,8 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
       final password = await datasource.revealPassword(instanceId, token);
       return (password: password, error: null);
     } catch (e, stackTrace) {
-      // 1. Registro técnico detallado en la consola del desarrollador (Terminal / Chrome DevTools)
       debugPrint('[UserDatabasesNotifier] Error al revelar contraseña para ID $instanceId: $e');
       debugPrint('[StackTrace] $stackTrace');
-      // 2. Mensaje controlado y limpio que se retornará hacia la interfaz de usuario (UI)
       final userMessage = e.toString().replaceAll('ApiException: ', '');
       return (
         password: null,
@@ -72,27 +67,21 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
     }
   }
 
-
-  // ¿Qué hace?: Notificador Riverpod para la gestión de estado de BDs.
-// ¿De dónde recibe datos?: Invocado desde los botones de la interfaz de usuario.
-// ¿Dónde se conecta?: Llama al datasource remoto y actualiza el estado.
   /// Solicita el aprovisionamiento enviando el motor especificado
   Future<({Map<String, dynamic>? data, String? error})> createDatabase({
-    String engine = 'SQL Server', // Motor por defecto
+    String engine = 'SQL Server',
   }) async {
     final token = _token;
     if (token == null || token.isEmpty) {
       return (data: null, error: 'Sesión no válida. Por favor inicia sesión de nuevo.');
     }
     try {
-      // Solicita al backend C# crear la instancia con el motor elegido
       final createdData = await datasource.createDatabase(
         engine: engine,
         token: token,
       );
-      // Refresca la lista de bases de datos registradas
       await fetchDatabases();
-      return (data: createdData, error: null); // Retorna los datos con éxito
+      return (data: createdData, error: null);
     } catch (e) {
       return (
         data: null,
@@ -134,6 +123,9 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
 /// Proveedor global de Riverpod para consultar y refrescar las BDs del usuario
 final userDatabasesProvider =
     StateNotifierProvider<UserDatabasesNotifier, List<DatabaseInstance>>((ref) {
+      // Al observar el ID del usuario en la sesión de authProvider, Riverpod
+      // destruirá y re-creará automáticamente este proveedor cuando cambie de usuario o se cierre la sesión.
+      ref.watch(authProvider.select((s) => s.session?.user.id));
       final datasource = ref.watch(userDatabasesRemoteDatasourceProvider);
       return UserDatabasesNotifier(datasource: datasource, ref: ref);
     });

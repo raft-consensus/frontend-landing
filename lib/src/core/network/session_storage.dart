@@ -20,10 +20,10 @@ class SessionStorage {
     return prefs.getString(_tokenKey);
   }
 
-  /// Elimina el token guardado para cerrar la sesión actual.
+  /// Elimina todo el almacenamiento local para asegurar un cierre de sesión limpio y sin caché.
   Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
+    await prefs.clear();
   }
 }
 

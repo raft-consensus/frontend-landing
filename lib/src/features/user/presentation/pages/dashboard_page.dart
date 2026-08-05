@@ -8,6 +8,7 @@ import 'package:frontend_landing/src/features/user/presentation/pages/documentat
 import 'package:frontend_landing/src/features/user/presentation/pages/overview_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/pages/tools_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/providers/user_databases_provider.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/confirm_action_dialog.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/create_database_dialog.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_sidebar.dart'; // Layout
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_topbar.dart'; // Layout
@@ -52,26 +53,41 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     );
   }
 
-  // ¿Qué hace?: Abre el modal oficial CreateDatabaseDialog y procesa la respuesta devuelta por el servidor backend C#.
-  /// Abre el modal oficial para la selección de motor e inicio de aprovisionamiento
+    /// Abre el modal oficial para la selección de motor y requiere confirmación previa al aprovisionamiento
   Future<void> _openCreateDatabaseDialog() async {
-    // Abre el modal oficial CreateDatabaseDialog
+    // 1. Selección de motor en CreateDatabaseDialog
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => const CreateDatabaseDialog(),
     );
-    // Si el usuario seleccionó un motor activo e ingresó un nombre válido
+
     if (result != null && result.containsKey('engine')) {
       final engineName = result['engine'] as String;
+
+      // 2. Paso de Confirmación explícita antes de contactar al backend
+      if (!mounted) return;
+      final confirmed = await showConfirmDialog(
+        context: context,
+        title: 'Confirmar Aprovisionamiento',
+        message: '¿Estás seguro de que deseas crear una nueva instancia de $engineName?',
+        confirmLabel: 'Sí, crear instancia',
+        icon: Icons.rocket_launch_rounded,
+        confirmColor: AppColors.navy,
+      );
+
+      // Si el usuario cancela la confirmación, se aborta la petición
+      if (!confirmed) return;
+
       _showMessage('Procesando solicitud de aprovisionamiento...');
-      // Petición al backend con el motor seleccionado (ej: "SQL Server")
+
+      // 3. Petición al backend C#
       final response = await ref
           .read(userDatabasesProvider.notifier)
           .createDatabase(engine: engineName);
+
       if (response.error == null && response.data != null) {
         final data = response.data!;
         if (mounted) {
-          // Modal de única visualización para guardar la contraseña generada
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -101,7 +117,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       }
     }
   }
-  
+
   // Alternar estado encendido/apagado de una BD
   void _toggleInstanceState(String id) {
     ref.read(userDatabasesProvider.notifier).toggleInstanceState(id);

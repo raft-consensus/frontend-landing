@@ -17,9 +17,11 @@ class CreateDatabaseDialog extends StatefulWidget {
 
 class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
   final _formKey = GlobalKey<FormState>();
+
+  /// Conservado para futura implementación de nombre personalizado por el usuario
   final _nameController = TextEditingController();
 
-  /// Lista de motores ofrecidos (SQL Server activo por defecto en esta fase)
+  /// Lista de motores ofrecidos (Todos habilitados para pruebas)
   final List<DatabaseEngine> _engines = const [
     DatabaseEngine(
       name: 'SQL Server',
@@ -27,7 +29,7 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
       port: 1433,
       color: AppColors.red,
       icon: Icons.table_chart_rounded,
-      isAvailable: true, // Motor activo en esta fase
+      isAvailable: true,
     ),
     DatabaseEngine(
       name: 'PostgreSQL',
@@ -35,7 +37,7 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
       port: 5432,
       color: Color(0xFF3977A8),
       icon: Icons.storage_rounded,
-      isAvailable: false, // Próxima fase
+      isAvailable: true,
     ),
     DatabaseEngine(
       name: 'MySQL',
@@ -43,7 +45,7 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
       port: 3306,
       color: AppColors.blue,
       icon: Icons.dns_rounded,
-      isAvailable: false, // Próxima fase
+      isAvailable: true,
     ),
     DatabaseEngine(
       name: 'MongoDB',
@@ -51,7 +53,7 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
       port: 27017,
       color: AppColors.green,
       icon: Icons.eco_rounded,
-      isAvailable: false, // Próxima fase
+      isAvailable: true,
     ),
   ];
 
@@ -64,14 +66,12 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
     super.dispose();
   }
 
-  /// Valida el formulario y retorna los datos seleccionados a la pantalla anterior
-  Future<void> _create() async {
-    if (!_formKey.currentState!.validate()) return;
-
+  /// Retorna el motor seleccionado a la vista principal
+  void _create() {
     setState(() => _creating = true);
     final engine = _engines[_selectedEngine];
 
-    // Cierra el modal devolviendo el mapa con el nombre y motor elegido
+    // Cierra el modal devolviendo el mapa con el motor (y el nombre si se re-habilita)
     Navigator.pop(context, {
       'name': _nameController.text.trim(),
       'engine': engine.name,
@@ -95,12 +95,14 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
                 _DialogHeader(creating: _creating),
                 const SizedBox(height: 26),
 
-                // 2. Sub-widget de entrada del nombre
+                /*
+                // Campo de entrada de nombre personalizado (Deshabilitado temporalmente hasta soporte en Backend)
                 _InstanceNameInput(controller: _nameController),
                 const SizedBox(height: 22),
+                */
 
-                // 3. Etiqueta y grilla de selección de motor
-                const FieldLabel('Motor de base de datos'),
+                // 2. Etiqueta y grilla de selección de motor
+                const FieldLabel('Selecciona el motor de base de datos'),
                 const SizedBox(height: 12),
                 EnginePickerGrid(
                   engines: _engines,
@@ -111,16 +113,16 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
                 ),
                 const SizedBox(height: 23),
 
-                // 4. Banner informativo de capacidad
+                // 3. Banner informativo de capacidad y generación de credenciales
                 const InfoBanner(
                   message:
-                      'La instancia gratuita incluye 512 MB de almacenamiento y acceso remoto.',
+                      'El identificador y las credenciales de acceso son asignados automáticamente de forma segura por el servidor.',
                   icon: Icons.info_outline_rounded,
                   iconColor: AppColors.blue,
                 ),
                 const SizedBox(height: 25),
 
-                // 5. Sub-widget de acciones (Cancelar / Crear)
+                // 4. Botones de acción (Cancelar / Crear)
                 _DialogActions(
                   creating: _creating,
                   onCreate: _create,
@@ -162,7 +164,7 @@ class _DialogHeader extends StatelessWidget {
                 ),
               ),
               Text(
-                'Selecciona el motor para tu proyecto.',
+                'Elige el motor adecuado para tu proyecto.',
                 style: TextStyle(
                   color: AppColors.muted,
                   fontSize: 12,
@@ -180,7 +182,8 @@ class _DialogHeader extends StatelessWidget {
   }
 }
 
-/// Sub-widget extraído: Campo de texto para ingresar el nombre de la instancia
+/// Sub-widget extraído: Campo de texto para ingresar el nombre de la instancia (Preservado)
+// ignore: unused_element
 class _InstanceNameInput extends StatelessWidget {
   const _InstanceNameInput({required this.controller});
 
