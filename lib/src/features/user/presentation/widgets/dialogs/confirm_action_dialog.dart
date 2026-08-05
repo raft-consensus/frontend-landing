@@ -36,7 +36,7 @@ class ConfirmActionDialog extends StatelessWidget {
               // Icono destacado
               CircleAvatar(
                 radius: 28,
-                backgroundColor: confirmColor.withOpacity(0.1),
+                backgroundColor: confirmColor.withValues(alpha: 0.1),
                 child: Icon(icon, color: confirmColor, size: 28),
               ),
               const SizedBox(height: 16),
