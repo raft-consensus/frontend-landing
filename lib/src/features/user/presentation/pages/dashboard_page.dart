@@ -4,9 +4,8 @@ import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
 // Domain
 import 'package:frontend_landing/src/features/user/presentation/pages/account_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/pages/databases_page.dart'; // Pages
-import 'package:frontend_landing/src/features/user/presentation/pages/documentation_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/pages/overview_page.dart'; // Pages
-import 'package:frontend_landing/src/features/user/presentation/pages/tools_page.dart'; // Pages
+import 'package:frontend_landing/src/features/user/presentation/pages/tools_and_docs_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/providers/user_databases_provider.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/confirm_action_dialog.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/create_database_dialog.dart';
@@ -53,7 +52,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     );
   }
 
-    /// Abre el modal oficial para la selección de motor y requiere confirmación previa al aprovisionamiento
+  /// Abre el modal oficial para la selección de motor y requiere confirmación previa al aprovisionamiento
   Future<void> _openCreateDatabaseDialog() async {
     // 1. Selección de motor en CreateDatabaseDialog
     final result = await showDialog<Map<String, dynamic>>(
@@ -69,7 +68,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       final confirmed = await showConfirmDialog(
         context: context,
         title: 'Confirmar Aprovisionamiento',
-        message: '¿Estás seguro de que deseas crear una nueva instancia de $engineName?',
+        message:
+            '¿Estás seguro de que deseas crear una nueva instancia de $engineName?',
         confirmLabel: 'Sí, crear instancia',
         icon: Icons.rocket_launch_rounded,
         confirmColor: AppColors.navy,
@@ -138,10 +138,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       case 1:
         return 'Mis Bases de Datos';
       case 2:
-        return 'Herramientas de Desarrollo';
+        return 'Herramientas y Guías';
       case 3:
-        return 'Documentación y Guías';
-      case 4:
         return 'Mi Cuenta y Ajustes';
       default:
         return 'Dashboard';
@@ -199,9 +197,11 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                         instances: instances,
                         onCreateDatabase: _openCreateDatabaseDialog,
                         onGoDatabases: () => setState(() => _selectedIndex = 1),
-                        onGoDocumentation: () =>
-                            setState(() => _selectedIndex = 3),
+                        onGoDocumentation: () => setState(
+                          () => _selectedIndex = 2,
+                        ), // Redirige a la pestaña 2
                       ),
+                      // 1: Bases de Datos
                       DatabasesPage(
                         instances: instances,
                         onCreateDatabase: _openCreateDatabaseDialog,
@@ -211,12 +211,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                             _deleteInstance(instances[index].id),
                         onMessage: _showMessage,
                       ),
-
-                      // 2: Herramientas (Tools)
-                      ToolsPage(onMessage: _showMessage),
-                      // 3: Documentación (Documentation)
-                      DocumentationPage(onMessage: _showMessage),
-                      // 4: Mi Cuenta (Account)
+                      // 2: Herramientas y Guías (Vista unificada)
+                      ToolsAndDocsPage(onMessage: _showMessage),
+                      // 3: Mi Cuenta (Account)
                       AccountPage(onMessage: _showMessage),
                     ],
                   ),

@@ -19,13 +19,13 @@ class DashboardSidebar extends StatelessWidget {
   final ValueChanged<int> onSelect;
 
   // Lista de las 5 opciones de menú principal del usuario
-  final List<SidebarItemData> _menuItems = const [
+    final List<SidebarItemData> _menuItems = const [
     SidebarItemData(title: 'Resumen', icon: Icons.grid_view_rounded),
     SidebarItemData(title: 'Bases de datos', icon: Icons.dns_rounded),
-    SidebarItemData(title: 'Herramientas', icon: Icons.build_circle_outlined),
-    SidebarItemData(title: 'Documentación', icon: Icons.description_outlined),
+    SidebarItemData(title: 'Herramientas y Guías', icon: Icons.handyman_rounded),
     SidebarItemData(title: 'Mi cuenta', icon: Icons.person_outline_rounded),
   ];
+
 
   @override
   Widget build(BuildContext context) {
