@@ -154,7 +154,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       // Drawer de navegación lateral para pantallas móviles
       drawer: !isDesktop
           ? Drawer(

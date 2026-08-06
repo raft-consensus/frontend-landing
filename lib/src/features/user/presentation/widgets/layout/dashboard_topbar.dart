@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/create_database_dialog.dart'; // Dialogs
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/notifications_dialog.dart'; // Dialogs
-import 'package:frontend_landing/src/features/user/presentation/widgets/layout/raft_logo.dart'; // Layout
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart';
+import 'package:frontend_landing/src/core/theme/theme_provider.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/notifications_dialog.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/services_hub_dialog.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/layout/raft_logo.dart';
 
-/// ¿Qué hace?: Barra superior responsiva con buscador, campana de notificaciones, botón "Nueva Base de Datos" y menú hamburguesa para móvil.
-/// ¿De dónde trae?: Trae AppColors (core), CreateDatabaseDialog y NotificationsDialog (dialogs), y RaftLogo (layout).
-/// ¿Hacia dónde va / Cómo se conecta?: Se coloca en la parte superior de DashboardPage.
-class DashboardTopbar extends StatelessWidget {
+/// ¿Qué hace?: Barra superior responsiva con botón principal del Ecosistema Raft, Toggle de Tema y Notificaciones.
+/// ¿De dónde trae?: Consume themeModeProvider (Riverpod), ServicesHubDialog, NotificationsDialog y RaftLogo.
+/// ¿Hacia dónde va / Cómo se conecta?: Renderizado en la parte superior de DashboardPage.
+class DashboardTopbar extends ConsumerWidget {
   const DashboardTopbar({
-    required this.title,           // Título de la página activa en pantalla
-    required this.onOpenDrawer,    // Callback para abrir el menú lateral en pantallas móviles
-    required this.onCreateDatabase,// Callback al crear una nueva BD desde el botón superior
+    required this.title,
+    required this.onOpenDrawer,
+    required this.onCreateDatabase,
     super.key,
   });
 
@@ -20,92 +22,93 @@ class DashboardTopbar extends StatelessWidget {
   final VoidCallback onCreateDatabase;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = MediaQuery.of(context).size.width >= 900;
+    final themeMode = ref.watch(themeModeProvider);
+    final isDark = themeMode == ThemeMode.dark;
 
     return Container(
-      height: 70, // Altura fija de 70px
+      height: 70,
       padding: EdgeInsets.symmetric(horizontal: isDesktop ? 28 : 16),
-      decoration: const BoxDecoration(
-        color: Colors.white, // Fondo blanco plano
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
         border: Border(
-          bottom: BorderSide(color: AppColors.border), // Borde inferior separador
+          bottom: BorderSide(
+            color: isDark ? const Color(0xFF334155) : AppColors.border,
+          ),
         ),
       ),
       child: Row(
         children: [
-          // En pantallas móviles/tablets (isDesktop = false), muestra el botón de menú hamburguesa
+          // Menú hamburguesa y logo compacto en móvil
           if (!isDesktop) ...[
             IconButton(
-              onPressed: onOpenDrawer, // Abre el Drawer de navegación
+              onPressed: onOpenDrawer,
               icon: const Icon(Icons.menu_rounded, color: AppColors.navy),
             ),
             const SizedBox(width: 8),
-            const RaftLogo(small: true), // Muestra el logo compacto en móvil
+            const RaftLogo(small: true),
           ] else ...[
-            // En pantallas de escritorio muestra el título grande de la sección activa
+            // Título principal en escritorio
             Text(
               title,
-              style: const TextStyle(
-                color: AppColors.navy,
+              style: TextStyle(
+                color: isDark ? Colors.white : AppColors.navy,
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
               ),
             ),
           ],
 
-          const Spacer(), // Empuja los elementos siguientes a la derecha
+          const Spacer(),
 
-          // Campo gráfico de búsqueda (Buscador)
-          if (isDesktop)
-            SizedBox(
-              width: 240,
-              height: 40,
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Buscar en el panel...',
-                  hintStyle: const TextStyle(fontSize: 12, color: AppColors.muted),
-                  prefixIcon: const Icon(Icons.search_rounded, size: 18, color: AppColors.muted),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
-                  fillColor: const Color(0xFFF7F9FC),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
-                ),
-              ),
+          // 1. Botón Toggle Modo Claro / Oscuro
+          IconButton(
+            onPressed: () {
+              ref.read(themeModeProvider.notifier).toggleTheme();
+            },
+            icon: Icon(
+              isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+              color: AppColors.navy,
             ),
-          const SizedBox(width: 12),
+            tooltip: isDark ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro',
+          ),
+          const SizedBox(width: 6),
 
-          // Botón de campana para abrir el modal NotificationsDialog
+          // 2. Botón de Notificaciones
           IconButton(
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) => const NotificationsDialog(), // Llama a NotificationsDialog de dialogs/
+                builder: (context) => const NotificationsDialog(),
               );
             },
-            icon: const Icon(Icons.notifications_none_rounded, color: AppColors.navy),
+            icon: const Icon(
+              Icons.notifications_none_rounded,
+              color: AppColors.navy,
+            ),
             tooltip: 'Notificaciones',
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
 
-          // Botón principal azúl "+ Nueva Base de Datos" que abre CreateDatabaseDialog
+          // 3. Botón Principal "Ecosistema Raft" que reemplaza la barra y abre el Hub de Servicios
           FilledButton.icon(
-            onPressed: () async {
-              final result = await showDialog(
+            onPressed: () {
+              showDialog(
                 context: context,
-                builder: (context) => const CreateDatabaseDialog(), // Llama a CreateDatabaseDialog de dialogs/
+                builder: (context) =>
+                    ServicesHubDialog(onCreateDatabase: onCreateDatabase),
               );
-
-              if (result != null) {
-                onCreateDatabase(); // Notifica la creación a la página principal
-              }
             },
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: Text(isDesktop ? 'Nueva base de datos' : 'Nueva'),
+            icon: const Icon(Icons.apps_rounded, size: 18),
+            label: Text(isDesktop ? 'Ecosistema Raft' : 'Servicios'),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.navy,
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: isDesktop ? 18 : 12, vertical: 12),
+              padding: EdgeInsets.symmetric(
+                horizontal: isDesktop ? 18 : 12,
+                vertical: 12,
+              ),
             ),
           ),
         ],

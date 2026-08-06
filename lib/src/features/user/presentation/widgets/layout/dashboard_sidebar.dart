@@ -11,7 +11,7 @@ import 'package:frontend_landing/src/features/user/presentation/widgets/layout/s
 class DashboardSidebar extends StatelessWidget {
   const DashboardSidebar({
     required this.selectedIndex, // Índice de la página actualmente activa
-    required this.onSelect,       // Callback al hacer clic en una opción de menú
+    required this.onSelect, // Callback al hacer clic en una opción de menú
     super.key,
   });
 
@@ -19,31 +19,33 @@ class DashboardSidebar extends StatelessWidget {
   final ValueChanged<int> onSelect;
 
   // Lista de las 5 opciones de menú principal del usuario
-    final List<SidebarItemData> _menuItems = const [
+  final List<SidebarItemData> _menuItems = const [
     SidebarItemData(title: 'Resumen', icon: Icons.grid_view_rounded),
     SidebarItemData(title: 'Bases de datos', icon: Icons.dns_rounded),
-    SidebarItemData(title: 'Herramientas y Guías', icon: Icons.handyman_rounded),
+    SidebarItemData(
+      title: 'Herramientas y Guías',
+      icon: Icons.handyman_rounded,
+    ),
     SidebarItemData(title: 'Mi cuenta', icon: Icons.person_outline_rounded),
   ];
 
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 260, // Ancho fijo del sidebar de 260px
-      decoration: const BoxDecoration(
-        color: Colors.white, // Fondo blanco plano
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface, // Dinámico según tema
         border: Border(
-          right: BorderSide(color: AppColors.border), // Borde derecho separador
+          right: BorderSide(
+            color: isDark ? const Color(0xFF334155) : AppColors.border,
+          ),
         ),
       ),
       child: Column(
         children: [
           // Logo superior (RaftLogo)
-          const Padding(
-            padding: EdgeInsets.all(20),
-            child: RaftLogo(),
-          ),
+          const Padding(padding: EdgeInsets.all(20), child: RaftLogo()),
           const Divider(height: 1),
           const SizedBox(height: 12),
 
@@ -82,16 +84,27 @@ class DashboardSidebar extends StatelessWidget {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.workspace_premium_rounded, size: 16, color: AppColors.blue),
+                    Icon(
+                      Icons.workspace_premium_rounded,
+                      size: 16,
+                      color: AppColors.blue,
+                    ),
                     SizedBox(width: 6),
                     Text(
                       'Plan Estudiante',
-                      style: TextStyle(color: AppColors.navy, fontWeight: FontWeight.w800, fontSize: 12),
+                      style: TextStyle(
+                        color: AppColors.navy,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text('Uso de recursos: 326 MB / 512 MB', style: TextStyle(color: AppColors.muted, fontSize: 10)),
+                const Text(
+                  'Uso de recursos: 326 MB / 512 MB',
+                  style: TextStyle(color: AppColors.muted, fontSize: 10),
+                ),
                 const SizedBox(height: 6),
                 // Barra gráfica de progreso azul
                 ClipRRect(
@@ -109,10 +122,7 @@ class DashboardSidebar extends StatelessWidget {
 
           const Divider(height: 1),
           // Tarjeta de perfil de usuario al pie (SidebarUser)
-          const Padding(
-            padding: EdgeInsets.all(14),
-            child: SidebarUser(),
-          ),
+          const Padding(padding: EdgeInsets.all(14), child: SidebarUser()),
         ],
       ),
     );
