@@ -23,7 +23,8 @@ class ApiClient {
   final http.Client _client;
 
   /// URL Base del backend. Al ser habilitado Nginx usaremos https://raft.andrescortes.dev
-  static const String baseUrl = 'https://api.raft.andrescortes.dev';
+  // static const String baseUrl = 'https://api.raft.andrescortes.dev';
+  static const String baseUrl = 'http://localhost:8061';
 
   /// Construye los encabezados HTTP comunes incluyendo el Token JWT si está presente.
   Map<String, String> _buildHeaders([String? token]) {
@@ -129,13 +130,79 @@ class ApiClient {
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return responseData;
       }
-
+      
       // Extrae el mensaje de error entregado por la API
       String errorMessage = responseData['message'] as String? ?? '';
       if (errorMessage.isEmpty) {
         errorMessage =
             responseData['title'] as String? ??
             'Error al obtener datos del servidor';
+      }
+
+      throw ApiException(errorMessage, statusCode: response.statusCode);
+    } on FormatException {
+      throw ApiException('Respuesta con formato JSON inválido del servidor');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Error de conexión con el servidor: $e');
+    }
+  }
+
+  /// Realiza peticiones HTTP PUT codificando el cuerpo a JSON.
+  Future<Map<String, dynamic>> put(
+    String endpoint, {
+    required Map<String, dynamic> body,
+    String? token,
+  }) async {
+    final url = Uri.parse('$baseUrl$endpoint');
+
+    try {
+      final response = await _client.put(
+        url,
+        headers: _buildHeaders(token),
+        body: jsonEncode(body),
+      );
+
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return responseData;
+      }
+
+      String errorMessage = responseData['message'] as String? ?? '';
+      if (errorMessage.isEmpty) {
+        errorMessage =
+            responseData['title'] as String? ??
+            'Error al actualizar datos en el servidor';
+      }
+
+      throw ApiException(errorMessage, statusCode: response.statusCode);
+    } on FormatException {
+      throw ApiException('Respuesta con formato JSON inválido del servidor');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Error de conexión con el servidor: $e');
+    }
+  }
+
+  /// Realiza peticiones HTTP DELETE.
+  Future<Map<String, dynamic>> delete(String endpoint, {String? token}) async {
+    final url = Uri.parse('$baseUrl$endpoint');
+
+    try {
+      final response = await _client.delete(url, headers: _buildHeaders(token));
+
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return responseData;
+      }
+
+      String errorMessage = responseData['message'] as String? ?? '';
+      if (errorMessage.isEmpty) {
+        errorMessage =
+            responseData['title'] as String? ??
+            'Error al eliminar el registro en el servidor';
       }
 
       throw ApiException(errorMessage, statusCode: response.statusCode);

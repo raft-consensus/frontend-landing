@@ -4,6 +4,7 @@ import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
 // Domain
 import 'package:frontend_landing/src/features/user/presentation/pages/account_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/pages/databases_page.dart'; // Pages
+import 'package:frontend_landing/src/features/user/presentation/pages/dns_ssl_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/pages/overview_page.dart'; // Pages
 import 'package:frontend_landing/src/features/user/presentation/pages/tools_and_docs_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/providers/user_databases_provider.dart';
@@ -138,8 +139,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       case 1:
         return 'Mis Bases de Datos';
       case 2:
-        return 'Herramientas y Guías';
+        return 'Dominio & SSL (DNS)';
       case 3:
+        return 'Herramientas y Guías';
+      case 4:
         return 'Mi Cuenta y Ajustes';
       default:
         return 'Dashboard';
@@ -198,8 +201,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                         onCreateDatabase: _openCreateDatabaseDialog,
                         onGoDatabases: () => setState(() => _selectedIndex = 1),
                         onGoDocumentation: () => setState(
-                          () => _selectedIndex = 2,
-                        ), // Redirige a la pestaña 2
+                          () => _selectedIndex = 3, // <-- CAMBIAR A 3
+                        ),
                       ),
                       // 1: Bases de Datos
                       DatabasesPage(
@@ -211,9 +214,11 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                             _deleteInstance(instances[index].id),
                         onMessage: _showMessage,
                       ),
-                      // 2: Herramientas y Guías (Vista unificada)
+                      // 2: Dominio & SSL (NUEVA PESTAÑA)
+                      DnsSslPage(onMessage: _showMessage),
+                      // 3: Herramientas y Guías
                       ToolsAndDocsPage(onMessage: _showMessage),
-                      // 3: Mi Cuenta (Account)
+                      // 4: Mi Cuenta
                       AccountPage(onMessage: _showMessage),
                     ],
                   ),

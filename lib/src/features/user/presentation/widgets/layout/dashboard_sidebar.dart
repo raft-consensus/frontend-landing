@@ -22,6 +22,7 @@ class DashboardSidebar extends StatelessWidget {
   final List<SidebarItemData> _menuItems = const [
     SidebarItemData(title: 'Resumen', icon: Icons.grid_view_rounded),
     SidebarItemData(title: 'Bases de datos', icon: Icons.dns_rounded),
+    SidebarItemData(title: 'Dominio & SSL', icon: Icons.lan_rounded),
     SidebarItemData(
       title: 'Herramientas y Guías',
       icon: Icons.handyman_rounded,
