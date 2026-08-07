@@ -8,7 +8,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/core/network/api_client.dart';
 import 'package:frontend_landing/src/features/user/data/models/dns_record_model.dart';
-import 'package:http/http.dart';
 
 /// Fuente de datos remota encargada de consumir los endpoints de DNS del usuario en el backend C#
 class UserDnsRemoteDatasource {
