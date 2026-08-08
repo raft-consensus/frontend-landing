@@ -8,8 +8,8 @@ import 'package:frontend_landing/src/features/user/presentation/widgets/ai/ai_su
 import 'package:frontend_landing/src/features/user/presentation/widgets/ai/ai_toolbar.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_scroll_view.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/section_header.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/confirm_action_dialog.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/create_ai_key_dialog.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/common/confirm_action_dialog.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/ai/create_ai_key_dialog.dart';
 
 /// ¿Qué hace?: Vista principal del Servicio de IA para administrar API Keys con búsqueda y medidor de consumo.
 /// ¿De dónde trae datos?: Escucha userAiProvider usando Riverpod.

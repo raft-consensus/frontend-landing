@@ -18,12 +18,13 @@ class DashboardSidebar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelect;
 
-  // Lista de las 5 opciones de navegación principal
+  // Lista de las opciones de navegación principal
   final List<SidebarItemData> _menuItems = const [
     SidebarItemData(title: 'Resumen', icon: Icons.grid_view_rounded),
     SidebarItemData(title: 'Bases de datos', icon: Icons.dns_rounded),
     SidebarItemData(title: 'Dominio & SSL', icon: Icons.lan_rounded),
     SidebarItemData(title: 'Servicio de IA', icon: Icons.auto_awesome_rounded),
+    SidebarItemData(title: 'Workflows (n8n)', icon: Icons.hub_rounded),
     SidebarItemData(title: 'Herramientas y Guías', icon: Icons.handyman_rounded),
     SidebarItemData(title: 'Mi cuenta', icon: Icons.person_outline_rounded),
   ];

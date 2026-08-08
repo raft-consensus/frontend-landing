@@ -3,7 +3,7 @@ import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
 import 'package:frontend_landing/src/features/user/domain/entities/databse_engine.dart'; // Domain
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/field_label.dart'; // Common
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/info_banner.dart'; // Common
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/engine_picker_grid.dart'; // Dialogs
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/databases/engine_picker_grid.dart'; // Dialogs
 
 /// ¿Qué hace?: Modal emergente modular para la creación de una nueva base de datos con soporte Día/Noche.
 /// ¿De dónde trae datos?: Ingesta AppColors, DatabaseEngine y widgets de diálogo.

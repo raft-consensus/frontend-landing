@@ -4,6 +4,7 @@ import 'package:frontend_landing/src/features/user/presentation/pages/account_pa
 import 'package:frontend_landing/src/features/user/presentation/pages/ai_services_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/pages/databases_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/pages/dns_ssl_page.dart';
+import 'package:frontend_landing/src/features/user/presentation/pages/n8n_services_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/pages/overview_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/pages/tools_and_docs_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_sidebar.dart';
@@ -66,8 +67,10 @@ class _DashboardPageState extends State<DashboardPage> {
       case 3:
         return 'Servicios de IA';
       case 4:
-        return 'Herramientas y Guías';
+        return 'Workflows & Automatización (n8n)';
       case 5:
+        return 'Herramientas y Guías';
+      case 6:
         return 'Mi Cuenta y Ajustes';
       default:
         return 'Dashboard';
@@ -106,6 +109,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   title: _currentTitle,
                   onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
                   onCreateDatabase: _openCreateDatabaseDialog,
+                  onSelectTab: (index) => setState(() => _selectedIndex = index), // Permite cambiar de pestaña desde el Hub
+                  onMessage: _showMessage, // Conecta las notificaciones SnackBar del Dashboard
                 ),
                 Expanded(
                   child: IndexedStack(
@@ -113,10 +118,13 @@ class _DashboardPageState extends State<DashboardPage> {
                     children: [
                       // 0: Resumen (Overview)
                       OverviewPage(
-                        instances: const [],
                         onCreateDatabase: _openCreateDatabaseDialog,
                         onGoDatabases: () => setState(() => _selectedIndex = 1),
-                        onGoDocumentation: () => setState(() => _selectedIndex = 4),
+                        onGoDns: () => setState(() => _selectedIndex = 2),       // Navega a Dominio & SSL (DNS)
+                        onGoAi: () => setState(() => _selectedIndex = 3),        // Navega a Servicios de IA
+                        onGoN8n: () => setState(() => _selectedIndex = 4),       // Navega a Workflows (n8n)
+                        onGoDocumentation: () =>
+                            setState(() => _selectedIndex = 5),
                       ),
                       // 1: Bases de Datos (Autónoma)
                       DatabasesPage(onMessage: _showMessage),
@@ -124,9 +132,11 @@ class _DashboardPageState extends State<DashboardPage> {
                       DnsSslPage(onMessage: _showMessage),
                       // 3: Servicios de IA
                       AiServicesPage(onMessage: _showMessage),
-                      // 4: Herramientas y Guías
+                      // 4: Workflows (n8n) - NUEVA PÁGINA
+                      N8nServicesPage(onMessage: _showMessage),
+                      // 5: Herramientas y Guías
                       ToolsAndDocsPage(onMessage: _showMessage),
-                      // 5: Mi Cuenta
+                      // 6: Mi Cuenta
                       AccountPage(onMessage: _showMessage),
                     ],
                   ),

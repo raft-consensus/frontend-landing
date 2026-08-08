@@ -1,8 +1,12 @@
+// ==========================================
+// Archivo: lib/src/features/user/presentation/widgets/overview/service_item_tile.dart
+// ¿Qué hace?: Renderiza la tarjeta cliqueable para un servicio del ecosistema con iluminación suave de fondo y cursor tipo manito.
+// ¿De dónde trae datos?: Ingesta icono, color, título, descripción, estado y callback de navegación.
+// ¿Hacia dónde va / Cómo se conecta?: Es invocado dentro de EcosystemServicesCard.
+// ==========================================
+
 import 'package:flutter/material.dart';
 
-/// ¿Qué hace?: Renderiza la tarjeta cliqueable para un servicio del ecosistema con iluminación suave de fondo y borde estático.
-/// ¿De dónde trae datos?: Ingesta icono, color, título, descripción, estado y callback de navegación.
-/// ¿Hacia dónde va / Cómo se conecta?: Es invocado dentro de EcosystemServicesCard.
 class ServiceItemTile extends StatefulWidget {
   const ServiceItemTile({
     required this.icon,
@@ -32,11 +36,11 @@ class ServiceItemTile extends StatefulWidget {
 }
 
 class _ServiceItemTileState extends State<ServiceItemTile> {
-  bool _isHovered = false;
+  bool _isHovered = false; // Estado reactivo de hover
 
   @override
   Widget build(BuildContext context) {
-    // 1. Fondos y bordes dinámicos con grosor estrictamente fijo (1.0px)
+    // 1. Colores dinámicos del contenedor
     final defaultBg = widget.isDark ? const Color(0xFF162536) : const Color(0xFFF5F9FD);
     final hoverBg = widget.isDark ? const Color(0xFF1B2D42) : const Color(0xFFEDF4FC);
 
@@ -48,17 +52,23 @@ class _ServiceItemTileState extends State<ServiceItemTile> {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click, // 👈 Manito solo porque es botón cliqueable
+      cursor: SystemMouseCursors.click, // Puntero manito forzado en toda la tarjeta
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         decoration: BoxDecoration(
           color: _isHovered ? hoverBg : defaultBg,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _isHovered ? hoverBorder : defaultBorder, width: 1.0), // 👈 Grosor fijo
+          border: Border.all(
+            color: _isHovered ? hoverBorder : defaultBorder,
+            width: 1.0,
+          ),
         ),
         child: InkWell(
-          onTap: widget.onTap,
+          onTap: widget.onTap ?? () {}, // Garantiza respuesta a clic e intercepción de eventos
           borderRadius: BorderRadius.circular(12),
+          hoverColor: Colors.transparent,
+          splashColor: widget.color.withValues(alpha: 0.12),
+          highlightColor: Colors.transparent,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
@@ -82,7 +92,7 @@ class _ServiceItemTileState extends State<ServiceItemTile> {
                 _ServiceStatusBadge(status: widget.status),
                 const SizedBox(width: 8),
 
-                // Sub-widget 4: Botón de flecha estático con cambio de color
+                // Sub-widget 4: Botón de flecha con cambio de color al hacer hover
                 Icon(
                   Icons.chevron_right_rounded,
                   color: _isHovered ? widget.color : widget.subtitleColor,
@@ -156,7 +166,7 @@ class _ServiceTextDetails extends StatelessWidget {
   }
 }
 
-/// Sub-widget privado 3: Badge verde de estado del servicio
+/// Sub-widget privado 3: Badge de estado del servicio
 class _ServiceStatusBadge extends StatelessWidget {
   const _ServiceStatusBadge({required this.status});
 

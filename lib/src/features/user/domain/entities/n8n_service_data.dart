@@ -1,0 +1,55 @@
+import 'package:flutter/foundation.dart';
+import 'package:frontend_landing/src/features/user/domain/entities/n8n_workflow.dart';
+
+/// ¿Qué hace?: Entidad de dominio contenedora que agrupa las métricas globales y credenciales del servicio n8n del usuario.
+/// ¿De dónde trae datos?: Inmutable, agregada a partir del backend proxy de la célula n8n.
+/// ¿Hacia dónde va / Cómo se conecta?: Mantenida por UserN8nNotifier y leída por los widgets de presentación en N8nServicesPage.
+@immutable
+class N8nServiceData {
+  final String serviceStatus;      // Estado de conexión del servicio ("ACTIVE", "MAINTENANCE", "INACTIVE")
+  final String studioUrl;         // Enlace web directo para ingresar al entorno de diseño n8n Studio
+  final String apiKey;            // Clave de API personal asignada al usuario para autenticar peticiones
+  final String webhookBaseUrl;    // URL base de webhooks para enviar eventos desde Raft DB hacia n8n
+  final int activeWorkflows;      // Cantidad actual de flujos que el usuario tiene en estado activo
+  final int maxWorkflows;         // Cuota máxima de flujos activos permitidos por el plan asignado
+  final int monthlyExecutions;    // Consumo total de ejecuciones durante el mes en curso
+  final int maxMonthlyExecutions; // Límite máximo mensual de ejecuciones permitidas por el plan
+  final List<N8nWorkflow> workflows; // Lista completa con todos los flujos creados por el usuario
+
+  const N8nServiceData({
+    required this.serviceStatus,      // Requerido: Estado del servicio
+    required this.studioUrl,         // Requerido: URL de n8n Studio
+    required this.apiKey,            // Requerido: Clave de API
+    required this.webhookBaseUrl,    // Requerido: URL base de Webhooks
+    required this.activeWorkflows,      // Requerido: Flujos activos actuales
+    required this.maxWorkflows,         // Requerido: Límite máximo de flujos
+    required this.monthlyExecutions,    // Requerido: Ejecuciones mes actual
+    required this.maxMonthlyExecutions, // Requerido: Límite mensual de ejecuciones
+    required this.workflows,            // Requerido: Lista de flujos
+  });
+
+  /// Permite crear una copia modificada del estado del servicio
+  N8nServiceData copyWith({
+    String? serviceStatus,           // Nuevo estado del servicio opcional
+    String? studioUrl,              // Nueva URL de studio opcional
+    String? apiKey,                 // Nueva clave de API opcional
+    String? webhookBaseUrl,         // Nueva URL base de webhook opcional
+    int? activeWorkflows,           // Nuevo recuento de flujos activos opcional
+    int? maxWorkflows,              // Nuevo límite de flujos opcional
+    int? monthlyExecutions,         // Nuevo contador de ejecuciones opcional
+    int? maxMonthlyExecutions,      // Nuevo límite mensual opcional
+    List<N8nWorkflow>? workflows,   // Nueva lista de flujos opcional
+  }) {
+    return N8nServiceData(
+      serviceStatus: serviceStatus ?? this.serviceStatus,             // Mantiene valor previo si es nulo
+      studioUrl: studioUrl ?? this.studioUrl,                         // Mantiene URL previa si es nulo
+      apiKey: apiKey ?? this.apiKey,                                 // Mantiene la API Key previa si es nulo
+      webhookBaseUrl: webhookBaseUrl ?? this.webhookBaseUrl,         // Mantiene URL de webhook previa si es nulo
+      activeWorkflows: activeWorkflows ?? this.activeWorkflows,       // Mantiene conteo si es nulo
+      maxWorkflows: maxWorkflows ?? this.maxWorkflows,               // Mantiene máximo si es nulo
+      monthlyExecutions: monthlyExecutions ?? this.monthlyExecutions, // Mantiene ejecuciones si es nulo
+      maxMonthlyExecutions: maxMonthlyExecutions ?? this.maxMonthlyExecutions, // Mantiene límite
+      workflows: workflows ?? this.workflows,                         // Mantiene lista previa si es nulo
+    );
+  }
+}

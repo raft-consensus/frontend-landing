@@ -7,8 +7,8 @@ import 'package:frontend_landing/src/features/user/presentation/widgets/common/s
 import 'package:frontend_landing/src/features/user/presentation/widgets/databases/database_grid.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/databases/database_search_filter.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/databases/database_summary_card.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/confirm_action_dialog.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/create_database_dialog.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/common/confirm_action_dialog.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/databases/create_database_dialog.dart';
 
 /// ¿Qué hace?: Vista principal autónoma de Bases de Datos orquestada de forma plana mediante subwidgets.
 /// ¿De dónde trae datos?: Escucha userDatabasesProvider directamente en Riverpod.

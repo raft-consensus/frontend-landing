@@ -5,7 +5,7 @@ import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
 import 'package:frontend_landing/src/features/user/domain/entities/database_instance.dart'; // Domain
 import 'package:frontend_landing/src/features/user/presentation/providers/user_databases_provider.dart'; // Providers
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/info_banner.dart'; // Common
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/credential_item.dart'; // Dialogs
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/databases/credential_item.dart'; // Dialogs
 
 /// Modal principal para consultar y copiar credenciales de conexión con soporte Día/Noche
 class CredentialsDialog extends ConsumerStatefulWidget {

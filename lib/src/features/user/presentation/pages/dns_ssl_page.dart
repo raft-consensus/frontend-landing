@@ -4,8 +4,8 @@ import 'package:frontend_landing/src/features/user/domain/entities/dns_record.da
 import 'package:frontend_landing/src/features/user/presentation/providers/user_dns_provider.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_scroll_view.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/section_header.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/confirm_action_dialog.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/create_edit_dns_dialog.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/common/confirm_action_dialog.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/dns/create_edit_dns_dialog.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dns/dns_info_card.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dns/dns_summary_cards.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dns/dns_table.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
 import 'package:frontend_landing/src/features/user/domain/entities/database_instance.dart'; // Domain
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/credentials_dialog.dart'; // Dialogs
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/databases/credentials_dialog.dart'; // Dialogs
 
 /// ¿Qué hace?: Botones gráficos de acción (Ver credenciales, Iniciar/Detener y Eliminar) para la tarjeta de base de datos.
 /// ¿De dónde recibe datos?: Recibe DatabaseInstance, onToggleState, onDelete y onMessage callbacks.

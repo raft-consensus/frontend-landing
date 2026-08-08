@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/notification_item.dart'; // Dialogs
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/notifications/notification_item.dart'; // Dialogs
 
 /// ¿Qué hace?: Modal que despliega la lista de notificaciones y alertas del sistema.
 /// ¿De dónde trae?: Trae AppColors (core) y NotificationItem (presentation/widgets/dialogs).

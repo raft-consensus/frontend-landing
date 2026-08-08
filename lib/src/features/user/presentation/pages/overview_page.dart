@@ -1,51 +1,74 @@
+// ==========================================
+// Archivo: lib/src/features/user/presentation/pages/overview_page.dart
+// ¿Qué hace?: Vista principal del panel de Resumen (Overview) desacoplada y modularizada.
+// ¿De dónde trae datos?: Escucha userDatabasesProvider, userAiProvider, userN8nProvider y userDnsProvider via Riverpod.
+// ¿Hacia dónde va / Cómo se conecta?: Primera pestaña (índice 0) de DashboardPage, ensambla componentes independientes de overview/.
+// ==========================================
+
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/features/user/domain/entities/database_instance.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend_landing/src/features/user/presentation/providers/user_ai_provider.dart';
+import 'package:frontend_landing/src/features/user/presentation/providers/user_databases_provider.dart';
+import 'package:frontend_landing/src/features/user/presentation/providers/user_dns_provider.dart';
+import 'package:frontend_landing/src/features/user/presentation/providers/user_n8n_provider.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_scroll_view.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/section_header.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/overview/activity_section.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/overview/compact_database.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/overview/ecosystem_services.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/overview/metric_card.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/overview/overview_databases_grid.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/overview/overview_metrics_grid.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/overview/welcome_banner.dart';
 
-/// ¿Qué hace?: Vista principal del panel de Resumen (Overview) con el banner, 4 tarjetas de los 4 servicios Raft e instancias.
-/// ¿De dónde trae datos?: Ingesta la lista de instancias de DatabaseInstance y callbacks de navegación desde DashboardPage.
-/// ¿Hacia dónde va / Cómo se conecta?: Es la primera pestaña renderizada dentro de DashboardPage.
-class OverviewPage extends StatelessWidget {
+class OverviewPage extends ConsumerWidget {
   const OverviewPage({
-    required this.instances, // Lista de instancias de BD del usuario
-    required this.onCreateDatabase, // Callback para abrir el modal de creación de BD
-    required this.onGoDatabases, // Callback para ir a la pestaña de BD
-    required this.onGoDocumentation, // Callback para ir a la pestaña de documentación
+    required this.onCreateDatabase,   // Callback para abrir el modal de creación de BD
+    required this.onGoDatabases,      // Callback para redirigir a la pestaña de Bases de Datos (índice 1)
+    required this.onGoDocumentation,  // Callback para redirigir a la pestaña de Herramientas/Guías (índice 5)
+    this.onGoDns,                     // Callback opcional para ir a DNS & SSL (índice 2)
+    this.onGoAi,                      // Callback opcional para ir a Servicios de IA (índice 3)
+    this.onGoN8n,                     // Callback opcional para ir a N8N Workflows (índice 4)
     super.key,
   });
 
-  final List<DatabaseInstance> instances;
-  final VoidCallback onCreateDatabase;
-  final VoidCallback onGoDatabases;
-  final VoidCallback onGoDocumentation;
+  final VoidCallback onCreateDatabase;  // Función para abrir modal de creación
+  final VoidCallback onGoDatabases;     // Función para navegar a bases de datos
+  final VoidCallback onGoDocumentation; // Función para navegar a la documentación
+  final VoidCallback? onGoDns;          // Función para navegar a DNS
+  final VoidCallback? onGoAi;           // Función para navegar a IA
+  final VoidCallback? onGoN8n;          // Función para navegar a N8N
 
   @override
-  Widget build(BuildContext context) {
-    // 1. Detecta si la pantalla es de escritorio (>= 900px)
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 1. Escucha los proveedores de estado reactivos de Riverpod
+    final instances = ref.watch(userDatabasesProvider); // Lista reactiva de bases de datos del usuario
+    final aiKeys = ref.watch(userAiProvider);            // Lista reactiva de API Keys de IA
+    final n8nData = ref.watch(userN8nProvider);          // Estado reactivo del servicio de n8n Workflows
+    final dnsRecords = ref.watch(userDnsProvider);       // Lista reactiva de registros DNS del usuario
+
+    // 2. Detecta si la pantalla es de escritorio (ancho >= 900px)
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return DashboardScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Banner principal de bienvenida con balsa (WelcomeBanner)
+          // 1. Banner principal de bienvenida
           WelcomeBanner(
             onCreateDatabase: onCreateDatabase,
             onGoDocumentation: onGoDocumentation,
           ),
           const SizedBox(height: 24),
 
-          // 2. Fila superior de 4 tarjetas informativas de los 4 servicios Raft
-          _MetricsGrid(instances: instances),
+          // 2. Componente modularizado de métricas en cuadrícula
+          OverviewMetricsGrid(
+            runningDatabasesCount: instances.where((i) => i.isRunning).length,
+            dnsSubdomainsCount: dnsRecords.length,
+            aiKeysCount: aiKeys.length,
+            n8nWorkflowsCount: n8nData?.activeWorkflows ?? 0,
+          ),
           const SizedBox(height: 28),
 
-          // 3. Fila Doble Responsiva: Ecosistema de Servicios Raft + Actividad Reciente (285px de alto)
+          // 3. Fila Doble Responsiva: Ecosistema de Servicios + Actividad Reciente
           if (isDesktop)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,8 +76,9 @@ class OverviewPage extends StatelessWidget {
                 Expanded(
                   flex: 3,
                   child: EcosystemServicesCard(
-                    onGoDns:
-                        onGoDocumentation, // Redirige a la sección de DNS / Guías
+                    onGoDns: onGoDns,
+                    onGoAi: onGoAi,
+                    onGoN8n: onGoN8n,
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -62,7 +86,11 @@ class OverviewPage extends StatelessWidget {
               ],
             )
           else ...[
-            const EcosystemServicesCard(),
+            EcosystemServicesCard(
+              onGoDns: onGoDns,
+              onGoAi: onGoAi,
+              onGoN8n: onGoN8n,
+            ),
             const SizedBox(height: 20),
             const ActivitySection(),
           ],
@@ -71,121 +99,20 @@ class OverviewPage extends StatelessWidget {
           // 4. Encabezado de la sección de Instancias
           SectionHeader(
             title: 'Instancias de Bases de Datos',
-            subtitle: 'Acceso rápido a tus instancias de prueba',
+            subtitle: 'Acceso rápido a tus instancias principales',
             actionLabel: 'Ver todas',
             onAction: onGoDatabases,
           ),
           const SizedBox(height: 14),
 
-          // 5. Cuadrícula responsiva horizontal de máximo 4 tarjetas de BD
-          _DatabasesGrid(instances: instances, onGoDatabases: onGoDatabases),
+          // 5. Componente modularizado de lista/cuadrícula de instancias de BD
+          OverviewDatabasesGrid(
+            instances: instances,
+            onGoDatabases: onGoDatabases,
+            onCreateDatabase: onCreateDatabase,
+          ),
         ],
       ),
-    );
-  }
-}
-
-/// Sub-widget privado 1: Fila/Cuadrícula responsiva de 4 tarjetas informativas (Icono | Contador | Nombre)
-class _MetricsGrid extends StatelessWidget {
-  const _MetricsGrid({required this.instances});
-
-  final List<DatabaseInstance> instances;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final cols = width >= 1100 ? 4 : (width >= 700 ? 2 : 1);
-        final itemWidth = (width - (cols - 1) * 14) / cols;
-
-        return Wrap(
-          spacing: 14,
-          runSpacing: 14,
-          children: [
-            // 1. Servicio BDs: Icono | 5 | Bases de Datos
-            SizedBox(
-              width: itemWidth,
-              child: MetricCard(
-                title: 'Bases de Datos',
-                value: '${instances.where((i) => i.isRunning).length}',
-                subtitle: 'Bases de datos activas',
-                icon: Icons.storage_rounded,
-              ),
-            ),
-
-            // 2. Servicio DNS: Icono | 3 | Zonas DNS
-            SizedBox(
-              width: itemWidth,
-              child: const MetricCard(
-                title: 'Subdominos DNS',
-                value: '3',
-                subtitle: 'Zonas DNS asignadas',
-                icon: Icons.language_rounded,
-              ),
-            ),
-
-            // 3. Servicio IA: Icono | 1 | IA Keys
-            SizedBox(
-              width: itemWidth,
-              child: const MetricCard(
-                title: 'AI Api Keys',
-                value: '1',
-                subtitle: 'API Keys generadas',
-                icon: Icons.auto_awesome_rounded,
-              ),
-            ),
-
-            // 4. Servicio N8N: Icono | 1 | Instancia N8N
-            SizedBox(
-              width: itemWidth,
-              child: const MetricCard(
-                title: 'Flujos N8N',
-                value: '1',
-                subtitle: 'Acceso a flujos',
-                icon: Icons.account_tree_rounded,
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-/// Sub-widget privado 2: Cuadrícula horizontal responsiva de máximo 4 Tarjetas de Bases de Datos
-class _DatabasesGrid extends StatelessWidget {
-  const _DatabasesGrid({required this.instances, required this.onGoDatabases});
-
-  final List<DatabaseInstance> instances;
-  final VoidCallback onGoDatabases;
-
-  @override
-  Widget build(BuildContext context) {
-    final displayedInstances = instances.take(4).toList();
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final cols = width >= 1100 ? 4 : (width >= 700 ? 2 : 1);
-        final itemWidth = (width - (cols - 1) * 14) / cols;
-
-        return Wrap(
-          spacing: 14,
-          runSpacing: 14,
-          children: displayedInstances
-              .map(
-                (instance) => SizedBox(
-                  width: itemWidth,
-                  child: CompactDatabaseCard(
-                    instance: instance,
-                    onTap: onGoDatabases,
-                  ),
-                ),
-              )
-              .toList(),
-        );
-      },
     );
   }
 }
