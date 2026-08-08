@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
 
-/// ¿Qué hace?: Texto estilizado en negrita que actúa como título superior para campos de entrada de texto (TextField).
-/// ¿Cómo se conecta?: Se coloca inmediatamente arriba de los inputs de formularios (en CreateDatabaseDialog o AccountPage).
+/// ¿Qué hace?: Texto estilizado en negrita para etiquetas de campos con soporte dinámico Día/Noche.
+/// ¿De dónde trae datos?: Ingesta la etiqueta textual y responde al tema del sistema.
+/// ¿Cómo se conecta?: Se coloca inmediatamente arriba de los inputs de formularios.
 class FieldLabel extends StatelessWidget {
   const FieldLabel(this.label, {super.key});
 
-  final String label; // Nombre visible del campo (ej. "Nombre de la base de datos")
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    // Texto formateado en pantalla con tono oscuro de alta legibilidad
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+
     return Text(
       label,
-      style: const TextStyle(
-        color: Color(0xFF152640), // Tono azul oscuro/negro para que resalte
+      style: TextStyle(
+        color: textColor,
         fontSize: 12,
-        fontWeight: FontWeight.w800, // Negrita marcada para identificar rápido el campo
+        fontWeight: FontWeight.w800,
       ),
     );
   }

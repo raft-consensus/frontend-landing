@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
 
-/// ¿Qué hace?: Modal del Ecosistema Raft Hub que presenta los servicios activos y futuros (Bases de datos, IA, DNS, N8N).
+/// ¿Qué hace?: Modal del Ecosistema Raft Hub que presenta los servicios activos y futuros con soporte Día/Noche.
 /// ¿De dónde trae datos?: Recibe el callback onCreateDatabase para aprovisionar una nueva BD al hacer clic en el servicio activo.
 /// ¿Dónde se conecta?: Invocado al hacer clic en el botón principal "Ecosistema Raft" en DashboardTopbar.
 class ServicesHubDialog extends StatelessWidget {
@@ -14,7 +14,10 @@ class ServicesHubDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Dialog(
+      backgroundColor: theme.cardColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
@@ -24,21 +27,21 @@ class ServicesHubDialog extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Sub-widget de encabezado
+              // 1. Encabezado del modal
               const _HubHeader(),
               const SizedBox(height: 20),
 
-              // 2. Lista modular de servicios accionables del ecosistema
+              // 2. Lista modular de servicios del ecosistema
               _ServiceTile(
                 title: 'Bases de Datos Distribuidas',
                 subtitle: 'Crear e instanciar SQL Server, PostgreSQL, MySQL o MongoDB',
                 icon: Icons.dns_rounded,
-                color: AppColors.blue,
+                color: theme.colorScheme.primary,
                 status: 'Activo',
                 isActive: true,
                 onTap: () {
-                  Navigator.pop(context); // Cierra el modal del Hub
-                  onCreateDatabase();      // Desencadena el modal de creación de BD
+                  Navigator.pop(context);
+                  onCreateDatabase();
                 },
               ),
               const SizedBox(height: 10),
@@ -49,9 +52,7 @@ class ServicesHubDialog extends StatelessWidget {
                 color: AppColors.purple,
                 status: 'Próximamente',
                 isActive: false,
-                onTap: () {
-                  _showComingSoonMessage(context, 'Raft AI Assistant');
-                },
+                onTap: () => _showComingSoonMessage(context, 'Raft AI Assistant'),
               ),
               const SizedBox(height: 10),
               _ServiceTile(
@@ -61,21 +62,17 @@ class ServicesHubDialog extends StatelessWidget {
                 color: AppColors.cyan,
                 status: 'Próximamente',
                 isActive: false,
-                onTap: () {
-                  _showComingSoonMessage(context, 'Gestor DNS & Red');
-                },
+                onTap: () => _showComingSoonMessage(context, 'Gestor DNS & Red'),
               ),
               const SizedBox(height: 10),
               _ServiceTile(
                 title: 'Automatización N8N Workflows',
                 subtitle: 'Orquestación de flujos de trabajo e integraciones Webhook',
                 icon: Icons.hub_rounded,
-                color: AppColors.green,
+                color: AppColors.success,
                 status: 'Próximamente',
                 isActive: false,
-                onTap: () {
-                  _showComingSoonMessage(context, 'Automatización N8N');
-                },
+                onTap: () => _showComingSoonMessage(context, 'Automatización N8N'),
               ),
             ],
           ),
@@ -101,42 +98,48 @@ class _HubHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final titleColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+    final subtitleColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary;
+
     return Row(
       children: [
-        const CircleAvatar(
-          backgroundColor: Color(0xFFE0EEFC),
-          child: Icon(Icons.apps_rounded, color: AppColors.blue),
+        CircleAvatar(
+          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+          child: Icon(Icons.apps_rounded, color: theme.colorScheme.primary),
         ),
         const SizedBox(width: 12),
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Ecosistema de Servicios Raft',
                 style: TextStyle(
-                  color: AppColors.text,
+                  color: titleColor,
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                 ),
               ),
               Text(
                 'Selecciona un servicio activo para gestionar o crear recursos.',
-                style: TextStyle(color: AppColors.muted, fontSize: 12),
+                style: TextStyle(color: subtitleColor, fontSize: 12),
               ),
             ],
           ),
         ),
         IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.close_rounded),
+          icon: Icon(Icons.close_rounded, color: subtitleColor),
         ),
       ],
     );
   }
 }
 
-/// Sub-widget extraído 2: Tarjeta individual de servicio accionable del Hub
+/// Sub-widget extraído 2: Tarjeta individual de servicio adaptativa a Día/Noche
 class _ServiceTile extends StatelessWidget {
   const _ServiceTile({
     required this.title,
@@ -158,6 +161,15 @@ class _ServiceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final titleColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+    final subtitleColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary;
+
+    final activeBg = color.withValues(alpha: isDark ? 0.15 : 0.08);
+    final inactiveBg = theme.cardColor;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -166,10 +178,12 @@ class _ServiceTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isActive ? color.withValues(alpha: 0.05) : const Color(0xFFF8FAFC),
+            color: isActive ? activeBg : inactiveBg,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isActive ? color.withValues(alpha: 0.3) : AppColors.border,
+              color: isActive
+                  ? color.withValues(alpha: isDark ? 0.50 : 0.40)
+                  : theme.dividerColor,
             ),
           ),
           child: Row(
@@ -184,8 +198,8 @@ class _ServiceTile extends StatelessWidget {
                       children: [
                         Text(
                           title,
-                          style: const TextStyle(
-                            color: AppColors.text,
+                          style: TextStyle(
+                            color: titleColor,
                             fontWeight: FontWeight.w800,
                             fontSize: 13,
                           ),
@@ -197,16 +211,16 @@ class _ServiceTile extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(color: AppColors.muted, fontSize: 11),
+                      style: TextStyle(color: subtitleColor, fontSize: 11),
                     ),
                   ],
                 ),
               ),
               if (isActive)
-                const Icon(
+                Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 14,
-                  color: AppColors.blue,
+                  color: theme.colorScheme.primary,
                 ),
             ],
           ),
@@ -229,13 +243,13 @@ class _ServiceAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
-      backgroundColor: color.withValues(alpha: 0.1),
+      backgroundColor: color.withValues(alpha: 0.14),
       child: Icon(icon, color: color, size: 22),
     );
   }
 }
 
-/// Sub-widget extraído 4: Insignia de estado (Activo / Próximamente)
+/// Sub-widget extraído 4: Insignia de estado (Activo / Próximamente) adaptativa
 class _StatusBadge extends StatelessWidget {
   const _StatusBadge({
     required this.status,
@@ -247,18 +261,24 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final activeColor = AppColors.success;
+    final inactiveColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: isActive
-            ? AppColors.green.withValues(alpha: 0.1)
-            : Colors.grey.withValues(alpha: 0.1),
+            ? activeColor.withValues(alpha: isDark ? 0.20 : 0.12)
+            : theme.dividerColor.withValues(alpha: isDark ? 0.30 : 0.50),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         status,
         style: TextStyle(
-          color: isActive ? AppColors.green : AppColors.muted,
+          color: isActive ? activeColor : inactiveColor,
           fontSize: 10,
           fontWeight: FontWeight.w800,
         ),
