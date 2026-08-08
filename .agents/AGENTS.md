@@ -40,3 +40,4 @@ El proyecto utiliza Clean Architecture organizada modularmente por features en `
 - Todo código, corrección o propuesta debe ponerse en el chat para ejecución manual por parte del desarrollador.
 - Prohibido utilizar stickers o emojis en archivos markdown, documentación o comentarios de código.
 - Cada archivo propuesto debe incluir comentarios explicando qué hace, de dónde recibe datos y hacia dónde se conecta.
+- Añadir comentarios sobre cada clase, al frente de cada atributo, encima de cada metodo y al frente o encima de cada funcion o componente importante y facil de seguir visualemente en la interfaz grafica

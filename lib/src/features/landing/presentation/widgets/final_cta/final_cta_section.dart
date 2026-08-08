@@ -1,19 +1,23 @@
+// ==========================================
+// ¿Qué hace?: Banner de llamado a la acción final (Final CTA) multiservicio con gradiente azul y soporte Day/Night.
+// ¿De dónde trae datos?: Componente estático con botones interactivos de navegación.
+// ¿Hacia dónde va / Cómo se conecta?: Se incluye directamente antes del Footer en LandingPage.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
 import 'package:go_router/go_router.dart';
 
-/// Sección de llamado a la acción final (Final CTA).
-/// 
-/// ¿Qué hace?: Renderiza un banner curvo con gradiente azul, iconos y botones para iniciar o ver la documentación.
-/// ¿De dónde recibe datos?: Componente estático con botones interactivos.
-/// ¿Hacia dónde va / Dónde se conecta?: Se incluye directamente en LandingScreen (landing_page.dart).
 class FinalCtaSection extends StatelessWidget {
   const FinalCtaSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final containerBg = isDark ? AppColors.nightBackground : Colors.white;
+
     return Container(
-      color: Colors.white,
+      color: containerBg,
       padding: const EdgeInsets.fromLTRB(24, 30, 24, 90),
       child: Center(
         child: ConstrainedBox(
@@ -25,14 +29,16 @@ class FinalCtaSection extends StatelessWidget {
               vertical: 65,
             ),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.navy, Color(0xFF075DA2)],
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [AppColors.nightSurface, AppColors.nightCard]
+                    : [AppColors.dayPrimary, const Color(0xFF075DA2)],
               ),
               borderRadius: BorderRadius.circular(32),
             ),
             child: Column(
               children: [
-                // Icono representativo de Raft
+                // Icono representativo de Raft Cloud
                 const Icon(
                   Icons.sailing_rounded,
                   color: AppColors.cyan,
@@ -52,9 +58,9 @@ class FinalCtaSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
 
-                // Subtítulo
+                // Subtítulo multiservicio
                 const Text(
-                  'Crea una base de datos gratuita y empieza a construir en minutos.',
+                  'Explora bases de datos, DNS, IA y automatización. Gratis.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Color(0xFFC7D7EA),
@@ -75,25 +81,13 @@ class FinalCtaSection extends StatelessWidget {
                       label: const Text('Comenzar gratis'),
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.cyan,
-                        foregroundColor: AppColors.navy,
+                        foregroundColor: AppColors.dayPrimary,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 26,
                           vertical: 20,
                         ),
                       ),
                     ),
-                    // OutlinedButton(
-                    //   onPressed: () {}, // pendiente
-                    //   style: OutlinedButton.styleFrom(
-                    //     foregroundColor: Colors.white,
-                    //     side: const BorderSide(color: Colors.white54),
-                    //     padding: const EdgeInsets.symmetric(
-                    //       horizontal: 26,
-                    //       vertical: 20,
-                    //     ),
-                    //   ),
-                    //   child: const Text('Ver documentación'),
-                    // ),
                   ],
                 ),
               ],

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/benefits/benefit_data.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/common/hover_card.dart';
 
-/// Tarjeta individual translúcida para presentar un beneficio sobre fondo oscuro.
-/// 
-/// ¿Qué hace?: Renderiza el icono coloreado, el título y la descripción del beneficio.
-/// ¿De dónde recibe datos?: Recibe un objeto BenefitData y el ancho deseado (width).
-/// ¿Hacia dónde va / Dónde se conecta?: Utilizado dentro del Wrap en BenefitsSection.
+/// ¿Qué hace?: Tarjeta individual con animación hover para presentar cada beneficio del ecosistema.
+/// ¿De dónde trae datos?: Ingesta la entidad BenefitData y el ancho deseado (width).
+/// ¿Hacia dónde va / Cómo se conecta?: Se utiliza en la grilla de BenefitsSection.
 class BenefitCard extends StatelessWidget {
   const BenefitCard({
-    required this.width,
-    required this.data,
+    required this.width, // Ancho calculado dinámicamente según pantalla
+    required this.data, // Datos del beneficio (icono, título, descripción, color)
     super.key,
   });
 
@@ -19,48 +18,61 @@ class BenefitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark; // Tema activo
+
+    final cardBg = isDark ? AppColors.nightCard : AppColors.daySurface; // Fondo dinámico
+    final borderColor = isDark ? AppColors.nightBorder : AppColors.dayBorder; // Borde dinámico
+    final titleColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary; // Título
+    final textColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary; // Descripción
+
     return HoverCard(
-      borderRadius: 22,
+      borderRadius: 18,
       child: Container(
         width: width,
-        padding: const EdgeInsets.all(25),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          // Transparencia con el estándar withValues(alpha: ...)
-          color: Colors.white.withValues(alpha: 0.07),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          color: cardBg,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Contenedor del icono con transparencia del color principal
+            // Icono circular tintado con alto contraste
             Container(
-              width: 51,
-              height: 51,
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: data.color.withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(15),
+                color: data.color.withValues(alpha: isDark ? 0.22 : 0.15),
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(data.icon, color: data.color),
+              child: Icon(data.icon, color: data.color, size: 26),
             ),
-            const SizedBox(height: 19),
-      
+            const SizedBox(height: 18),
+
             // Título del beneficio
             Text(
               data.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 19,
+              style: TextStyle(
+                color: titleColor,
+                fontSize: 17,
                 fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 8),
-      
-            // Descripción breve
+
+            // Descripción detallada
             Text(
               data.description,
-              style: const TextStyle(
-                color: Color(0xFFB8C8DD),
+              style: TextStyle(
+                color: textColor,
+                fontSize: 13,
                 height: 1.55,
               ),
             ),

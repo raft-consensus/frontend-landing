@@ -6,94 +6,88 @@ import 'package:frontend_landing/src/features/landing/presentation/widgets/how_i
 import 'package:frontend_landing/src/features/landing/presentation/widgets/how_it_works/step_data.dart';
 import 'package:go_router/go_router.dart';
 
-/// Sección visual que explica el proceso 'Cómo Funciona' paso a paso.
-/// 
-/// ¿Qué hace?: Agrupa 4 etapas numéricas desde el registro hasta la primera conexión y muestra un botón CTA.
-/// ¿De dónde recibe datos?: Lista interna inmutable de objetos StepData.
-/// ¿Hacia dónde va / Dónde se conecta?: Se incluye directamente en LandingScreen (landing_page.dart).
+/// ¿Qué hace?: Sección visual del proceso 'Cómo Funciona' en 4 sencillos pasos multiservicio.
+/// ¿De dónde trae datos?: Lista interna inmutable de objetos StepData adaptados a los 4 servicios.
+/// ¿Hacia dónde va / Cómo se conecta?: Se incluye directamente en LandingPage.
 class HowItWorksSection extends StatelessWidget {
   const HowItWorksSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark; // Tema activo
+
+    // Listado inmutable de los 4 pasos multiservicio
     const steps = [
       StepData(
         '01',
         Icons.person_add_alt_1_rounded,
-        'Crea tu cuenta',
-        'Regístrate gratuitamente como estudiante o desarrollador.',
+        'Crea tu cuenta gratis',
+        'Regístrate en segundos como estudiante o desarrollador sin tarjeta de crédito.',
       ),
       StepData(
         '02',
-        Icons.storage_rounded,
-        'Elige un motor',
-        'Selecciona MySQL, PostgreSQL, SQL Server o MongoDB.',
+        Icons.hub_rounded,
+        'Selecciona un servicio',
+        'Elige entre BDs (SQL/NoSQL), Subdominios DNS con SSL, API Keys de IA o n8n.',
       ),
       StepData(
         '03',
         Icons.settings_suggest_rounded,
-        'Crea tu instancia',
-        'Define un nombre y genera tus credenciales de acceso.',
+        'Configura tus datos',
+        'Asigna un nombre a tu instancia, genera credenciales seguras o activa tus llaves de API.',
       ),
       StepData(
         '04',
         Icons.code_rounded,
-        'Conecta tu proyecto',
-        'Utiliza las credenciales desde tu lenguaje o cliente favorito.',
+        'Conecta tu aplicación',
+        'Usa las cadenas de conexión desde Flutter, Node, Python, C# o tu cliente preferido.',
       ),
     ];
 
     return SectionContainer(
+      background: isDark ? AppColors.nightBackground : Colors.white,
       child: Column(
         children: [
-          // Encabezado reutilizable de la sección
+          // Encabezado estandarizado de la sección
           const SectionTitle(
             eyebrow: 'CÓMO FUNCIONA',
-            title: 'De cero a tu primera conexión',
-            subtitle:
-                'Una experiencia sencilla para que puedas empezar en minutos.',
+            title: 'De cero a tu primer servicio en minutos',
+            subtitle: 'Una experiencia intuitiva y rápida para potenciar tus proyectos.',
           ),
-          const SizedBox(height: 45),
+          const SizedBox(height: 48),
 
-          // Contenedor responsivo para las 4 etapas
+          // Grilla responsiva de 4 pasos
           LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
-              // 4 columnas en pantallas anchas (>900px), 2 en medianas (>580px) y 1 en móviles
-              final itemWidth = width > 900
-                  ? (width - 45) / 4
+
+              // 4 columnas en escritorio (>950px), 2 en tablet (>580px), 1 en móvil
+              final itemWidth = width > 950
+                  ? (width - 48) / 4
                   : width > 580
-                      ? (width - 15) / 2
+                      ? (width - 16) / 2
                       : width;
 
               return Wrap(
-                spacing: 15,
-                runSpacing: 30,
+                spacing: 16,
+                runSpacing: 24,
                 children: steps
-                    .map(
-                      (step) => StepCard(
-                        width: itemWidth,
-                        data: step,
-                      ),
-                    )
+                    .map((step) => StepCard(width: itemWidth, data: step))
                     .toList(),
               );
             },
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 45),
 
           // Botón de llamado a la acción al final del flujo
           FilledButton.icon(
             onPressed: () => context.push('/register'),
             icon: const Icon(Icons.rocket_launch_rounded),
-            label: const Text('Crear mi primera instancia'),
+            label: const Text('Comenzar gratis'),
             style: FilledButton.styleFrom(
-              backgroundColor: AppColors.navy,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 27,
-                vertical: 20,
-              ),
+              backgroundColor: isDark ? AppColors.nightPrimary : AppColors.dayPrimary,
+              foregroundColor: isDark ? AppColors.nightBackground : Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
             ),
           ),
         ],

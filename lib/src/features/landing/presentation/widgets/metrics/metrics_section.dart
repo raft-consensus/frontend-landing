@@ -6,33 +6,32 @@ import 'package:frontend_landing/src/features/landing/presentation/widgets/commo
 import 'package:frontend_landing/src/features/landing/presentation/widgets/common/section_title.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/metrics/metrics_grid.dart';
 
-/// Sección visual que muestra las estadísticas y métricas del proyecto en tiempo real.
-/// 
-/// ¿Qué hace?: Escucha las métricas desde Riverpod y delega la construcción de la cuadrícula a MetricsGrid.
-/// ¿De dónde recibe datos?: Escucha reactivamente a platformMetricsProvider.
-/// ¿Hacia dónde va / Dónde se conecta?: Se incluye directamente en LandingScreen (landing_page.dart).
+/// ¿Qué hace?: Sección de estadísticas en tiempo real adaptable al tema activo (Day/Night).
+/// ¿De dónde trae datos?: Escucha reactivamente a platformMetricsProvider vía Riverpod.
+/// ¿Hacia dónde va / Cómo se conecta?: Se incluye como segunda sección en LandingPage.
 class MetricsSection extends ConsumerWidget {
   const MetricsSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Escucha de forma asíncrona el estado de las métricas desde Riverpod
+    // Escucha de forma asíncrona las métricas desde Riverpod
     final metricsAsync = ref.watch(platformMetricsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SectionContainer(
-      background: AppColors.surface,
+      background: isDark ? AppColors.nightSurface : const Color(0xFFF0F4F8), // colores de fondo
       child: Column(
         children: [
-          // Título de la sección reutilizable con antetítulo en cyan
+          // Título estandarizado de la sección
           const SectionTitle(
             eyebrow: 'ESTADÍSTICAS EN TIEMPO REAL',
             title: 'Impacto de nuestra plataforma',
             subtitle:
-                'Conoce la actividad real y el volumen de bases de datos aprovisionadas para nuestra comunidad.',
+                'Conoce la actividad real y el volumen de servicios provistos para nuestra comunidad.',
           ),
           const SizedBox(height: 48),
 
-          // Renderizado condicional según el estado de la petición (data, loading, error)
+          // Renderizado condicional del estado asíncrono
           metricsAsync.when(
             data: (metrics) => MetricsGrid(metrics: metrics),
             loading: () => const Center(
@@ -41,9 +40,9 @@ class MetricsSection extends ConsumerWidget {
                 child: CircularProgressIndicator(color: AppColors.cyan),
               ),
             ),
-            error: (error, _) => Center(
+            error: (error, _) => const Center(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(16.0),
                 child: Text(
                   'No se pudieron cargar las métricas en este momento.',
                   style: TextStyle(color: AppColors.muted),

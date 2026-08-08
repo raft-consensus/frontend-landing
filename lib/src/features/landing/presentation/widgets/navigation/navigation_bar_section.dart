@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart';
-import 'package:frontend_landing/src/features/landing/presentation/widgets/common/raft_logo.dart';
-import 'package:frontend_landing/src/features/landing/presentation/widgets/navigation/nav_link.dart';
-import 'package:go_router/go_router.dart';
 
-/// Barra de navegación superior (Header/Navbar) con comportamiento responsivo.
-///
-/// ¿Qué hace?: Muestra el logotipo, los enlaces a secciones con scroll y los botones de autenticación.
-/// ¿De dónde recibe datos?: Callbacks de scroll enviados desde LandingScreen.
-/// ¿Hacia dónde va / Dónde se conecta?: Incluido al inicio de LandingScreen (landing_page.dart).
-class NavigationBarSection extends StatelessWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart';
+import 'package:frontend_landing/src/core/theme/theme_provider.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/common/raft_logo.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/navigation/nav_action_buttons.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/navigation/nav_links_group.dart';
+
+/// ¿Qué hace?: Contenedor orquestador del Navbar dividido en 3 secciones en escritorio (Logo, Navegación, Tema/Auth).
+/// ¿De dónde trae datos?: Ingesta callbacks de scroll desde LandingPage y escucha themeModeProvider vía Riverpod.
+/// ¿Hacia dónde va / Cómo se conecta?: Se posiciona fijo en la parte superior de LandingPage.
+class NavigationBarSection extends ConsumerWidget {
   const NavigationBarSection({
+    this.onLogoTap, // Callback para scroll al inicio
     this.onMetricsTap,
     this.onDatabasesTap,
     this.onBenefitsTap,
@@ -19,16 +21,23 @@ class NavigationBarSection extends StatelessWidget {
     super.key,
   });
 
-  final VoidCallback? onMetricsTap;
-  final VoidCallback? onDatabasesTap;
-  final VoidCallback? onBenefitsTap;
-  final VoidCallback? onHowItWorksTap;
-  final VoidCallback? onFaqTap;
+  final VoidCallback? onLogoTap;
+  final VoidCallback? onMetricsTap; // Callback scroll métricas
+  final VoidCallback? onDatabasesTap; // Callback scroll servicios
+  final VoidCallback? onBenefitsTap; // Callback scroll beneficios
+  final VoidCallback? onHowItWorksTap; // Callback scroll cómo funciona
+  final VoidCallback? onFaqTap; // Callback scroll FAQ
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark; // Tema activo
+    final navBg = isDark
+        ? AppColors.nightBackground.withValues(alpha: 0.95)
+        : Colors.white.withValues(alpha: 0.96);
+
     return Container(
-      color: Colors.white.withValues(alpha: 0.96),
+      color: navBg,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       child: Center(
         child: ConstrainedBox(
@@ -38,50 +47,59 @@ class NavigationBarSection extends StatelessWidget {
               final desktop = constraints.maxWidth > 950;
 
               return Row(
+                mainAxisAlignment: MainAxisAlignment
+                    .spaceBetween, // 3 secciones distribuidas equitativamente
                 children: [
-                  const RaftLogo(),
-                  const Spacer(),
+                  // 1. Sección Izquierda: Logotipo de marca Raft Cloud clickeable
+                  InkWell(
+                    onTap: onLogoTap,
+                    borderRadius: BorderRadius.circular(8),
+                    child: const RaftLogo(),
+                  ),
+
                   if (desktop) ...[
-                    NavLink('Métricas', onTap: onMetricsTap),
-                    NavLink('Bases de datos', onTap: onDatabasesTap),
-                    NavLink('Beneficios', onTap: onBenefitsTap),
-                    NavLink('Cómo funciona', onTap: onHowItWorksTap),
-                    NavLink('FAQ', onTap: onFaqTap),
-                    const SizedBox(width: 16),
-
-                    // Botón secundario para Iniciar sesión (con .go como indicaste)
-                    TextButton(
-                      onPressed: () => context.go('/login'),
-                      child: const Text('Iniciar sesión'),
+                    // 2. Sección Central: Enlaces de navegación de la página
+                    NavLinksGroup(
+                      onMetricsTap: onMetricsTap,
+                      onDatabasesTap: onDatabasesTap,
+                      onBenefitsTap: onBenefitsTap,
+                      onHowItWorksTap: onHowItWorksTap,
+                      onFaqTap: onFaqTap,
                     ),
 
-                    const SizedBox(width: 8),
-
-                    // Botón primario para Crear cuenta (con .go como indicaste)
-                    FilledButton(
-                      onPressed: () => context.go('/register'),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.navy,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 22,
-                          vertical: 18,
+                    // 3. Sección Derecha: Alternancia de Tema Día/Noche y Botones Auth
+                    NavActionButtons(isDark: isDark),
+                  ] else ...[
+                    // Layout responsivo móvil (Toggle de tema y botón de menú drawer)
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: () => ref
+                              .read(themeModeProvider.notifier)
+                              .toggleTheme(),
+                          icon: Icon(
+                            isDark
+                                ? Icons.light_mode_rounded
+                                : Icons.dark_mode_rounded,
+                            color: isDark
+                                ? AppColors.warning
+                                : AppColors.dayPrimary,
+                          ),
                         ),
-                      ),
-                      child: const Text('Crear cuenta'),
+                        const SizedBox(width: 4),
+                        Builder(
+                          builder: (scaffoldContext) => IconButton(
+                            onPressed: () =>
+                                Scaffold.of(scaffoldContext).openEndDrawer(),
+                            icon: const Icon(Icons.menu_rounded),
+                            color: isDark
+                                ? AppColors.nightTextPrimary
+                                : AppColors.dayPrimary,
+                          ),
+                        ),
+                      ],
                     ),
-                  ] 
-                  else
-                    Builder(
-                      builder: (scaffoldContext) {
-                        return IconButton(
-                          onPressed: () =>
-                              Scaffold.of(scaffoldContext).openEndDrawer(),
-                          icon: const Icon(Icons.menu_rounded),
-                          color: AppColors.navy,
-                        );
-                      },
-                    ),
+                  ],
                 ],
               );
             },

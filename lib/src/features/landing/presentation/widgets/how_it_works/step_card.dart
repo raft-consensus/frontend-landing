@@ -3,15 +3,13 @@ import 'package:frontend_landing/src/core/theme/app_colors.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/common/hover_card.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/how_it_works/step_data.dart';
 
-/// Tarjeta individual para presentar un paso con badge numérico y gradiente.
-/// 
-/// ¿Qué hace?: Renderiza la caja de icono con gradiente Cyan/Blue y un badge flotante con el número de paso.
-/// ¿De dónde recibe datos?: Instancia de StepData y ancho deseado (width).
-/// ¿Hacia dónde va / Dónde se conecta?: Utilizado en el Wrap de HowItWorksSection.
+/// ¿Qué hace?: Tarjeta individual con animación hover para presentar cada paso del proceso con badge numérico.
+/// ¿De dónde trae datos?: Ingesta el objeto StepData y el ancho deseado (width).
+/// ¿Hacia dónde va / Cómo se conecta?: Se utiliza en la grilla de HowItWorksSection.
 class StepCard extends StatelessWidget {
   const StepCard({
-    required this.width,
-    required this.data,
+    required this.width, // Ancho calculado dinámicamente según pantalla
+    required this.data, // Datos del paso (número, icono, título, descripción)
     super.key,
   });
 
@@ -20,62 +18,88 @@ class StepCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark; // Tema activo
+
+    final cardBg = isDark ? AppColors.nightCard : AppColors.daySurface; // Fondo dinámico
+    final borderColor = isDark ? AppColors.nightBorder : AppColors.dayBorder; // Borde dinámico
+    final titleColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary; // Título
+    final textColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary; // Descripción
+    final badgeBg = isDark ? AppColors.nightBackground : AppColors.dayPrimary; // Fondo badge
+    final badgeTextColor = isDark ? AppColors.cyan : Colors.white; // Texto badge
+
     return HoverCard(
-      borderRadius: 23,
-      showShadow: false,
-      child: SizedBox(
+      borderRadius: 18,
+      child: Container(
         width: width,
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
         child: Column(
           children: [
-            // Caja de icono con gradiente y badge numérico superpuesto en la esquina superior derecha
+            // Icono en caja gradiente con badge numérico destacado
             Stack(
               clipBehavior: Clip.none,
               children: [
                 Container(
-                  width: 78,
-                  height: 78,
+                  width: 64,
+                  height: 64,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [AppColors.cyan, AppColors.blue],
                     ),
-                    borderRadius: BorderRadius.circular(23),
+                    borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Icon(data.icon, color: Colors.white, size: 34),
+                  child: Icon(data.icon, color: Colors.white, size: 30),
                 ),
                 Positioned(
-                  top: -9,
-                  right: -9,
+                  top: -6,
+                  right: -6,
                   child: CircleAvatar(
-                    radius: 17,
-                    backgroundColor: AppColors.navy,
+                    radius: 14,
+                    backgroundColor: badgeBg,
                     child: Text(
                       data.number,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: badgeTextColor,
                         fontSize: 11,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 21),
-      
+            const SizedBox(height: 18),
+
             // Título del paso
             Text(
               data.title,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: TextStyle(
+                color: titleColor,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 8),
-      
+
             // Descripción explicativa
             Text(
               data.description,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppColors.muted,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 13,
                 height: 1.5,
               ),
             ),

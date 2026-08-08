@@ -1,42 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/hero/hero_image.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/hero/mini_benefit.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/hero/pill_badge.dart';
-import 'package:frontend_landing/src/features/landing/presentation/widgets/hero/raft_illustration.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/hero/wave_background.dart';
 import 'package:go_router/go_router.dart';
 
-/// Sección principal de bienvenida (Hero Section).
+/// ¿Qué hace?: Sección de bienvenida multiservicio de Raft Cloud con texto/CTA a la izquierda e imagen destacada a la derecha.
+/// ¿De dónde trae datos?: Ingesta Pill, MiniBenefit, HeroImage y WaveBackground adaptables al tema.
+/// ¿Hacia dónde va / Cómo se conecta?: Se ubica como primer bloque de contenido en LandingPage.
 class HeroSection extends StatelessWidget {
   const HeroSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark; // Tema activo
+
+    // Gradiente azul corporativo profundo para Modo Día y Medianoche para Modo Noche
+    final bgGradient = LinearGradient(
+      begin: Alignment.centerLeft, // Inicio horizontal (Izquierda - Texto)
+      end: Alignment.centerRight, // Fin horizontal (Derecha - Balsa)
+      colors: isDark
+          ? [
+              AppColors.nightBackground,
+              AppColors.nightSurface,
+              AppColors.nightBackground,
+            ]
+          : [
+              const Color(
+                0xFF0A2946,
+              ), // Azul profundo y limpio a la izquierda (texto)
+              const Color(0xFF0E4B82), // Azul marino medio
+              const Color(
+                0xFF186CC0,
+              ), // Azul mar brillante e intenso a la derecha (coincide con la balsa)
+            ],
+    );
+
+    // En Modo Día los textos del Hero se muestran en blanco luminoso sobre el fondo azul
+    final titleColor = isDark ? AppColors.nightTextPrimary : Colors.white;
+    final subtitleColor = isDark
+        ? AppColors.nightTextSecondary
+        : const Color(0xFFD4E6F8);
+
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.white, Color(0xFFF2FCFF), Color(0xFFEAF4FF)],
-        ),
-      ),
+      decoration: BoxDecoration(gradient: bgGradient),
       child: Stack(
         children: [
-          // Fondo de olas sutiles
           const Positioned.fill(
-            child: Opacity(opacity: 0.22, child: WaveBackground()),
+            child: Opacity(opacity: 0.25, child: WaveBackground()),
           ),
           Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1180),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 72, 24, 90),
+                padding: const EdgeInsets.fromLTRB(24, 60, 24, 75),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final desktop = constraints.maxWidth > 850;
 
-                    // Columna con los textos, botones y beneficios de la izquierda
+                    // Columna con los textos, botones y beneficios a la izquierda
                     final content = Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -44,94 +69,79 @@ class HeroSection extends StatelessWidget {
                           icon: Icons.school_rounded,
                           label: 'PARA ESTUDIANTES Y DESARROLLADORES',
                         ),
-                        const SizedBox(height: 25),
-                        Text(
-                          'Bases de datos\ngratuitas para\nconstruir.',
-                          style: Theme.of(context).textTheme.displayLarge
-                              ?.copyWith(fontSize: desktop ? 58 : 42),
-                        ),
                         const SizedBox(height: 22),
+                        Text(
+                          'Tu ecosistema cloud\ngratuito para\nconstruir.',
+                          style: TextStyle(
+                            fontSize: desktop ? 52 : 38,
+                            fontWeight: FontWeight.w900,
+                            color: titleColor,
+                            height: 1.15,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
                         ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 590),
-                          child: const Text(
-                            'Despliega MySQL, PostgreSQL, SQL Server y '
-                            'MongoDB en pocos minutos. Practica, prueba y '
-                            'conecta tus proyectos sin configuraciones complejas.',
+                          constraints: const BoxConstraints(maxWidth: 580),
+                          child: Text(
+                            'Despliega bases de datos, asigna subdominios DNS con SSL, '
+                            'administra API Keys de IA y orquesta flujos con n8n en pocos minutos.',
                             style: TextStyle(
-                              color: Color(0xFF52647C),
-                              fontSize: 18,
+                              color: subtitleColor,
+                              fontSize: 16,
                               height: 1.6,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 30),
-                        // Botones de acción principales
-                        Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: [
-                            FilledButton.icon(
-                              onPressed: () => context.go('/register'),
-                              icon: const Icon(Icons.rocket_launch_rounded),
-                              label: const Text('Crear base de datos gratis'),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: AppColors.navy,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 25,
-                                  vertical: 20,
-                                ),
-                              ),
+                        const SizedBox(height: 28),
+                        FilledButton.icon(
+                          onPressed: () => context.push('/register'),
+                          icon: const Icon(Icons.rocket_launch_rounded),
+                          label: const Text('Comenzar gratis'),
+                          // En hero_section.dart (Líneas 76 a 80):
+                          style: FilledButton.styleFrom(
+                            backgroundColor: isDark
+                                ? AppColors.nightPrimary
+                                : AppColors.cyan,
+                            foregroundColor: isDark
+                                ? AppColors.nightBackground
+                                : AppColors.dayPrimary,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 26,
+                              vertical: 18,
                             ),
-
-                            // OutlinedButton.icon(
-                            //   onPressed: () {},
-                            //   icon: const Icon(Icons.play_circle_outline),
-                            //   label: const Text('Cómo funciona'),
-                            //   style: OutlinedButton.styleFrom(
-                            //     foregroundColor: AppColors.navy,
-                            //     side: const BorderSide(
-                            //       color: Color(0xFFBCCCE0),
-                            //     ),
-                            //     padding: const EdgeInsets.symmetric(
-                            //       horizontal: 25,
-                            //       vertical: 20,
-                            //     ),
-                            //   ),
-                            // ),
-                          ],
+                          ),
                         ),
-                        const SizedBox(height: 27),
-                        // Beneficios rápidos
+                        const SizedBox(height: 24),
                         const Wrap(
                           spacing: 20,
                           runSpacing: 10,
                           children: [
                             MiniBenefit('Sin tarjeta'),
-                            MiniBenefit('Configuración rápida'),
+                            MiniBenefit('4 servicios integrados'),
                             MiniBenefit('Entorno seguro'),
                           ],
                         ),
                       ],
                     );
 
-                    // Si es móvil/tablet pequeña: apila texto arriba e ilustración abajo
                     if (!desktop) {
                       return Column(
                         children: [
                           content,
-                          const SizedBox(height: 50),
-                          const RaftIllustration(),
+                          const SizedBox(height: 40),
+                          const HeroImage(), // Imagen de balsa grande en vista móvil/tablet
                         ],
                       );
                     }
 
-                    // Si es escritorio: muestra texto a la izquierda e ilustración a la derecha
                     return Row(
                       children: [
-                        Expanded(flex: 11, child: content),
-                        const SizedBox(width: 50),
-                        const Expanded(flex: 9, child: RaftIllustration()),
+                        Expanded(flex: 12, child: content),
+                        const SizedBox(width: 40),
+                        const Expanded(
+                          flex: 10,
+                          child: HeroImage(),
+                        ), // Imagen de balsa grande en vista desktop
                       ],
                     );
                   },

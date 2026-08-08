@@ -1,57 +1,71 @@
+// ==========================================
+// Archivo: lib/src/features/landing/presentation/widgets/common/raft_logo.dart
+// ¿Qué hace?: Renderiza la balsa isotipo oficial desde assets con la marca "Raft Cloud" reactiva al tema.
+// ¿De dónde trae datos?: Ingesta Theme.of(context).brightness para alternar entre logo_night.png y logo_light.png.
+// ¿Hacia dónde va / Cómo se conecta?: Se incluye en NavigationBarSection, FooterSection y LandingDrawer.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
 
-/// Widget de logotipo oficial de Raft DB.
 class RaftLogo extends StatelessWidget {
-  const RaftLogo({super.key, this.light = false});
+  const RaftLogo({
+    this.light = false,
+    this.small = false,
+    super.key,
+  });
 
-  /// Si es true, el texto "Raft" se muestra en blanco (para usar en el Footer u otro fondo oscuro).
   final bool light;
+  final bool small;
 
   @override
   Widget build(BuildContext context) {
-    // Determina el color del texto "Raft" según la variante (clara u oscura)
-    final color = light ? Colors.white : AppColors.navy;
+    // 1. Detecta tema visual (Raft Day vs Raft Night)
+    final isDark = light || Theme.of(context).brightness == Brightness.dark;
+    
+    // 2. Ruta exacta de la balsa PNG según el tema activo
+    final logoPath = isDark
+        ? 'lib/src/img/in/logo_night.png'
+        : 'lib/src/img/in/logo_light.png';
+        
+    final raftTextColor = isDark ? AppColors.nightTextPrimary : AppColors.dayPrimary;
 
     return Row(
-      mainAxisSize: MainAxisSize.min, // Ocupa únicamente el ancho del contenido interno
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Caja de icono del logo con degradado de color cyan a blue
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.cyan, AppColors.blue],
-            ),
-            borderRadius: BorderRadius.circular(13),
-          ),
-          child: const Icon(
-            Icons.sailing_rounded, // Icono del velero/balsa
-            color: Colors.white,
-            size: 27,
+        // Isotipo balsa PNG oficial de la marca
+        Image.asset(
+          logoPath,
+          height: small ? 35 : 45,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => Icon(
+            Icons.sailing_rounded,
+            color: AppColors.cyan,
+            size: small ? 24 : 32,
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
 
-        // Texto principal "Raft"
+        // Texto principal "Raft "
         Text(
-          'Raft',
+          'Raft ',
           style: TextStyle(
-            color: color,
-            fontSize: 24,
+            color: raftTextColor,
+            fontSize: small ? 20 : 24,
             fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(width: 3),
 
-        // Texto secundario "DB" en color Cyan destacado
-        const Text(
-          'DB',
+        // Subtítulo de marca "Cloud"
+        Text(
+          'Cloud',
           style: TextStyle(
             color: AppColors.cyan,
-            fontSize: 24,
+            fontSize: small ? 20 : 24,
             fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
           ),
         ),
       ],

@@ -1,56 +1,59 @@
+// ==========================================
+// ¿Qué hace?: Dibuja sutiles olas decorativas en el fondo de la HeroSection usando CustomPainter.
+// ¿De dónde trae datos?: Detecta Theme.of(context).brightness para ajustar la opacidad del trazo.
+// ¿Hacia dónde va / Cómo se conecta?: Posicionado en Stack al fondo de HeroSection.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
 
-/// Widget wrapper que renderiza el CustomPainter de olas de fondo.
 class WaveBackground extends StatelessWidget {
   const WaveBackground({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final waveColor = isDark
+        ? AppColors.nightBorder.withValues(alpha: 0.3)
+        : AppColors.dayBorder.withValues(alpha: 0.5);
+
     return CustomPaint(
-      painter: WavePainter(),
+      painter: _WavePainter(waveColor: waveColor),
+      child: const SizedBox.expand(),
     );
   }
 }
 
-/// Painter personalizado que dibuja curvas bézier (olas) dinámicas usando el Canvas 2D de Flutter.
-class WavePainter extends CustomPainter {
+class _WavePainter extends CustomPainter {
+  const _WavePainter({required this.waveColor});
+
+  final Color waveColor;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.cyan
+      ..color = waveColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = 1.5;
 
-    // Dibuja 6 líneas de olas paralelas con desplazamientos verticales
-    for (int i = 0; i < 6; i++) {
-      final y = size.height * 0.72 + (i * 25);
-      final path = Path()..moveTo(0, y);
-
-      // Curva bézier cúbica 1
-      path.cubicTo(
+    final path = Path()
+      ..moveTo(0, size.height * 0.7)
+      ..quadraticBezierTo(
         size.width * 0.25,
-        y - 80,
-        size.width * 0.35,
-        y + 80,
-        size.width * 0.55,
-        y,
-      );
-
-      // Curva bézier cúbica 2
-      path.cubicTo(
+        size.height * 0.6,
+        size.width * 0.5,
+        size.height * 0.7,
+      )
+      ..quadraticBezierTo(
         size.width * 0.75,
-        y - 80,
-        size.width * 0.85,
-        y + 60,
+        size.height * 0.8,
         size.width,
-        y,
+        size.height * 0.7,
       );
 
-      canvas.drawPath(path, paint);
-    }
+    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

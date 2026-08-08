@@ -1,31 +1,34 @@
+// ==========================================
+// Archivo: lib/src/features/landing/presentation/widgets/common/section_title.dart
+// ¿Qué hace?: Widget de título compuesto para las secciones de la Landing Page con adaptación Day/Night.
+// ¿De dónde trae datos?: Recibe antetítulo (eyebrow), título, subtítulo y parámetro opcional light.
+// ¿Hacia dónde va / Cómo se conecta?: Se incluye al inicio de cada sección en la Landing Page.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
 
-/// Widget de título compuesto para secciones de la Landing.
-/// Muestra un antetítulo (eyebrow), un título destacado y un subtítulo descriptivo.
 class SectionTitle extends StatelessWidget {
   const SectionTitle({
     required this.eyebrow,
     required this.title,
     required this.subtitle,
-    this.light = false,
+    this.light,
     super.key,
   });
 
-  /// Antetítulo corto en mayúsculas (ej. "MOTORES DISPONIBLES").
   final String eyebrow;
-
-  /// Título principal de la sección (ej. "Trabaja con tus bases de datos favoritas").
   final String title;
-
-  /// Subtítulo o descripción explicativa bajo el título.
   final String subtitle;
-
-  /// Controla si se renderiza en modo claro u oscuro (para secciones con fondo azul navy).
-  final bool light;
+  final bool? light;
 
   @override
   Widget build(BuildContext context) {
+    // 1. Detecta si la sección debe mostrarse en tono oscuro (vía tema activo u override manual)
+    final isDark = light ?? (Theme.of(context).brightness == Brightness.dark);
+    final titleColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+    final subtitleColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary;
+
     return Column(
       children: [
         // 1. Antetítulo en color Cyan brillante con espaciado entre letras
@@ -41,26 +44,24 @@ class SectionTitle extends StatelessWidget {
         ),
         const SizedBox(height: 13),
 
-        // 2. Título principal en estilo destacado headlineLarge (cambia de color según el modo light)
+        // 2. Título principal destacado con color dinámico
         Text(
           title,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                color: light ? Colors.white : AppColors.navy,
+                color: titleColor,
               ),
         ),
         const SizedBox(height: 14),
 
-        // 3. Subtítulo limitado a 680px de ancho para que no quede una línea excesivamente larga
+        // 3. Subtítulo limitado a 680px para óptima legibilidad
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 680),
           child: Text(
             subtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: light
-                  ? const Color(0xFFB7C8DD)
-                  : const Color(0xFF607189),
+              color: subtitleColor,
               fontSize: 16,
               height: 1.55,
             ),

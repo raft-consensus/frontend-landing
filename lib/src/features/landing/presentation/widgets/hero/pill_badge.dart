@@ -1,42 +1,56 @@
+// ==========================================
+// ¿Qué hace?: Badge pill redondeado superior para destacar el antetítulo en la HeroSection.
+// ¿De dónde trae datos?: Ingesta IconData y String label, adaptando los colores al tema Day/Night.
+// ¿Hacia dónde va / Cómo se conecta?: Invocado al inicio del contenido en HeroSection.
+// ==========================================
+
 import 'package:flutter/material.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart';
 
-/// Badge tipo cápsula ("Pill") usado en el Hero para destacar etiquetas o público objetivo.
 class Pill extends StatelessWidget {
-  const Pill({
-    required this.icon,
-    required this.label,
-    super.key,
-  });
+  const Pill({required this.icon, required this.label, super.key});
 
-  /// Icono decorativo al inicio del badge.
   final IconData icon;
-
-  /// Texto descriptivo en mayúsculas.
   final String label;
 
   @override
   Widget build(BuildContext context) {
+    // 1. Detecta tema visual (Raft Day vs Raft Night)
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // 2. Colores adaptables del badge
+    // Colores adaptables del badge con alto contraste sobre el fondo azul
+    final bg = isDark
+        ? AppColors.nightCard
+        : AppColors.cyan.withValues(alpha: 0.18);
+    final fg = AppColors.cyan; // Turquesa luminoso visible en Modo Día y Noche
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFE4FAFA), // Fondo azul aguamarina muy suave
-        borderRadius: BorderRadius.circular(30), // Bordes totalmente redondeados
-        border: Border.all(color: const Color(0xFFB6EEEC)), // Borde sutil
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark
+              ? AppColors.nightBorder
+              : AppColors.cyan.withValues(alpha: 0.5),
+        ),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min, // Ajusta el ancho al contenido
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 17, color: const Color(0xFF008F91)),
+          Icon(
+            icon,
+            size: 15,
+            color: fg,
+          ), // Icono representativo a la izquierda
           const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Color(0xFF007D80),
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.6,
-              ),
+          Text(
+            label,
+            style: TextStyle(
+              color: fg,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
             ),
           ),
         ],

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
 import 'package:frontend_landing/src/core/theme/theme_provider.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/notifications/notifications_dialog.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/notifications_dialog.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/services_hub/services_hub_dialog.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/raft_logo.dart';
 
