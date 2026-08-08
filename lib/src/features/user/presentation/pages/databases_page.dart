@@ -4,18 +4,19 @@ import 'package:frontend_landing/src/features/user/domain/entities/database_inst
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_scroll_view.dart'; // Common
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/section_header.dart'; // Common
 import 'package:frontend_landing/src/features/user/presentation/widgets/databases/database_management_card.dart'; // Databases
+import 'package:frontend_landing/src/features/user/presentation/widgets/databases/database_summary_card.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/databases/empty_databases.dart'; // Databases
 
-/// ¿Qué hace?: Página web de administración de bases de datos con filtros por motor, buscador y lista de instancias.
-/// ¿De dónde trae?: Trae AppColors (core), DatabaseInstance (domain), widgets de common y widgets de databases.
-/// ¿Hacia dónde va / Cómo se conecta?: Es la segunda pestaña renderizada dentro de DashboardPage.
+/// ¿Qué hace?: Página web de administración de bases de datos con grilla de 3 columnas responsiva, buscador en tiempo real y filtros.
+/// ¿De dónde trae datos?: Recibe instancias de DatabaseInstance y callbacks de gestión desde DashboardPage.
+/// ¿Hacia dónde va / Cómo se conecta?: Es la vista de la pestaña "Bases de Datos" en el panel de usuario.
 class DatabasesPage extends StatefulWidget {
   const DatabasesPage({
-    required this.instances,          // Lista de instancias activas
-    required this.onCreateDatabase,   // Callback para abrir el modal de crear BD
-    required this.onToggleState,      // Callback para encender/apagar BD
-    required this.onDelete,           // Callback para eliminar BD
-    required this.onMessage,          // Callback para notificaciones snackbar
+    required this.instances, // Lista de instancias activas
+    required this.onCreateDatabase, // Callback para abrir el modal de crear BD
+    required this.onToggleState, // Callback para encender/apagar BD
+    required this.onDelete, // Callback para eliminar BD
+    required this.onMessage, // Callback para notificaciones snackbar
     super.key,
   });
 
@@ -30,16 +31,31 @@ class DatabasesPage extends StatefulWidget {
 }
 
 class _DatabasesPageState extends State<DatabasesPage> {
-  String _selectedFilter = 'Todos'; // Filtro seleccionado ('Todos', 'PostgreSQL', etc.)
-  final String _searchQuery = '';          // Cadena del buscador
+  String _selectedFilter =
+      'Todos'; // Filtro de motor ('Todos', 'PostgreSQL', etc.)
+  final TextEditingController _searchController =
+      TextEditingController(); // Controlador del buscador
+  String _searchQuery = ''; // Cadena de búsqueda
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Filtra las instancias según el motor seleccionado y el buscador
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Filtra las instancias en tiempo real según el motor seleccionado y la consulta de búsqueda
     final filtered = widget.instances.where((instance) {
-      final matchesFilter = _selectedFilter == 'Todos' || instance.engine == _selectedFilter;
-      final matchesSearch = instance.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          instance.host.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesFilter =
+          _selectedFilter == 'Todos' || instance.engine == _selectedFilter;
+      final matchesSearch =
+          instance.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          instance.host.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          instance.database.toLowerCase().contains(_searchQuery.toLowerCase());
       return matchesFilter && matchesSearch;
     }).toList();
 
@@ -50,56 +66,171 @@ class _DatabasesPageState extends State<DatabasesPage> {
           // Encabezado de sección
           SectionHeader(
             title: 'Gestión de Bases de Datos',
-            subtitle: 'Administra tus instancias activas, credenciales y motores',
+            subtitle:
+                'Administra tus instancias activas, credenciales y motores',
             actionLabel: 'Nueva BD',
             actionIcon: Icons.add_rounded,
             onAction: widget.onCreateDatabase,
           ),
+          
+          const SizedBox(height: 20),
+          
+          // 2. Tarjeta Resumen de Consumo Total de Almacenamiento
+          DatabaseSummaryCard(instances: widget.instances),
+
           const SizedBox(height: 20),
 
-          // Barra de Filtros por Motor (Chips gráficos)
+          // Barra de Búsqueda e Insumo de Filtros
+          Row(
+            children: [
+              // Buscador dinámico por texto
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (val) => setState(() => _searchQuery = val),
+                  style: TextStyle(
+                    color: isDark
+                        ? AppColors.nightTextPrimary
+                        : AppColors.dayTextPrimary,
+                    fontSize: 13,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Buscar por nombre, host o base de datos...',
+                    hintStyle: TextStyle(
+                      color: isDark
+                          ? AppColors.nightTextSecondary
+                          : AppColors.dayTextSecondary,
+                      fontSize: 13,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search_rounded,
+                      size: 20,
+                      color: isDark
+                          ? AppColors.nightTextSecondary
+                          : AppColors.dayTextSecondary,
+                    ),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear_rounded, size: 18),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: theme.cardColor,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: theme.dividerColor),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: theme.dividerColor),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: theme.colorScheme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Chips gráficos de selección por Motor
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: ['Todos', 'PostgreSQL', 'MySQL', 'MongoDB', 'SQL Server'].map((filter) {
-                final isSelected = _selectedFilter == filter;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(filter),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      if (selected) setState(() => _selectedFilter = filter);
+              children:
+                  ['Todos', 'PostgreSQL', 'MySQL', 'MongoDB', 'SQL Server'].map(
+                    (filter) {
+                      final isSelected = _selectedFilter == filter;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: Text(filter),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setState(() => _selectedFilter = filter);
+                            }
+                          },
+                          selectedColor: theme.colorScheme.primary,
+                          backgroundColor: theme.cardColor,
+                          labelStyle: TextStyle(
+                            color: isSelected
+                                ? theme.colorScheme.onPrimary
+                                : (isDark
+                                      ? AppColors.nightTextPrimary
+                                      : AppColors.dayTextPrimary),
+                            fontWeight: isSelected
+                                ? FontWeight.w800
+                                : FontWeight.w500,
+                            fontSize: 12,
+                          ),
+                          side: BorderSide(
+                            color: isSelected
+                                ? theme.colorScheme.primary
+                                : theme.dividerColor,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
                     },
-                    selectedColor: AppColors.navy,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.text,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                    ),
-                  ),
-                );
-              }).toList(),
+                  ).toList(),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // Renderizado condicional: Lista de tarjetas de BD o Estado Vacío
+          // Renderizado condicional: Grilla Responsiva de 3 Columnas o Estado Vacío
           if (filtered.isEmpty)
             EmptyDatabases(onCreateDatabase: widget.onCreateDatabase)
           else
-            Column(
-              children: filtered.map((instance) {
-                final originalIndex = widget.instances.indexOf(instance);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: DatabaseManagementCard(
-                    instance: instance,
-                    onToggleState: () => widget.onToggleState(originalIndex),
-                    onDelete: () => widget.onDelete(originalIndex),
-                    onMessage: widget.onMessage,
-                  ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+
+                // Cálculo responsivo del número de columnas según el ancho disponible
+                final int crossAxisCount = width >= 1200
+                    ? 3
+                    : (width >= 768 ? 2 : 1);
+                const double spacing = 16.0;
+
+                // Cálculo exacto del ancho individual de cada tarjeta
+                final double itemWidth = crossAxisCount == 1
+                    ? width
+                    : (width - (spacing * (crossAxisCount - 1))) /
+                          crossAxisCount;
+
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: filtered.map((instance) {
+                    final originalIndex = widget.instances.indexOf(instance);
+                    return SizedBox(
+                      width: itemWidth,
+                      child: DatabaseManagementCard(
+                        instance: instance,
+                        onToggleState: () =>
+                            widget.onToggleState(originalIndex),
+                        onDelete: () => widget.onDelete(originalIndex),
+                        onMessage: widget.onMessage,
+                      ),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             ),
         ],
       ),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
 
-/// ¿Qué hace?: Modal reutilizable para la confirmación de acciones sensibles (Crear, Pausar, Eliminar BD).
-/// ¿De dónde trae?: Recibe título, mensaje, etiquetas de botones, icono y color de confirmación.
-/// ¿Dónde se conecta?: Invocado mediante `showConfirmDialog()` en `DashboardPage` y vistas de gestión.
+/// ¿Qué hace?: Modal reutilizable para la confirmación de acciones sensibles (Crear, Pausar, Eliminar BD) con soporte Día/Noche.
+/// ¿De dónde trae datos?: Recibe título, mensaje, etiquetas de botones, icono y color de confirmación.
+/// ¿Dónde se conecta?: Invocado mediante `showConfirmDialog()` en DashboardPage y vistas de gestión.
 class ConfirmActionDialog extends StatelessWidget {
   const ConfirmActionDialog({
     required this.title,
@@ -24,7 +24,14 @@ class ConfirmActionDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final titleColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+    final subtitleColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary;
+
     return Dialog(
+      backgroundColor: theme.cardColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 440),
@@ -36,7 +43,7 @@ class ConfirmActionDialog extends StatelessWidget {
               // Icono destacado
               CircleAvatar(
                 radius: 28,
-                backgroundColor: confirmColor.withValues(alpha: 0.1),
+                backgroundColor: confirmColor.withValues(alpha: 0.12),
                 child: Icon(icon, color: confirmColor, size: 28),
               ),
               const SizedBox(height: 16),
@@ -45,10 +52,10 @@ class ConfirmActionDialog extends StatelessWidget {
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.text,
+                style: TextStyle(
+                  color: titleColor,
                   fontSize: 18,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
               const SizedBox(height: 10),
@@ -57,8 +64,8 @@ class ConfirmActionDialog extends StatelessWidget {
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.muted,
+                style: TextStyle(
+                  color: subtitleColor,
                   fontSize: 13,
                   height: 1.4,
                 ),
@@ -72,9 +79,11 @@ class ConfirmActionDialog extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context, false),
                       style: OutlinedButton.styleFrom(
+                        foregroundColor: subtitleColor,
+                        side: BorderSide(color: theme.dividerColor),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                       child: Text(cancelLabel),
@@ -86,9 +95,10 @@ class ConfirmActionDialog extends StatelessWidget {
                       onPressed: () => Navigator.pop(context, true),
                       style: FilledButton.styleFrom(
                         backgroundColor: confirmColor,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                       child: Text(confirmLabel),

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Importación de la paleta central de colores (core)
 
-/// ¿Qué hace?: Encabezado estandarizado para secciones de la UI con título en negrita, subtítulo y un botón de acción opcional.
-/// ¿Cómo se conecta?: Se coloca en la parte superior de los bloques visuales (ej. "Tus Instancias", "Herramientas"). Usa AppColors de core.
+/// ¿Qué hace?: Encabezado estandarizado para secciones de la UI con título responsivo al tema, subtítulo y botón de acción opcional.
+/// ¿De dónde recibe datos?: Recibe el título, subtítulo, etiqueta de acción y callback onPressed.
+/// ¿Cómo se conecta?: Se ubica en la parte superior de las páginas (DatabasesPage, OverviewPage, etc.).
 class SectionHeader extends StatelessWidget {
   const SectionHeader({
-    required this.title,       // Texto grande en pantalla (ej. "Bases de Datos Activas")
-    required this.subtitle,    // Explicación secundaria en letra pequeña gris
-    this.actionLabel,          // Texto visible del botón (ej. "Crear nueva")
-    this.actionIcon,           // Icono que acompaña al botón
-    this.onAction,             // Evento que se dispara al hacer clic/tap en el botón
+    required this.title, // Texto grande en pantalla (ej. "Gestión de Bases de Datos")
+    required this.subtitle, // Explicación secundaria en letra pequeña gris
+    this.actionLabel, // Texto visible del botón (ej. "Nueva BD")
+    this.actionIcon, // Icono que acompaña al botón
+    this.onAction, // Evento que se dispara al hacer clic
     super.key,
   });
 
@@ -21,6 +21,10 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Extrae los estilos y colores del tema actual
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+
     // Estructura visual: Fila horizontal que distribuye el texto a la izquierda y el botón a la derecha
     return Row(
       children: [
@@ -29,11 +33,13 @@ class SectionHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Texto principal del título
+              // Texto principal del título con color del tema activo
               Text(
                 title,
-                style: const TextStyle(
-                  color: AppColors.navy, // Usa el color navy (Azul Oscuro) de la carpeta core
+                style: TextStyle(
+                  color:
+                      textTheme.titleLarge?.color ??
+                      theme.colorScheme.onSurface,
                   fontSize: 20,
                   fontWeight: FontWeight.w900, // Letra extra negrita destacada
                 ),
@@ -42,15 +48,17 @@ class SectionHeader extends StatelessWidget {
               // Subtítulo explicativo
               Text(
                 subtitle,
-                style: const TextStyle(
-                  color: Color(0xFF687A91), // Tono gris para menor jerarquía visual
+                style: TextStyle(
+                  color: textTheme
+                      .bodyMedium
+                      ?.color, // Color secundario adaptado a día/noche
                   fontSize: 12,
                 ),
               ),
             ],
           ),
         ),
-        // Botón gráfico de acción interactivo (solo se dibuja si se envían los datos del botón)
+        // Botón gráfico de acción interactivo (solo se dibuja si se proporcionan la etiqueta y la acción)
         if (actionLabel != null && onAction != null)
           actionIcon == null
               ? TextButton(
@@ -59,11 +67,23 @@ class SectionHeader extends StatelessWidget {
                 )
               : FilledButton.icon(
                   onPressed: onAction, // Evento de clic
-                  icon: Icon(actionIcon, size: 18), // Icono visible dentro del botón
+                  icon: Icon(
+                    actionIcon,
+                    size: 18,
+                  ), // Icono visible dentro del botón
                   label: Text(actionLabel!), // Texto del botón
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.navy, // Fondo azul oscuro reutilizado de core
-                    foregroundColor: Colors.white,   // Texto e icono en blanco
+                    backgroundColor:
+                        theme.colorScheme.primary, // Color de acento primario
+                    foregroundColor:
+                        theme.colorScheme.onPrimary, // Texto de alto contraste
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
       ],

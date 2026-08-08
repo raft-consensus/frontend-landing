@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart';
-import 'package:frontend_landing/src/features/user/domain/entities/databse_engine.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/common/field_label.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/common/info_banner.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/engine_picker_grid.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
+import 'package:frontend_landing/src/features/user/domain/entities/databse_engine.dart'; // Domain
+import 'package:frontend_landing/src/features/user/presentation/widgets/common/field_label.dart'; // Common
+import 'package:frontend_landing/src/features/user/presentation/widgets/common/info_banner.dart'; // Common
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/engine_picker_grid.dart'; // Dialogs
 
-/// ¿Qué hace?: Modal emergente modular para la creación de una nueva base de datos.
-/// ¿De dónde trae?: Trae AppColors (core), DatabaseEngine (domain) y widgets comunes (FieldLabel, InfoBanner, EnginePickerGrid).
-/// ¿Dónde se conecta?: Se abre desde `DashboardPage` mediante `showDialog()`.
+/// ¿Qué hace?: Modal emergente modular para la creación de una nueva base de datos con soporte Día/Noche.
+/// ¿De dónde trae datos?: Ingesta AppColors, DatabaseEngine y widgets de diálogo.
+/// ¿Dónde se conecta?: Se abre desde DashboardPage mediante showDialog().
 class CreateDatabaseDialog extends StatefulWidget {
   const CreateDatabaseDialog({super.key});
 
@@ -17,17 +17,15 @@ class CreateDatabaseDialog extends StatefulWidget {
 
 class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
   final _formKey = GlobalKey<FormState>();
-
-  /// Conservado para futura implementación de nombre personalizado por el usuario
   final _nameController = TextEditingController();
 
-  /// Lista de motores ofrecidos (Todos habilitados para pruebas)
+  /// Lista de motores ofrecidos
   final List<DatabaseEngine> _engines = const [
     DatabaseEngine(
       name: 'SQL Server',
       version: '2022',
       port: 1433,
-      color: AppColors.red,
+      color: AppColors.sqlServerDay,
       icon: Icons.table_chart_rounded,
       isAvailable: true,
     ),
@@ -35,7 +33,7 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
       name: 'PostgreSQL',
       version: '16',
       port: 5432,
-      color: Color(0xFF3977A8),
+      color: AppColors.postgresDay,
       icon: Icons.storage_rounded,
       isAvailable: true,
     ),
@@ -43,7 +41,7 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
       name: 'MySQL',
       version: '8.0',
       port: 3306,
-      color: AppColors.blue,
+      color: AppColors.mysqlDay,
       icon: Icons.dns_rounded,
       isAvailable: true,
     ),
@@ -51,13 +49,13 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
       name: 'MongoDB',
       version: '7.0',
       port: 27017,
-      color: AppColors.green,
+      color: AppColors.mongoDbDay,
       icon: Icons.eco_rounded,
       isAvailable: true,
     ),
   ];
 
-  int _selectedEngine = 0; // SQL Server seleccionado por defecto
+  int _selectedEngine = 0;
   bool _creating = false;
 
   @override
@@ -66,12 +64,10 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
     super.dispose();
   }
 
-  /// Retorna el motor seleccionado a la vista principal
   void _create() {
     setState(() => _creating = true);
     final engine = _engines[_selectedEngine];
 
-    // Cierra el modal devolviendo el mapa con el motor (y el nombre si se re-habilita)
     Navigator.pop(context, {
       'name': _nameController.text.trim(),
       'engine': engine.name,
@@ -80,7 +76,11 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Dialog(
+      backgroundColor: theme.cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       insetPadding: const EdgeInsets.all(20),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 620),
@@ -91,17 +91,11 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Sub-widget de cabecera con botón de cierre
+                // 1. Cabecera del modal
                 _DialogHeader(creating: _creating),
                 const SizedBox(height: 26),
 
-                /*
-                // Campo de entrada de nombre personalizado (Deshabilitado temporalmente hasta soporte en Backend)
-                _InstanceNameInput(controller: _nameController),
-                const SizedBox(height: 22),
-                */
-
-                // 2. Etiqueta y grilla de selección de motor
+                // 2. Selección de motor
                 const FieldLabel('Selecciona el motor de base de datos'),
                 const SizedBox(height: 12),
                 EnginePickerGrid(
@@ -113,16 +107,16 @@ class _CreateDatabaseDialogState extends State<CreateDatabaseDialog> {
                 ),
                 const SizedBox(height: 23),
 
-                // 3. Banner informativo de capacidad y generación de credenciales
-                const InfoBanner(
+                // 3. Banner informativo
+                InfoBanner(
                   message:
                       'El identificador y las credenciales de acceso son asignados automáticamente de forma segura por el servidor.',
                   icon: Icons.info_outline_rounded,
-                  iconColor: AppColors.blue,
+                  iconColor: theme.colorScheme.primary,
                 ),
                 const SizedBox(height: 25),
 
-                // 4. Botones de acción (Cancelar / Crear)
+                // 4. Botones de acción
                 _DialogActions(
                   creating: _creating,
                   onCreate: _create,
@@ -144,21 +138,27 @@ class _DialogHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final titleColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+    final subtitleColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary;
+
     return Row(
       children: [
-        const CircleAvatar(
-          backgroundColor: Color(0xFFE0EEFC),
-          child: Icon(Icons.add_rounded, color: AppColors.blue),
+        CircleAvatar(
+          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+          child: Icon(Icons.add_rounded, color: theme.colorScheme.primary),
         ),
         const SizedBox(width: 13),
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Crear nueva instancia',
                 style: TextStyle(
-                  color: AppColors.text,
+                  color: titleColor,
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
                 ),
@@ -166,7 +166,7 @@ class _DialogHeader extends StatelessWidget {
               Text(
                 'Elige el motor adecuado para tu proyecto.',
                 style: TextStyle(
-                  color: AppColors.muted,
+                  color: subtitleColor,
                   fontSize: 12,
                 ),
               ),
@@ -175,43 +175,10 @@ class _DialogHeader extends StatelessWidget {
         ),
         IconButton(
           onPressed: creating ? null : () => Navigator.pop(context),
-          icon: const Icon(Icons.close_rounded),
-        ),
-      ],
-    );
-  }
-}
-
-/// Sub-widget extraído: Campo de texto para ingresar el nombre de la instancia (Preservado)
-// ignore: unused_element
-class _InstanceNameInput extends StatelessWidget {
-  const _InstanceNameInput({required this.controller});
-
-  final TextEditingController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const FieldLabel('Nombre de la instancia'),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Ejemplo: proyecto-universidad',
-            prefixIcon: Icon(Icons.edit_outlined),
+          icon: Icon(
+            Icons.close_rounded,
+            color: subtitleColor,
           ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Ingresa un nombre para la instancia.';
-            }
-            if (value.trim().length < 3) {
-              return 'El nombre debe tener al menos 3 caracteres.';
-            }
-            return null;
-          },
         ),
       ],
     );
@@ -230,6 +197,8 @@ class _DialogActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -249,11 +218,15 @@ class _DialogActions extends StatelessWidget {
                     color: Colors.white,
                   ),
                 )
-              : const Icon(Icons.rocket_launch_rounded),
+              : const Icon(Icons.rocket_launch_rounded, size: 18),
           label: Text(creating ? 'Creando...' : 'Crear instancia'),
           style: FilledButton.styleFrom(
-            backgroundColor: AppColors.navy,
-            foregroundColor: Colors.white,
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: theme.colorScheme.onPrimary,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         ),
       ],

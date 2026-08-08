@@ -1,20 +1,13 @@
-// ==========================================
-// Archivo: lib/src/features/user/presentation/widgets/dialogs/credentials_dialog.dart
-// Qué hace: Modal modular para consultar y copiar credenciales de conexión reales de la API.
-// Dónde se conecta: Desplegado desde DatabaseManagementCard con showDialog().
-// De dónde recibe datos: Consume userDatabasesProvider para consultar la contraseña real de la API.
-// ==========================================
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart';
-import 'package:frontend_landing/src/features/user/domain/entities/database_instance.dart';
-import 'package:frontend_landing/src/features/user/presentation/providers/user_databases_provider.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/common/info_banner.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/credential_item.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
+import 'package:frontend_landing/src/features/user/domain/entities/database_instance.dart'; // Domain
+import 'package:frontend_landing/src/features/user/presentation/providers/user_databases_provider.dart'; // Providers
+import 'package:frontend_landing/src/features/user/presentation/widgets/common/info_banner.dart'; // Common
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/credential_item.dart'; // Dialogs
 
-/// Modal principal para consultar y copiar credenciales de conexión
+/// Modal principal para consultar y copiar credenciales de conexión con soporte Día/Noche
 class CredentialsDialog extends ConsumerStatefulWidget {
   const CredentialsDialog({
     required this.instance,
@@ -34,11 +27,8 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
   bool _loadingPassword = false;
   String? _realPassword;
 
-  /// Retorna la contraseña activa o la máscara de ocultación
   String get _displayPassword => _realPassword ?? '••••••••••••••';
 
-  // ¿Qué hace?: Solcita la contraseña a la API y notifica al usuario si existe algún error de límite o red.
-  /// Solicita la contraseña a la API únicamente cuando el usuario presiona "Mostrar"
   Future<void> _togglePasswordVisibility() async {
     if (_showPassword) {
       setState(() => _showPassword = false);
@@ -50,20 +40,17 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
     }
     setState(() => _loadingPassword = true);
     final instanceIdInt = int.tryParse(widget.instance.id) ?? 0;
-    // Llama al notifier de Riverpod y desempaqueta la respuesta del servidor
     final result = await ref
         .read(userDatabasesProvider.notifier)
         .revealPassword(instanceIdInt);
     if (!mounted) return;
     if (result.password != null && result.password!.isNotEmpty) {
-      // Si la API devolvió la contraseña con éxito
       setState(() {
         _realPassword = result.password;
         _showPassword = true;
         _loadingPassword = false;
       });
     } else {
-      // Si ocurrió una falla (ej: Rate limit de 5 peticiones por minuto o fallo de red)
       setState(() => _loadingPassword = false);
       widget.onMessage(
         result.error ?? 'No se pudo obtener la contraseña del servidor.',
@@ -72,7 +59,6 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
     }
   }
 
-  /// Copia un texto al portapapeles y notifica al usuario
   void _copy(String label, String value) {
     Clipboard.setData(ClipboardData(text: value));
     widget.onMessage('$label copiado.', success: true);
@@ -80,11 +66,18 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final instance = widget.instance;
     final connectionUri =
         '${instance.engine.toLowerCase()}://${instance.username}:${_realPassword ?? 'TU_CONTRASEÑA'}@${instance.host}:${instance.port}/${instance.database}';
 
+    final titleColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+    final subtitleColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary;
+
     return Dialog(
+      backgroundColor: theme.cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       insetPadding: const EdgeInsets.all(20),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 560),
@@ -94,7 +87,7 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 1. Cabecera del modal
-              _buildHeader(instance.name),
+              _buildHeader(context, instance.name, titleColor, subtitleColor),
               const SizedBox(height: 20),
 
               // 2. Lista de credenciales de conexión
@@ -119,24 +112,21 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
                 onCopy: () => _copy('Usuario', instance.username),
               ),
 
-              // 3. Fila de la Contraseña con control de visibilidad
-              _buildPasswordItem(),
+              // 3. Fila de Contraseña con visibilidad
+              _buildPasswordItem(subtitleColor),
               const SizedBox(height: 14),
 
-              // 4. Banner de advertencia de seguridad
-              const InfoBanner(
+              // 4. Banner de advertencia
+              InfoBanner(
                 message:
                     'No compartas estas credenciales ni las publiques en repositorios.',
                 icon: Icons.warning_amber_rounded,
-                backgroundColor: Color(0xFFFFF8E9),
-                borderColor: Color(0xFFFFE5AF),
-                iconColor: Color(0xFFD98A00),
-                textColor: Color(0xFF76561D),
+                iconColor: AppColors.warning,
               ),
               const SizedBox(height: 20),
 
-              // 5. Cadena de conexión URI formateada
-              _buildUriSection(connectionUri),
+              // 5. Cadena de conexión URI estilo consola
+              _buildUriSection(context, connectionUri, titleColor),
             ],
           ),
         ),
@@ -144,44 +134,44 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
     );
   }
 
-  /// Construye el encabezado del modal con icono y botón de cierre
-  Widget _buildHeader(String title) {
+  Widget _buildHeader(BuildContext context, String title, Color titleColor, Color subtitleColor) {
+    final theme = Theme.of(context);
+
     return Row(
       children: [
-        const CircleAvatar(
-          backgroundColor: Color(0xFFE3F0FC),
-          child: Icon(Icons.key_rounded, color: AppColors.blue),
+        CircleAvatar(
+          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+          child: Icon(Icons.key_rounded, color: theme.colorScheme.primary),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Credenciales de conexión',
                 style: TextStyle(
-                  color: AppColors.text,
+                  color: titleColor,
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                 ),
               ),
               Text(
                 title,
-                style: const TextStyle(color: AppColors.muted, fontSize: 12),
+                style: TextStyle(color: subtitleColor, fontSize: 12),
               ),
             ],
           ),
         ),
         IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.close_rounded),
+          icon: Icon(Icons.close_rounded, color: subtitleColor),
         ),
       ],
     );
   }
 
-  /// Construye el ítem de contraseña con su botón de visibilidad y copia
-  Widget _buildPasswordItem() {
+  Widget _buildPasswordItem(Color labelColor) {
     return CredentialItem(
       label: 'Contraseña',
       value: _showPassword ? _displayPassword : '••••••••••••••',
@@ -202,6 +192,7 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
                 _showPassword
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
+                color: labelColor,
               ),
             ),
           IconButton(
@@ -209,23 +200,24 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
             onPressed: _realPassword != null
                 ? () => _copy('Contraseña', _realPassword!)
                 : _togglePasswordVisibility,
-            icon: const Icon(Icons.copy_rounded),
+            icon: Icon(Icons.copy_rounded, color: labelColor),
           ),
         ],
       ),
     );
   }
 
-  /// Construye la sección de la URI de conexión tipo terminal
-  Widget _buildUriSection(String uri) {
+  Widget _buildUriSection(BuildContext context, String uri, Color titleColor) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Cadena de conexión (URI):',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppColors.text,
+            color: titleColor,
             fontSize: 13,
           ),
         ),
@@ -233,7 +225,7 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
+            color: isDark ? const Color(0xFF09131F) : const Color(0xFF0F172A),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
@@ -243,7 +235,7 @@ class _CredentialsDialogState extends ConsumerState<CredentialsDialog> {
                   uri,
                   style: const TextStyle(
                     fontFamily: 'monospace',
-                    color: Color(0xFF38BDF8),
+                    color: Color(0xFF5AB8FF),
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),

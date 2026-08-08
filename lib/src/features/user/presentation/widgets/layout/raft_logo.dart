@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Trae AppColors de core
+import 'package:frontend_landing/src/core/theme/app_colors.dart';
 
-/// ¿Qué hace?: Widget que renderiza el isotipo (icono de barco con gradiente) y el texto del logotipo "Raft DB".
-/// ¿De dónde trae?: Consume AppColors de core/theme/app_colors.dart.
-/// ¿Hacia dónde va / Cómo se conecta?: Se importa dentro de DashboardSidebar y DashboardTopbar.
+/// ¿Qué hace?: Renderiza la balsa destacada en tamaño máximo vertical junto con la marca "Raft DB".
+/// ¿De dónde trae datos?: Ingesta Theme.of(context).brightness y conmuta la imagen segun Raft Day / Raft Night.
+/// ¿Hacia dónde va / Cómo se conecta?: Se utiliza en DashboardSidebar y DashboardTopbar.
 class RaftLogo extends StatelessWidget {
   const RaftLogo({
-    this.small = false, // Define si el logo se dibuja compacto o tamaño normal
+    this.small = false, // Define si se dibuja en tamaño compacto (Topbar) o tamaño máximo (Sidebar)
     super.key,
   });
 
@@ -14,47 +14,44 @@ class RaftLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Detecta si el tema activo es oscuro (Raft Night)
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // 2. Ruta exacta de la balsa según la paleta activa
+    final logoPath = isDark ? 'lib/src/img/in/logo_night.png' : 'lib/src/img/in/logo_light.png';
+
+    // 3. Colores dinámicos del texto "Raft DB"
+    final raftTextColor = isDark ? AppColors.nightTextPrimary : AppColors.dayPrimary;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Insignia gráfica del isotipo (cuadro con gradiente azul-cyan e icono de almacenamiento/barco)
-        Container(
-          width: small ? 32 : 38,
-          height: small ? 32 : 38,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(small ? 9 : 11),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.blue, // Azul de core
-                AppColors.cyan, // Cyan de core
-              ],
-            ),
-          ),
-          child: Icon(
-            Icons.sailing_rounded, // Icono gráfico del barco Raft
-            color: Colors.white,
-            size: small ? 19 : 23,
+        // Balsa isotipo maximizada verticalmente (58px en Sidebar)
+        Image.asset(
+          logoPath,
+          height: small ? 45 : 65,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => Icon(
+            Icons.sailing_rounded,
+            color: raftTextColor,
+            size: small ? 30 : 50,
           ),
         ),
         const SizedBox(width: 10),
-        // Texto con el nombre de la marca "Raft DB"
+
+        // Nombre de la marca "Raft DB" en tamaño prominente
         RichText(
           text: TextSpan(
             style: TextStyle(
-              fontSize: small ? 17 : 20,
+              fontSize: small ? 25 : 30,
               fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
+              letterSpacing: -0.6,
             ),
-            children: const [
+            children: [
               TextSpan(
                 text: 'Raft ',
-                style: TextStyle(color: AppColors.navy), // Texto "Raft" en Azul Oscuro
-              ),
-              TextSpan(
-                text: 'DB',
-                style: TextStyle(color: AppColors.cyan), // Texto "DB" en Cyan de acento
+                style: TextStyle(color: raftTextColor),
               ),
             ],
           ),

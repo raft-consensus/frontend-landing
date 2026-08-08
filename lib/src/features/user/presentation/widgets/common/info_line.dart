@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core: Tokens de color
 
-/// ¿Qué hace?: Fila que alinea horizontalmente un icono descriptivo, una etiqueta de texto y su valor resultante.
+/// ¿Qué hace?: Fila que alinea un icono descriptivo, una etiqueta de texto y su valor con soporte Día/Noche.
+/// ¿De dónde recibe datos?: Recibe icono, label, value y se adapta a Theme.of(context).
 /// ¿Cómo se conecta?: Se utiliza en tarjetas de BD para desplegar datos de conexión (Host, Puerto, Usuario, etc.).
 class InfoLine extends StatelessWidget {
   const InfoLine({
     required this.icon,  // Icono descriptivo a la izquierda (ej. Icons.dns)
     required this.label, // Nombre del dato (ej. "Host")
-    required this.value, // Valor a mostrar (ej. "pg01.raftdb.dev")
+    required this.value, // Valor a mostrar (ej. "49.13.85.216")
     super.key,
   });
 
@@ -16,30 +18,34 @@ class InfoLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Estructura en fila horizontal que distribuye los elementos de izquierda a derecha
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Colores dinámicos del sistema para alta legibilidad en fondo claro u oscuro
+    final labelColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary;
+    final valueColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+
     return Row(
       children: [
-        Icon(icon, color: const Color(0xFF687A91), size: 17), // Icono gris pequeño de 17px
-        const SizedBox(width: 9),
-        // Etiqueta del nombre del campo
+        Icon(icon, color: labelColor, size: 16), // Icono adaptado al tema
+        const SizedBox(width: 8),
         Text(
           '$label:',
-          style: const TextStyle(
-            color: Color(0xFF687A91),
+          style: TextStyle(
+            color: labelColor,
             fontSize: 11,
           ),
         ),
-        const SizedBox(width: 7),
-        // Valor numérico o texto a la derecha
+        const SizedBox(width: 6),
         Expanded(
           child: Text(
             value,
-            overflow: TextOverflow.ellipsis, // Si el texto es más largo que la pantalla, lo recorta con "..."
-            textAlign: TextAlign.right,      // Alineado a la derecha del contenedor
-            style: const TextStyle(
-              color: Color(0xFF152640),
+            overflow: TextOverflow.ellipsis, // Si el texto es largo, lo recorta con "..."
+            textAlign: TextAlign.right,      // Alineado a la derecha
+            style: TextStyle(
+              color: valueColor,             // Texto blanco azulado en Night, azul marino en Day
               fontSize: 11,
-              fontWeight: FontWeight.w700,  // Letra más gruesa para destacar el valor
+              fontWeight: FontWeight.w700,  // Negrita para destacar el valor
             ),
           ),
         ),

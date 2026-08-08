@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart';
-import 'package:frontend_landing/src/features/user/domain/entities/dns_record.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
+import 'package:frontend_landing/src/features/user/domain/entities/dns_record.dart'; // Domain
 
-/// ¿Qué hace?: Formulario modal estandarizado para crear o editar registros DNS tipo A.
-/// ¿De dónde trae?: Consume AppColors de core/theme y entidades DnsRecord / DatabaseInstance.
+/// ¿Qué hace?: Formulario modal estandarizado para crear o editar registros DNS tipo A con soporte Día/Noche.
+/// ¿De dónde trae datos?: Consume AppColors y entidades DnsRecord.
 /// ¿Hacia dónde va / Cómo se conecta?: Invocado en DnsSslPage para aprovisionar o modificar subdominios.
 class CreateEditDnsDialog extends StatefulWidget {
   const CreateEditDnsDialog({this.initialRecord, super.key});
@@ -41,11 +41,10 @@ class _CreateEditDnsDialogState extends State<CreateEditDnsDialog> {
     super.dispose();
   }
 
-  /// Valida el formulario y retorna los datos al llamador
   void _submit() {
     final sub = _subdomainController.text.trim().toLowerCase();
     final ip = _ipController.text.trim();
-    final comm = _commentController.text.trim(); // <-- Leer comentario aquí
+    final comm = _commentController.text.trim();
     if (sub.isEmpty) {
       setState(() {
         _errorMessage = 'Ingresa el nombre del subdominio.';
@@ -67,7 +66,14 @@ class _CreateEditDnsDialogState extends State<CreateEditDnsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final titleColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+    final subtitleColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary;
+
     return Dialog(
+      backgroundColor: theme.cardColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
@@ -77,19 +83,19 @@ class _CreateEditDnsDialogState extends State<CreateEditDnsDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildHeader(context, titleColor, subtitleColor),
               const SizedBox(height: 20),
-              _buildSubdomainField(),
+              _buildSubdomainField(context),
               const SizedBox(height: 14),
-              _buildIpField(),
+              _buildIpField(context),
               const SizedBox(height: 14),
-              _buildCommentField(),
+              _buildCommentField(context),
               if (_errorMessage != null) ...[
                 const SizedBox(height: 12),
                 _buildErrorMessage(),
               ],
               const SizedBox(height: 24),
-              _buildActionButtons(),
+              _buildActionButtons(context),
             ],
           ),
         ),
@@ -97,8 +103,9 @@ class _CreateEditDnsDialogState extends State<CreateEditDnsDialog> {
     );
   }
 
-  /// Encabezado con icono, titulo y subtitulo descriptivo
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context, Color titleColor, Color subtitleColor) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -106,88 +113,97 @@ class _CreateEditDnsDialogState extends State<CreateEditDnsDialog> {
           children: [
             CircleAvatar(
               radius: 20,
-              backgroundColor: AppColors.blue.withValues(alpha: 0.1),
+              backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
               child: Icon(
                 _isEditing ? Icons.edit_rounded : Icons.add_link_rounded,
-                color: AppColors.blue,
+                color: theme.colorScheme.primary,
                 size: 20,
               ),
             ),
             const SizedBox(width: 12),
             Text(
               _isEditing ? 'Editar Registro DNS' : 'Nuevo Subdominio DNS',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.navy,
+                fontWeight: FontWeight.w900,
+                color: titleColor,
               ),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Configura tu subdominio A bajo el dominio principal coderhivex.com',
-          style: TextStyle(fontSize: 12, color: AppColors.muted),
+          style: TextStyle(fontSize: 12, color: subtitleColor),
         ),
       ],
     );
   }
 
-  /// Campo de texto para ingresar el nombre del subdominio
-  Widget _buildSubdomainField() {
+  Widget _buildSubdomainField(BuildContext context) {
+    final theme = Theme.of(context);
     return TextField(
       controller: _subdomainController,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         labelText: 'Subdominio',
         hintText: 'ej. midb',
         suffixText: '.coderhivex.com',
-        border: OutlineInputBorder(),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: theme.dividerColor),
+        ),
         isDense: true,
       ),
     );
   }
 
-  /// Campo de texto para ingresar la IP destino de la base de datos
-  Widget _buildIpField() {
+  Widget _buildIpField(BuildContext context) {
+    final theme = Theme.of(context);
     return TextField(
       controller: _ipController,
       keyboardType: TextInputType.number,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         labelText: 'Direccion IPv4 Destino',
         hintText: 'ej. 198.51.100.1',
-        border: OutlineInputBorder(),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: theme.dividerColor),
+        ),
         isDense: true,
       ),
     );
   }
 
-  /// Campo de área de texto multilínea para ingresar una nota u observación opcional (Máx. 90 caracteres)
-  Widget _buildCommentField() {
+  Widget _buildCommentField(BuildContext context) {
+    final theme = Theme.of(context);
     return TextField(
       controller: _commentController,
       maxLength: 90,
       maxLines: 3,
       minLines: 2,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         labelText: 'Comentario / Nota (Opcional)',
         hintText:
             'ej. Servidor de Producción PostgreSQL o detalles del uso de este subdominio',
         alignLabelWithHint: true,
-        border: OutlineInputBorder(),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: theme.dividerColor),
+        ),
       ),
     );
   }
 
-  /// Banner de mensaje de error de validacion
   Widget _buildErrorMessage() {
     return Text(
       _errorMessage!,
-      style: const TextStyle(color: AppColors.red, fontSize: 12),
+      style: const TextStyle(color: AppColors.error, fontSize: 12),
     );
   }
 
-  /// Botones de guardar y cancelar en la parte inferior del modal
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -195,12 +211,24 @@ class _CreateEditDnsDialogState extends State<CreateEditDnsDialog> {
           onPressed: () {
             Navigator.pop(context, null);
           },
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: theme.dividerColor),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
           child: const Text('Cancelar'),
         ),
         const SizedBox(width: 12),
         FilledButton(
           onPressed: _submit,
-          style: FilledButton.styleFrom(backgroundColor: AppColors.navy),
+          style: FilledButton.styleFrom(
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: theme.colorScheme.onPrimary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
           child: Text(_isEditing ? 'Guardar Cambios' : 'Aprovisionar DNS'),
         ),
       ],

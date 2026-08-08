@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart';
-import 'package:frontend_landing/src/features/user/domain/entities/dns_record.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dns/dns_row_item.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
+import 'package:frontend_landing/src/features/user/domain/entities/dns_record.dart'; // Domain
+import 'package:frontend_landing/src/features/user/presentation/widgets/dns/dns_row_item.dart'; // Widgets
 
 /// ¿Qué hace?: Tabla contenedora que itera la lista de registros DNS y muestra el estado vacío si no hay coincidencias.
-/// ¿De dónde trae?: Consume AppColors de core/theme, DnsRecord y DnsRowItem.
+/// ¿De dónde trae datos?: Ingesta DnsRecord, DnsRowItem y se adapta a Theme.of(context).
 /// ¿Hacia dónde va / Cómo se conecta?: Se incluye en DnsSslPage para organizar visualmente los registros.
 class DnsTable extends StatelessWidget {
   const DnsTable({
@@ -22,7 +22,8 @@ class DnsTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     if (records.isEmpty) {
       return _buildEmptyState(context, isDark);
@@ -30,10 +31,10 @@ class DnsTable extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? const Color(0xFF334155) : AppColors.border,
+          color: theme.dividerColor,
         ),
       ),
       child: ListView.separated(
@@ -42,7 +43,7 @@ class DnsTable extends StatelessWidget {
         itemCount: records.length,
         separatorBuilder: (context, index) => Divider(
           height: 1,
-          color: isDark ? const Color(0xFF334155) : AppColors.border,
+          color: theme.dividerColor,
         ),
         itemBuilder: (context, index) {
           final item = records[index];
@@ -59,28 +60,35 @@ class DnsTable extends StatelessWidget {
 
   /// Estado vacío cuando no existen registros coincidentes
   Widget _buildEmptyState(BuildContext context, bool isDark) {
+    final theme = Theme.of(context);
+    final titleColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+    final subtitleColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(36),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? const Color(0xFF334155) : AppColors.border,
+          color: theme.dividerColor,
         ),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Icon(Icons.dns_outlined, size: 48, color: AppColors.muted),
-          SizedBox(height: 12),
+          Icon(Icons.dns_outlined, size: 48, color: subtitleColor),
+          const SizedBox(height: 12),
           Text(
             'No se encontraron registros DNS',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: titleColor,
+            ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             'Crea un nuevo subdominio o modifica los términos de búsqueda',
-            style: TextStyle(color: AppColors.muted, fontSize: 12),
+            style: TextStyle(color: subtitleColor, fontSize: 12),
           ),
         ],
       ),

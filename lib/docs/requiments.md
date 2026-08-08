@@ -32,3 +32,5 @@ todos los equipos deben crear la interfaz de usuario, pagina y admin que incluya
 
 ### Que se espera
 Asumo, que ahora todas las vps se van a comportar como un cluster. Cuando una persona entre a raft.andrescortez.dev va a poder crear base de datos en cualquier motor, usar servicios de DNS, N8N e IA, pero nuestra vps solo va tener un contenedor de SQL server con el motor que va a proveer bases de datos para todos los usuarios que intenten crear una db desde cualquiera de los otros 8 dominios y sus correspondientes interfaces. Supo que en nuestra pagina, al elegir crear una base de datos de MySql, debemos madar esa peticion a la vps con el backend que amdinistra ese servicios.
+
+

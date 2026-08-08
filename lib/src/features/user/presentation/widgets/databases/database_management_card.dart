@@ -6,12 +6,12 @@ import 'package:frontend_landing/src/features/user/presentation/widgets/common/e
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/engine_style.dart'; // Common
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/info_line.dart'; // Common
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/status_badge.dart'; // Common
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/credentials_dialog.dart'; // Dialogs
+import 'package:frontend_landing/src/features/user/presentation/widgets/databases/database_card_actions.dart'; // Databases
 
-/// ¿Qué hace?: Tarjeta interactiva detallada para administrar una BD (encender/apagar, ver credenciales o eliminar).
-/// ¿De dónde trae?: Trae AppColors (core), DatabaseInstance (domain), widgets de common y CredentialsDialog (dialogs).
-/// ¿Hacia dónde va / Cómo se conecta?: Se renderiza dentro del listado principal de DatabasesPage.
-class DatabaseManagementCard extends StatelessWidget {
+/// ¿Qué hace?: Tarjeta modular de administración de BD con animación hover, logo PNG y sub-widgets descompuestos.
+/// ¿De dónde trae datos?: Ingesta DatabaseInstance, callbacks de acción y se adapta al tema Día/Noche.
+/// ¿Hacia dónde va / Cómo se conecta?: Se renderiza dentro de la grilla responsiva de 3 columnas de DatabasesPage.
+class DatabaseManagementCard extends StatefulWidget {
   const DatabaseManagementCard({
     required this.instance,        // Instancia de base de datos a administrar
     required this.onToggleState,   // Callback para alternar estado encendido/apagado
@@ -26,163 +26,230 @@ class DatabaseManagementCard extends StatelessWidget {
   final void Function(String, {bool success}) onMessage;
 
   @override
-  Widget build(BuildContext context) {
-    final style = engineStyle(instance.engine);
-    final isDesktop = MediaQuery.of(context).size.width >= 700;
+  State<DatabaseManagementCard> createState() => _DatabaseManagementCardState();
+}
 
-    return DashboardCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Cabecera de la tarjeta: Icono del motor, Nombre, Estado e Identificador
-          Row(
+class _DatabaseManagementCardState extends State<DatabaseManagementCard> {
+  // Estado local para resplandor hover al pasar el cursor sobre la tarjeta
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Estilo e icono del motor con color institucional dinámico Día/Noche
+    final style = engineStyle(widget.instance.engine, theme.brightness);
+    final engineColor = style.color;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: _isHovered
+              ? [
+                  BoxShadow(
+                    color: engineColor.withValues(alpha: isDark ? 0.25 : 0.15), // Resplandor sutil
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : [],
+        ),
+        child: DashboardCard(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              EngineIcon(icon: style.icon, color: style.color),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          instance.name,
-                          style: const TextStyle(
-                            color: AppColors.text,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        // Badge de estado Activa/Detenida
-                        StatusBadge(running: instance.isRunning),
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      '${instance.engine} v${instance.version} • ID: ${instance.id}',
-                      style: const TextStyle(
-                        color: AppColors.muted,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
+              // 1. Cabecera modular (Logo PNG, Nombre, Estado e ID)
+              _DatabaseCardHeader(
+                instance: widget.instance,
+                engineStyleData: style,
+                engineColor: engineColor,
+              ),
+              const SizedBox(height: 16),
+              Divider(height: 1, color: theme.dividerColor),
+              const SizedBox(height: 16),
+
+              // 2. Grilla modular de información de conexión (Host, Puerto, BD, Usuario)
+              _DatabaseCardInfoGrid(instance: widget.instance),
+              const SizedBox(height: 18),
+
+              // 3. Barra modular de progreso de almacenamiento
+              _DatabaseStorageProgress(
+                instance: widget.instance,
+                engineColor: engineColor,
+              ),
+              const SizedBox(height: 20),
+
+              // 4. Delegación modular a los botones de acción
+              DatabaseCardActions(
+                instance: widget.instance,
+                onToggleState: widget.onToggleState,
+                onDelete: widget.onDelete,
+                onMessage: widget.onMessage,
               ),
             ],
           ),
-          const SizedBox(height: 18),
-          const Divider(height: 1),
-          const SizedBox(height: 16),
+        ),
+      ),
+    );
+  }
+}
 
-          // Detalles de conexión (Host, Puerto, Usuario, Almacenamiento) usando InfoLine (common)
-          if (isDesktop)
-            Row(
-              children: [
-                Expanded(child: InfoLine(icon: Icons.dns_rounded, label: 'Host', value: instance.host)),
-                const SizedBox(width: 16),
-                Expanded(child: InfoLine(icon: Icons.numbers_rounded, label: 'Puerto', value: '${instance.port}')),
-              ],
-            )
-          else ...[
-            InfoLine(icon: Icons.dns_rounded, label: 'Host', value: instance.host),
-            const SizedBox(height: 8),
-            InfoLine(icon: Icons.numbers_rounded, label: 'Puerto', value: '${instance.port}'),
-          ],
-          const SizedBox(height: 8),
-          if (isDesktop)
-            Row(
-              children: [
-                Expanded(child: InfoLine(icon: Icons.storage_rounded, label: 'BD', value: instance.database)),
-                const SizedBox(width: 16),
-                Expanded(child: InfoLine(icon: Icons.person_rounded, label: 'Usuario', value: instance.username)),
-              ],
-            )
-          else ...[
-            InfoLine(icon: Icons.storage_rounded, label: 'BD', value: instance.database),
-            const SizedBox(height: 8),
-            InfoLine(icon: Icons.person_rounded, label: 'Usuario', value: instance.username),
-          ],
-          const SizedBox(height: 18),
+/// Sub-widget privado: Cabecera con logo PNG transparente, Nombre, Versión, ID y StatusBadge
+class _DatabaseCardHeader extends StatelessWidget {
+  const _DatabaseCardHeader({
+    required this.instance,
+    required this.engineStyleData,
+    required this.engineColor,
+  });
 
-          // Barra gráfica de almacenamiento consumido
-          Column(
+  final DatabaseInstance instance;
+  final EngineStyle engineStyleData;
+  final Color engineColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final titleColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+    final subtitleColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        EngineIcon(
+          engineName: instance.engine,
+          icon: engineStyleData.icon,
+          color: engineColor,
+          small: false,
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Almacenamiento ocupado', style: TextStyle(color: AppColors.muted, fontSize: 11)),
-                  Text(
-                    '${instance.storageUsed.toInt()} MB / ${instance.storageLimit.toInt()} MB',
-                    style: const TextStyle(color: AppColors.text, fontWeight: FontWeight.w700, fontSize: 11),
+                  Expanded(
+                    child: Text(
+                      instance.name,
+                      style: TextStyle(
+                        color: titleColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
+                  const SizedBox(width: 8),
+                  StatusBadge(running: instance.isRunning),
                 ],
               ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: instance.storageUsed / instance.storageLimit,
-                  backgroundColor: const Color(0xFFE0E7F0),
-                  valueColor: AlwaysStoppedAnimation<Color>(style.color),
-                  minHeight: 6,
+              const SizedBox(height: 4),
+              Text(
+                '${instance.engine} v${instance.version} • ID: ${instance.id}',
+                style: TextStyle(
+                  color: subtitleColor,
+                  fontSize: 11,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
-          const SizedBox(height: 20),
+        ),
+      ],
+    );
+  }
+}
 
-          // Botones gráficos de acción: Encender/Apagar, Ver Credenciales, Eliminar
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              // Botón de Ver Credenciales que abre CredentialsDialog
-              OutlinedButton.icon(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => CredentialsDialog(
-                      instance: instance,
-                      onMessage: onMessage,
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.key_rounded, size: 16),
-                label: const Text('Ver credenciales'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.navy,
-                  side: const BorderSide(color: AppColors.border),
-                ),
-              ),
+/// Sub-widget privado: Detalles de conexión ordenados en 2 filas (Host, Puerto, BD, Usuario)
+class _DatabaseCardInfoGrid extends StatelessWidget {
+  const _DatabaseCardInfoGrid({required this.instance});
 
-              // Botón para alternar estado (Detener / Iniciar)
-              OutlinedButton.icon(
-                onPressed: onToggleState,
-                icon: Icon(
-                  instance.isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                  size: 16,
-                ),
-                label: Text(instance.isRunning ? 'Detener' : 'Iniciar'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: instance.isRunning ? AppColors.orange : AppColors.green,
-                  side: BorderSide(
-                    color: instance.isRunning ? AppColors.orange : AppColors.green,
-                  ),
-                ),
-              ),
+  final DatabaseInstance instance;
 
-              // Botón rojo de Eliminar instancia
-              IconButton(
-                onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.red, size: 20),
-                tooltip: 'Eliminar instancia',
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(child: InfoLine(icon: Icons.dns_rounded, label: 'Host', value: instance.host)),
+            const SizedBox(width: 12),
+            Expanded(child: InfoLine(icon: Icons.numbers_rounded, label: 'Puerto', value: '${instance.port}')),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(child: InfoLine(icon: Icons.storage_rounded, label: 'BD', value: instance.database)),
+            const SizedBox(width: 12),
+            Expanded(child: InfoLine(icon: Icons.person_rounded, label: 'Usuario', value: instance.username)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Sub-widget privado: Barra gráfica de progreso de almacenamiento
+class _DatabaseStorageProgress extends StatelessWidget {
+  const _DatabaseStorageProgress({
+    required this.instance,
+    required this.engineColor,
+  });
+
+  final DatabaseInstance instance;
+  final Color engineColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final titleColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+    final subtitleColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Almacenamiento ocupado',
+              style: TextStyle(color: subtitleColor, fontSize: 11),
+            ),
+            Text(
+              '${instance.storageUsed.toInt()} MB / ${instance.storageLimit.toInt()} MB',
+              style: TextStyle(
+                color: titleColor,
+                fontWeight: FontWeight.w800,
+                fontSize: 11,
               ),
-            ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: (instance.storageUsed / instance.storageLimit).clamp(0.0, 1.0),
+            backgroundColor: theme.dividerColor.withValues(alpha: isDark ? 0.30 : 0.50),
+            valueColor: AlwaysStoppedAnimation<Color>(engineColor),
+            minHeight: 6,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

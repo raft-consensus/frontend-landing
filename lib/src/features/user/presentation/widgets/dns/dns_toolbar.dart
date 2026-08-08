@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
 
 /// ¿Qué hace?: Barra de herramientas colocada debajo del topbar con buscador y botón de "+ Nuevo Subdominio".
-/// ¿De dónde trae?: Consume AppColors de core/theme y recibe callbacks de búsqueda y creación.
+/// ¿De dónde trae datos?: Consume AppColors y responde al cambio de tema Día / Noche.
 /// ¿Hacia dónde va / Cómo se conecta?: Se incluye dentro del cuerpo principal de DnsSslPage.
 class DnsToolbar extends StatelessWidget {
   const DnsToolbar({
@@ -16,6 +16,12 @@ class DnsToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final textColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+    final hintColor = isDark ? AppColors.nightTextSecondary : AppColors.dayTextSecondary;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isSmall = constraints.maxWidth < 600;
@@ -32,33 +38,44 @@ class DnsToolbar extends StatelessWidget {
               ),
               child: TextField(
                 onChanged: onSearchChanged,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: textColor,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Buscar subdominio, IP o base de datos...',
-                  hintStyle: const TextStyle(
+                  hintStyle: TextStyle(
                     fontSize: 13,
-                    color: AppColors.muted,
+                    color: hintColor,
                   ),
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.search_rounded,
                     size: 18,
-                    color: AppColors.muted,
+                    color: hintColor,
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface,
+                  fillColor: theme.cardColor,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 10,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                      color: AppColors.border,
+                    borderSide: BorderSide(
+                      color: theme.dividerColor,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                      color: AppColors.border,
+                    borderSide: BorderSide(
+                      color: theme.dividerColor,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                      color: theme.colorScheme.primary,
+                      width: 1.5,
                     ),
                   ),
                 ),
@@ -74,8 +91,8 @@ class DnsToolbar extends StatelessWidget {
               ),
               label: const Text('Nuevo Subdominio'),
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.navy,
-                foregroundColor: Colors.white,
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 18,
                   vertical: 14,
