@@ -1,33 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
-// Domain
-import 'package:frontend_landing/src/features/user/presentation/pages/account_page.dart'; // Pages
-import 'package:frontend_landing/src/features/user/presentation/pages/databases_page.dart'; // Pages
+import 'package:frontend_landing/src/core/theme/app_colors.dart';
+import 'package:frontend_landing/src/features/user/presentation/pages/account_page.dart';
+import 'package:frontend_landing/src/features/user/presentation/pages/ai_services_page.dart';
+import 'package:frontend_landing/src/features/user/presentation/pages/databases_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/pages/dns_ssl_page.dart';
-import 'package:frontend_landing/src/features/user/presentation/pages/overview_page.dart'; // Pages
+import 'package:frontend_landing/src/features/user/presentation/pages/overview_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/pages/tools_and_docs_page.dart';
-import 'package:frontend_landing/src/features/user/presentation/providers/user_databases_provider.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/confirm_action_dialog.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/create_database_dialog.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_sidebar.dart'; // Layout
-import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_topbar.dart'; // Layout
+import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_sidebar.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_topbar.dart';
 
-/// ¿Qué hace?: Vista contenedora principal del Portal de Usuario que administra el estado global, navegación y las 5 pestañas.
-/// ¿De dónde trae?: Trae AppColors (core), DatabaseInstance (domain), componentes de layout, dialogs y las 5 sub-páginas (pages).
-/// ¿Hacia dónde va / Cómo se conecta?: Es la pantalla de inicio principal del panel de usuario registrada en las rutas de la aplicación.
-class DashboardPage extends ConsumerStatefulWidget {
+/// ¿Qué hace?: Shell contenedor principal del panel de usuario que administra la navegación y sub-páginas.
+/// ¿De dónde trae datos?: Maneja el estado del índice seleccionado (_selectedIndex) y la barra lateral/superior.
+/// ¿Hacia dónde va / Cómo se conecta?: Es la pantalla raíz registrada en la ruta /dashboard del GoRouter.
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
   @override
-  ConsumerState<DashboardPage> createState() => _DashboardPageState();
+  State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends ConsumerState<DashboardPage> {
+class _DashboardPageState extends State<DashboardPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  int _selectedIndex =
-      0; // 0: Resumen, 1: BD, 2: Herramientas, 3: Docs, 4: Cuenta
+  int _selectedIndex = 0; // Índice de la pestaña activa
 
-  // Mostrador de notificaciones flotantes de retroalimentación
+  /// Notificación snackbar flotante
   void _showMessage(String message, {bool success = true}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -53,85 +49,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     );
   }
 
-  /// Abre el modal oficial para la selección de motor y requiere confirmación previa al aprovisionamiento
-  Future<void> _openCreateDatabaseDialog() async {
-    // 1. Selección de motor en CreateDatabaseDialog
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (context) => const CreateDatabaseDialog(),
-    );
-
-    if (result != null && result.containsKey('engine')) {
-      final engineName = result['engine'] as String;
-
-      // 2. Paso de Confirmación explícita antes de contactar al backend
-      if (!mounted) return;
-      final confirmed = await showConfirmDialog(
-        context: context,
-        title: 'Confirmar Aprovisionamiento',
-        message:
-            '¿Estás seguro de que deseas crear una nueva instancia de $engineName?',
-        confirmLabel: 'Sí, crear instancia',
-        icon: Icons.rocket_launch_rounded,
-        confirmColor: AppColors.navy,
-      );
-
-      // Si el usuario cancela la confirmación, se aborta la petición
-      if (!confirmed) return;
-
-      _showMessage('Procesando solicitud de aprovisionamiento...');
-
-      // 3. Petición al backend C#
-      final response = await ref
-          .read(userDatabasesProvider.notifier)
-          .createDatabase(engine: engineName);
-
-      if (response.error == null && response.data != null) {
-        final data = response.data!;
-        if (mounted) {
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('¡Base de Datos Creada!'),
-              content: SelectableText(
-                'Guarda la contraseña ahora, no se volverá a mostrar completa:\n\n'
-                '• Host: ${data['host']}:${data['port']}\n'
-                '• Base de datos: ${data['databaseName']}\n'
-                '• Usuario: ${data['databaseUser']}\n'
-                '• Contraseña: ${data['password']}\n'
-                '• Motor: ${data['engine']}',
-              ),
-              actions: [
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Entendido'),
-                ),
-              ],
-            ),
-          );
-        }
-      } else {
-        _showMessage(
-          'No se pudo crear la instancia: ${response.error}',
-          success: false,
-        );
-      }
-    }
+  /// Redirección al aprovisionamiento de bases de datos
+  void _openCreateDatabaseDialog() {
+    setState(() => _selectedIndex = 1);
   }
 
-  // Alternar estado encendido/apagado de una BD
-  void _toggleInstanceState(String id) {
-    ref.read(userDatabasesProvider.notifier).toggleInstanceState(id);
-    _showMessage('Estado de la instancia actualizado.');
-  }
-
-  // Eliminar una base de datos con Riverpod
-  void _deleteInstance(String id) {
-    ref.read(userDatabasesProvider.notifier).deleteDatabase(id);
-    _showMessage('Instancia eliminada.', success: false);
-  }
-
-  // Título dinámico para la barra superior
+  /// Título dinámico para la barra superior según la pestaña activa
   String get _currentTitle {
     switch (_selectedIndex) {
       case 0:
@@ -141,8 +64,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       case 2:
         return 'Dominio & SSL (DNS)';
       case 3:
-        return 'Herramientas y Guías';
+        return 'Servicios de IA';
       case 4:
+        return 'Herramientas y Guías';
+      case 5:
         return 'Mi Cuenta y Ajustes';
       default:
         return 'Dashboard';
@@ -151,74 +76,57 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Sintoniza el proveedor global de Riverpod para obtener la lista siempre actualizada
-    final instances = ref.watch(userDatabasesProvider);
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      // Drawer de navegación lateral para pantallas móviles
       drawer: !isDesktop
           ? Drawer(
               child: DashboardSidebar(
                 selectedIndex: _selectedIndex,
                 onSelect: (index) {
                   setState(() => _selectedIndex = index);
-                  Navigator.pop(context); // Cierra el drawer al seleccionar
+                  Navigator.pop(context);
                 },
               ),
             )
           : null,
       body: Row(
         children: [
-          // Menú lateral fijo para pantallas de escritorio (isDesktop = true)
           if (isDesktop)
             DashboardSidebar(
               selectedIndex: _selectedIndex,
               onSelect: (index) => setState(() => _selectedIndex = index),
             ),
-
-          // Área principal derecha (Topbar + Sub-pestañas activas)
           Expanded(
             child: Column(
               children: [
-                // Barra de navegación superior
                 DashboardTopbar(
                   title: _currentTitle,
                   onOpenDrawer: () => _scaffoldKey.currentState?.openDrawer(),
                   onCreateDatabase: _openCreateDatabaseDialog,
                 ),
-
-                // Sub-páginas renderizadas dinámicamente según _selectedIndex
                 Expanded(
                   child: IndexedStack(
                     index: _selectedIndex,
                     children: [
                       // 0: Resumen (Overview)
                       OverviewPage(
-                        instances: instances,
+                        instances: const [],
                         onCreateDatabase: _openCreateDatabaseDialog,
                         onGoDatabases: () => setState(() => _selectedIndex = 1),
-                        onGoDocumentation: () => setState(
-                          () => _selectedIndex = 3, // <-- CAMBIAR A 3
-                        ),
+                        onGoDocumentation: () => setState(() => _selectedIndex = 4),
                       ),
-                      // 1: Bases de Datos
-                      DatabasesPage(
-                        instances: instances,
-                        onCreateDatabase: _openCreateDatabaseDialog,
-                        onToggleState: (index) =>
-                            _toggleInstanceState(instances[index].id),
-                        onDelete: (index) =>
-                            _deleteInstance(instances[index].id),
-                        onMessage: _showMessage,
-                      ),
-                      // 2: Dominio & SSL (NUEVA PESTAÑA)
+                      // 1: Bases de Datos (Autónoma)
+                      DatabasesPage(onMessage: _showMessage),
+                      // 2: Dominio & SSL
                       DnsSslPage(onMessage: _showMessage),
-                      // 3: Herramientas y Guías
+                      // 3: Servicios de IA
+                      AiServicesPage(onMessage: _showMessage),
+                      // 4: Herramientas y Guías
                       ToolsAndDocsPage(onMessage: _showMessage),
-                      // 4: Mi Cuenta
+                      // 5: Mi Cuenta
                       AccountPage(onMessage: _showMessage),
                     ],
                   ),

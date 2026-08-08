@@ -23,6 +23,7 @@ class DashboardSidebar extends StatelessWidget {
     SidebarItemData(title: 'Resumen', icon: Icons.grid_view_rounded),
     SidebarItemData(title: 'Bases de datos', icon: Icons.dns_rounded),
     SidebarItemData(title: 'Dominio & SSL', icon: Icons.lan_rounded),
+    SidebarItemData(title: 'Servicio de IA', icon: Icons.auto_awesome_rounded),
     SidebarItemData(title: 'Herramientas y Guías', icon: Icons.handyman_rounded),
     SidebarItemData(title: 'Mi cuenta', icon: Icons.person_outline_rounded),
   ];
