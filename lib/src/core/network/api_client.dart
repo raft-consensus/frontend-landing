@@ -22,9 +22,13 @@ class ApiClient {
 
   final http.Client _client;
 
-  /// URL Base del backend. Al ser habilitado Nginx usaremos https://raft.andrescortes.dev
-  // static const String baseUrl = 'https://api.raft.andrescortes.dev';
-  static const String baseUrl = 'http://localhost:8061';
+  /// URL Base del backend.
+  /// ¿De dónde recibe datos?: Lee la variable de entorno 'API_URL' si se pasa por consola.
+  /// ¿Hacia dónde se conecta?: Por defecto a la API desplegada en producción.
+  static String get baseUrl => const String.fromEnvironment(
+        'API_URL',
+        defaultValue: 'https://api.raft.andrescortes.dev',
+      );
 
   /// Construye los encabezados HTTP comunes incluyendo el Token JWT si está presente.
   Map<String, String> _buildHeaders([String? token]) {
