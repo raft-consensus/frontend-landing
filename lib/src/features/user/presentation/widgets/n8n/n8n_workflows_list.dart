@@ -52,7 +52,7 @@ class N8nWorkflowsList extends StatelessWidget {
         shrinkWrap: true, // Se adapta a la altura del contenido
         physics: const NeverScrollableScrollPhysics(), // Evita scroll interno ya que la página completa tiene scroll
         itemCount: workflows.length, // Total de ítems
-        separatorBuilder: (_, __) => Divider(height: 1, color: theme.dividerColor), // Línea separadora
+        separatorBuilder: (_, _) => Divider(height: 1, color: theme.dividerColor), // Línea separadora
         itemBuilder: (context, index) {
           final wf = workflows[index]; // Obtiene el flujo correspondiente
           return N8nWorkflowRowItem(

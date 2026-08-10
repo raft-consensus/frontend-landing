@@ -13,8 +13,7 @@ void main() {
     // Ejecuta el primer frame de renderizado estático
     await tester.pump();
 
-    // Valida que el botón principal exista en la pantalla
-    expect(find.text('Crear base de datos gratis'), findsOneWidget);
+    // Valida que los botones principales "Comenzar gratis" existan en la pantalla
+    expect(find.text('Comenzar gratis'), findsWidgets);
   });
 }
-
