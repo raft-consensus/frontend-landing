@@ -1,5 +1,4 @@
 // ==========================================
-// Archivo: lib/src/features/user/presentation/providers/user_databases_provider.dart
 // Qué hace: Administra el estado global de las bases de datos consumiendo únicamente la API real.
 // Dónde se conecta: Consumido por DashboardPage, OverviewPage, DatabasesPage y CreateDatabaseDialog.
 // De dónde recibe datos: Invoca a UserDatabasesRemoteDatasource y escucha el token/id de authProvider.
@@ -90,41 +89,48 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
     }
   }
 
-  /// Alterna el estado activo/inactivo de una instancia en la vista local
-  void toggleInstanceState(String id) {
-    state = [
-      for (final db in state)
-        if (db.id == id)
-          DatabaseInstance(
-            id: db.id,
-            name: db.name,
-            engine: db.engine,
-            version: db.version,
-            database: db.database,
-            username: db.username,
-            host: db.host,
-            port: db.port,
-            storageUsed: db.storageUsed,
-            storageLimit: db.storageLimit,
-            createdAt: db.createdAt,
-            isRunning: !db.isRunning,
-          )
-        else
-          db,
-    ];
+  /// Alterna el estado activo/detenido invocando el backend C# (/pause o /resume)
+  Future<({bool success, String? error})> toggleInstanceState(String id, bool currentlyRunning) async {
+    final token = _token;
+    if (token == null || token.isEmpty) {
+      return (success: false, error: 'Sesión expirada. Inicia sesión de nuevo.');
+    }
+    final instanceIdInt = int.tryParse(id) ?? 0;
+    try {
+      if (currentlyRunning) {
+        await datasource.pauseDatabase(instanceIdInt, token);
+      } else {
+        await datasource.resumeDatabase(instanceIdInt, token);
+      }
+      await fetchDatabases(); // Refresca la lista real desde el servidor C#
+      return (success: true, error: null);
+    } catch (e) {
+      final errorMessage = e.toString().replaceAll('ApiException: ', '');
+      return (success: false, error: errorMessage);
+    }
   }
 
-  /// Elimina visualmente una instancia por su ID
-  void deleteDatabase(String id) {
-    state = state.where((db) => db.id != id).toList();
+  /// Elimina definitivamente una instancia llamando a DELETE /api/me/databases/{id}
+  Future<({bool success, String? error})> deleteDatabase(String id) async {
+    final token = _token;
+    if (token == null || token.isEmpty) {
+      return (success: false, error: 'Sesión expirada. Inicia sesión de nuevo.');
+    }
+    final instanceIdInt = int.tryParse(id) ?? 0;
+    try {
+      await datasource.deleteDatabase(instanceIdInt, token);
+      await fetchDatabases(); // Refresca la lista real desde el servidor C#
+      return (success: true, error: null);
+    } catch (e) {
+      final errorMessage = e.toString().replaceAll('ApiException: ', '');
+      return (success: false, error: errorMessage);
+    }
   }
-}
+} // 👈 La clase UserDatabasesNotifier cierra AQUÍ
 
 /// Proveedor global de Riverpod para consultar y refrescar las BDs del usuario
 final userDatabasesProvider =
     StateNotifierProvider<UserDatabasesNotifier, List<DatabaseInstance>>((ref) {
-      // Al observar el ID del usuario en la sesión de authProvider, Riverpod
-      // destruirá y re-creará automáticamente este proveedor cuando cambie de usuario o se cierre la sesión.
       ref.watch(authProvider.select((s) => s.session?.user.id));
       final datasource = ref.watch(userDatabasesRemoteDatasourceProvider);
       return UserDatabasesNotifier(datasource: datasource, ref: ref);

@@ -1,12 +1,17 @@
+// ==========================================
+// Archivo: lib/src/features/user/presentation/widgets/dialogs/notifications/notification_item.dart
+// Qué hace: Fila individual para renderizar una notificación del sistema con viñeta coloreada.
+// Dónde se conecta: Importado por NotificationsDialog para listar cada mensaje.
+// De dónde recibe datos: Recibe color, title, description y time de cada UserNotification.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
 
-/// ¿Qué hace?: Fila individual para renderizar una notificación del sistema con viñeta coloreada.
-/// ¿De dónde trae?: Consume AppColors de core/theme/app_colors.dart.
-/// ¿Hacia dónde va / Cómo se conecta?: Se importa dentro de NotificationsDialog para listar los mensajes.
+/// Fila individual para renderizar una notificación del sistema con viñeta coloreada
 class NotificationItem extends StatelessWidget {
   const NotificationItem({
-    required this.color,       // Color de la viñeta (Verde = éxito, Azul = info, Naranja = alerta)
+    required this.color,       // Color de la viñeta (Verde = éxito, Azul = info, Rojo = alerta)
     required this.title,       // Título de la notificación
     required this.description, // Explicación del evento
     required this.time,        // Tiempo transcurrido (ej. "Hace 12 min")

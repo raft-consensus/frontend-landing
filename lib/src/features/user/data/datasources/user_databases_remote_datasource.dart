@@ -1,5 +1,4 @@
 // ==========================================
-// Archivo: lib/src/features/user/data/datasources/user_databases_remote_datasource.dart
 // Qué hace: Realiza peticiones HTTP a los endpoints /api/me/databases usando ApiClient.
 // Dónde se conecta: Consumido por el repositorio de bases de datos del usuario.
 // De dónde recibe datos: Invoca a ApiClient (core/network/api_client.dart) adjuntando el JWT.
@@ -40,23 +39,46 @@ class UserDatabasesRemoteDatasource {
     return data?['password'] as String? ?? '';
   }
 
-  // ¿Qué hace?: Realiza la petición POST enviando el motor especificado.
-// ¿De dónde recibe datos?: Recibe el nombre del motor (ej: "SQL Server") y el JWT token.
-// ¿Hacia dónde se conecta?: Backend C# (POST /api/me/databases).
-  /// Envía la solicitud de aprovisionamiento con el motor seleccionado
+  /// Envía la solicitud de aprovisionamiento con el motor seleccionado (POST /api/me/databases)
   Future<Map<String, dynamic>> createDatabase({
     required String engine,
     required String token,
   }) async {
     final response = await apiClient.post(
       '/api/me/databases',
-      body: {'engine': engine}, // Envía {"engine": "SQL Server"} en el cuerpo HTTP
+      body: {'engine': engine},
       token: token,
     );
-    // Retorna el objeto 'data' entregado por el backend C#
     return response['data'] as Map<String, dynamic>;
   }
-}
+
+  /// Solicita pausar/detener una instancia específica (POST /api/me/databases/{id}/pause)
+  Future<bool> pauseDatabase(int databaseInstanceId, String token) async {
+    final response = await apiClient.post(
+      '/api/me/databases/$databaseInstanceId/pause',
+      token: token, body: {},
+    );
+    return response['success'] as bool? ?? false;
+  }
+
+  /// Solicita reanudar/iniciar una instancia específica (POST /api/me/databases/{id}/resume)
+  Future<bool> resumeDatabase(int databaseInstanceId, String token) async {
+    final response = await apiClient.post(
+      '/api/me/databases/$databaseInstanceId/resume',
+      token: token, body: {},
+    );
+    return response['success'] as bool? ?? false;
+  }
+
+  /// Solicita eliminar una instancia específica de forma definitiva (DELETE /api/me/databases/{id})
+  Future<bool> deleteDatabase(int databaseInstanceId, String token) async {
+    final response = await apiClient.delete(
+      '/api/me/databases/$databaseInstanceId',
+      token: token,
+    );
+    return response['success'] as bool? ?? false;
+  }
+} // 👈 La clase UserDatabasesRemoteDatasource cierra AQUÍ
 
 /// Proveedor global de Riverpod para inyectar la instancia de UserDatabasesRemoteDatasource
 final userDatabasesRemoteDatasourceProvider =

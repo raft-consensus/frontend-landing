@@ -1,3 +1,9 @@
+// ==========================================
+// Qué hace: Vista principal autónoma de Bases de Datos orquestada de forma plana mediante subwidgets.
+// Dónde se conecta: Se renderiza en el índice 1 del IndexedStack en DashboardPage.
+// De dónde trae datos: Escucha userDatabasesProvider directamente en Riverpod.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
@@ -10,9 +16,7 @@ import 'package:frontend_landing/src/features/user/presentation/widgets/database
 import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/common/confirm_action_dialog.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/databases/create_database_dialog.dart';
 
-/// ¿Qué hace?: Vista principal autónoma de Bases de Datos orquestada de forma plana mediante subwidgets.
-/// ¿De dónde trae datos?: Escucha userDatabasesProvider directamente en Riverpod.
-/// ¿Hacia dónde va / Cómo se conecta?: Se renderiza en el índice 1 del IndexedStack en DashboardPage.
+/// Vista principal de administración de bases de datos con filtros reactivos por motor, estado y texto
 class DatabasesPage extends ConsumerStatefulWidget {
   const DatabasesPage({required this.onMessage, super.key});
 
@@ -24,6 +28,7 @@ class DatabasesPage extends ConsumerStatefulWidget {
 
 class _DatabasesPageState extends ConsumerState<DatabasesPage> {
   String _selectedEngine = 'Todos';
+  String _selectedStatus = 'Todas'; // 'Todas', 'Activas', 'Pausadas'
   String _searchQuery = '';
 
   /// Abre el modal de aprovisionamiento de nueva BD
@@ -104,11 +109,13 @@ class _DatabasesPageState extends ConsumerState<DatabasesPage> {
           DatabaseSummaryCard(instances: instances),
           const SizedBox(height: 20),
 
-          // 3. Buscador y Filtros por Motor (Subwidget)
+          // 3. Buscador y Filtros Combinados por Motor y Estado (Subwidget)
           DatabaseSearchFilter(
             selectedEngine: _selectedEngine,
+            selectedStatus: _selectedStatus,
             onSearchChanged: (q) => setState(() => _searchQuery = q),
             onEngineChanged: (e) => setState(() => _selectedEngine = e),
+            onStatusChanged: (s) => setState(() => _selectedStatus = s),
           ),
           const SizedBox(height: 24),
 
@@ -116,6 +123,7 @@ class _DatabasesPageState extends ConsumerState<DatabasesPage> {
           DatabaseGrid(
             instances: instances,
             selectedEngine: _selectedEngine,
+            selectedStatus: _selectedStatus,
             searchQuery: _searchQuery,
             onCreate: _openCreateDatabaseDialog,
             onMessage: widget.onMessage,

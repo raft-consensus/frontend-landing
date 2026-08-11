@@ -4,6 +4,7 @@ import 'package:frontend_landing/src/core/theme/app_colors.dart';
 import 'package:frontend_landing/src/features/user/presentation/providers/user_ai_provider.dart';
 import 'package:frontend_landing/src/features/user/presentation/providers/user_databases_provider.dart';
 import 'package:frontend_landing/src/features/user/presentation/providers/user_dns_provider.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/ai/ai_key_secret_dialog.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/common/confirm_action_dialog.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/ai/create_ai_key_dialog.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/databases/create_database_dialog.dart';
@@ -34,7 +35,8 @@ class HubActionsHelper {
       final confirmed = await showConfirmDialog(
         context: context,
         title: 'Confirmar Aprovisionamiento',
-        message: '¿Estás seguro de que deseas crear una nueva instancia de $engineName?',
+        message:
+            '¿Estás seguro de que deseas crear una nueva instancia de $engineName?',
         confirmLabel: 'Sí, crear instancia',
         icon: Icons.rocket_launch_rounded,
         confirmColor: AppColors.navy,
@@ -45,7 +47,9 @@ class HubActionsHelper {
       onMessage?.call('Procesando solicitud de aprovisionamiento...');
 
       // 3. Envía la petición real de creación al backend mediante Riverpod
-      final response = await ref.read(userDatabasesProvider.notifier).createDatabase(engine: engineName);
+      final response = await ref
+          .read(userDatabasesProvider.notifier)
+          .createDatabase(engine: engineName);
 
       if (response.error == null && response.data != null) {
         final data = response.data!;
@@ -73,7 +77,10 @@ class HubActionsHelper {
           );
         }
       } else {
-        onMessage?.call('No se pudo crear la instancia: ${response.error}', success: false);
+        onMessage?.call(
+          'No se pudo crear la instancia: ${response.error}',
+          success: false,
+        );
       }
     }
   }
@@ -111,13 +118,12 @@ class HubActionsHelper {
     }
   }
 
-  /// Ejecuta el flujo completo de creación de una nueva clave de IA
+  /// Genera una nueva API Key de IA directamente llamando a la API real C#
   static Future<void> createAiKeyDirectly({
     required BuildContext context,
     required WidgetRef ref,
     void Function(String message, {bool success})? onMessage,
   }) async {
-    // 1. Muestra el modal para ingresar el nombre de la clave
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => const CreateAiKeyDialog(),
@@ -125,15 +131,31 @@ class HubActionsHelper {
 
     if (result != null && result.containsKey('name')) {
       final name = result['name'] as String;
+      onMessage?.call('Generando API Key en el servidor...');
 
-      // 2. Guarda la clave en el estado global de Riverpod
-      final error = await ref.read(userAiProvider.notifier).addKey(name: name);
+      final response = await ref
+          .read(userAiProvider.notifier)
+          .createKey(name: name);
 
-      // 3. Notifica el resultado
-      onMessage?.call(
-        error ?? 'API Key "$name" generada correctamente.',
-        success: error == null,
-      );
+      if (response.error == null &&
+          response.secret != null &&
+          response.secret!.isNotEmpty) {
+        onMessage?.call('API Key "$name" generada con éxito.', success: true);
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AiKeySecretDialog(
+              title: 'API Key Generada',
+              secret: response.secret!,
+            ),
+          );
+        }
+      } else {
+        onMessage?.call(
+          response.error ?? 'No se pudo generar la API Key.',
+          success: false,
+        );
+      }
     }
   }
 }

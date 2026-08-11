@@ -1,22 +1,28 @@
-import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart';
-import 'package:frontend_landing/src/features/user/domain/entities/ai_key.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/ai/ai_key_row_item.dart';
+// ==========================================
+// Qué hace: Tabla contenedora que itera la lista de API Keys de IA y gestiona el estado vacío.
+// Dónde se conecta: Se incluye en AiServicesPage.
+// De dónde trae datos: Ingesta la lista de AiKey y delega acciones a AiKeyRowItem.
+// ==========================================
 
-/// ¿Qué hace?: Tabla contenedora que itera la lista de API Keys y gestiona el estado vacío.
-/// ¿De dónde trae datos?: Ingesta la lista de AiKey y se conecta con AiKeyRowItem.
-/// ¿Hacia dónde va / Cómo se conecta?: Se incluye en AiServicesPage.
+import 'package:flutter/material.dart';
+import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
+import 'package:frontend_landing/src/features/user/domain/entities/ai_key.dart'; // Domain
+import 'package:frontend_landing/src/features/user/presentation/widgets/ai/ai_key_row_item.dart'; // AI Widgets
+
+/// Tabla contenedora de la lista de API Keys
 class AiKeysTable extends StatelessWidget {
   const AiKeysTable({
     required this.keys,
+    required this.onRotate,
     required this.onDelete,
     required this.onMessage,
     super.key,
   });
 
-  final List<AiKey> keys; // Lista de API Keys activas
-  final ValueChanged<AiKey> onDelete; // Callback al presionar eliminar/revocar
-  final void Function(String message, {bool success}) onMessage; // Feedback al usuario
+  final List<AiKey> keys;
+  final ValueChanged<AiKey> onRotate;
+  final ValueChanged<AiKey> onDelete;
+  final void Function(String message, {bool success}) onMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +45,7 @@ class AiKeysTable extends StatelessWidget {
         itemBuilder: (context, index) {
           return AiKeyRowItem(
             item: keys[index],
+            onRotate: onRotate,
             onDelete: onDelete,
             onMessage: onMessage,
           );
@@ -67,7 +74,7 @@ class AiKeysTable extends StatelessWidget {
           const SizedBox(height: 12),
           Text('No tienes API Keys de IA generadas', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor)),
           const SizedBox(height: 4),
-          Text('Presiona "+ Generar API Key" para crear tu primera clave de acceso', style: TextStyle(color: subtitleColor, fontSize: 12)),
+          Text('Presiona "+ Crear API Key" para generar tu primera clave de acceso', style: TextStyle(color: subtitleColor, fontSize: 12)),
         ],
       ),
     );

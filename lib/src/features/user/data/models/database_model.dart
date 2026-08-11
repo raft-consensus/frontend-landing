@@ -1,7 +1,7 @@
 // ==========================================
 // Archivo: lib/src/features/user/data/models/database_model.dart
 // Qué hace: Mapea la respuesta JSON de los endpoints /api/me/databases hacia objetos de la aplicación.
-// Dónde se conecta: Utilizado por DatabasesRemoteDatasource y UserDatabasesNotifier.
+// Dónde se conecta: Utilizado por UserDatabasesRemoteDatasource y UserDatabasesNotifier.
 // De dónde recibe datos: Deserializa las respuestas JSON del backend ASP.NET Core.
 // ==========================================
 
@@ -9,16 +9,16 @@ import 'package:frontend_landing/src/features/user/domain/entities/database_inst
 
 /// Modelo de datos que convierte la respuesta JSON de la API en la entidad de dominio DatabaseInstance
 class DatabaseModel {
-  final int databaseInstanceId;
-  final String host;
-  final int port;
-  final String databaseName;
-  final String databaseUser;
-  final String engine;
-  final String status;
-  final int usedSpaceBytes;
-  final int maxSpaceBytes;
-  final String createdAt;
+  final int databaseInstanceId; // ID numérico entregado por el backend
+  final String host;             // Host o dirección IP del servidor BD
+  final int port;                // Puerto TCP de conexión
+  final String databaseName;     // Nombre físico de la BD
+  final String databaseUser;     // Nombre de usuario asignado
+  final String engine;           // Motor de la base de datos
+  final String status;           // Estado entregado por el backend (Active/Suspended)
+  final int usedSpaceBytes;      // Bytes consumidos reportados por el servidor
+  final int maxSpaceBytes;       // Bytes máximos permitidos
+  final String createdAt;        // Timestamp ISO8601 de creación
 
   DatabaseModel({
     required this.databaseInstanceId,
@@ -44,16 +44,16 @@ class DatabaseModel {
       engine: json['engine'] ?? 'MySQL',
       status: json['status'] ?? 'Active',
       usedSpaceBytes: json['usedSpaceBytes'] ?? 0,
-      maxSpaceBytes: json['maxSpaceBytes'] ?? 524288000, // 512 MB por defecto
+      maxSpaceBytes: json['maxSpaceBytes'] ?? 20971520, // 20 MB por defecto si no viene
       createdAt: json['createdAt'] ?? '',
     );
   }
 
   /// Convierte el modelo de datos HTTP en la entidad limpia DatabaseInstance que consume la UI
   DatabaseInstance toEntity() {
-    // Convierte bytes a Megabytes para la representación visual en la UI
-    final usedMB = (usedSpaceBytes / (1024 * 1024)).toStringAsFixed(1);
-    final limitMB = (maxSpaceBytes / (1024 * 1024)).toStringAsFixed(0);
+    // Convierte bytes a Megabytes con precisión de punto flotante
+    final usedMB = usedSpaceBytes / (1024 * 1024);
+    final limitMB = maxSpaceBytes / (1024 * 1024);
 
     return DatabaseInstance(
       id: databaseInstanceId.toString(),
@@ -64,8 +64,10 @@ class DatabaseModel {
       username: databaseUser,
       host: host,
       port: port,
-      storageUsed: double.tryParse(usedMB) ?? 0.0,
-      storageLimit: double.tryParse(limitMB) ?? 512.0,
+      storageUsed: usedMB,
+      storageLimit: limitMB > 0 ? limitMB : 20.0,
+      usedSpaceBytes: usedSpaceBytes,
+      maxSpaceBytes: maxSpaceBytes > 0 ? maxSpaceBytes : 20971520,
       createdAt: createdAt.length >= 10 ? createdAt.substring(0, 10) : createdAt,
       isRunning: status.toLowerCase() == 'active',
     );

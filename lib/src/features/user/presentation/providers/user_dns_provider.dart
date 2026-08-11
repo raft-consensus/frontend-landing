@@ -1,5 +1,4 @@
 // ==========================================
-// Archivo: lib/src/features/user/presentation/providers/user_dns_provider.dart
 // ¿Qué hace?: Administra el estado reactivo de registros DNS conectándose únicamente al backend real.
 // ¿De dónde recibe datos?: Invoca a UserDnsRemoteDatasource y escucha authProvider.
 // ¿Hacia dónde va / Cómo se conecta?: Consumido por DnsSslPage.

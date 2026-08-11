@@ -26,9 +26,9 @@ class ApiClient {
   /// ¿De dónde recibe datos?: Lee la variable de entorno 'API_URL' si se pasa por consola.
   /// ¿Hacia dónde se conecta?: Por defecto a la API desplegada en producción.
   static String get baseUrl => const String.fromEnvironment(
-        'API_URL',
-        defaultValue: 'https://api.raft.andrescortes.dev',
-      );
+    'API_URL',
+    defaultValue: 'https://api.raft.andrescortes.dev',
+  );
 
   /// Construye los encabezados HTTP comunes incluyendo el Token JWT si está presente.
   Map<String, String> _buildHeaders([String? token]) {
@@ -134,7 +134,7 @@ class ApiClient {
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return responseData;
       }
-      
+
       // Extrae el mensaje de error entregado por la API
       String errorMessage = responseData['message'] as String? ?? '';
       if (errorMessage.isEmpty) {
@@ -189,19 +189,29 @@ class ApiClient {
     }
   }
 
-  /// Realiza peticiones HTTP DELETE.
+  /// Realiza peticiones HTTP DELETE de forma segura soportando respuestas sin cuerpo (HTTP 204 / 200).
   Future<Map<String, dynamic>> delete(String endpoint, {String? token}) async {
     final url = Uri.parse('$baseUrl$endpoint');
 
     try {
       final response = await _client.delete(url, headers: _buildHeaders(token));
 
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      // Intenta deserializar el cuerpo únicamente si el servidor envió contenido
+      Map<String, dynamic> responseData = {};
+      if (response.body.isNotEmpty) {
+        try {
+          responseData = jsonDecode(response.body) as Map<String, dynamic>;
+        } catch (_) {
+          // Si el cuerpo no es JSON pero el status es exitoso, continúa normalmente
+        }
+      }
 
+      // Si el estado HTTP es exitoso (200 - 299)
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return responseData;
       }
 
+      // Extrae el mensaje de error enviado por el servidor
       String errorMessage = responseData['message'] as String? ?? '';
       if (errorMessage.isEmpty) {
         errorMessage =
@@ -210,8 +220,6 @@ class ApiClient {
       }
 
       throw ApiException(errorMessage, statusCode: response.statusCode);
-    } on FormatException {
-      throw ApiException('Respuesta con formato JSON inválido del servidor');
     } catch (e) {
       if (e is ApiException) rethrow;
       throw ApiException('Error de conexión con el servidor: $e');

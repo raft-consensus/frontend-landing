@@ -1,8 +1,7 @@
 // ==========================================
-// Archivo: lib/src/features/user/presentation/pages/overview_page.dart
-// ¿Qué hace?: Vista principal del panel de Resumen (Overview) desacoplada y modularizada.
-// ¿De dónde trae datos?: Escucha userDatabasesProvider, userAiProvider, userN8nProvider y userDnsProvider via Riverpod.
-// ¿Hacia dónde va / Cómo se conecta?: Primera pestaña (índice 0) de DashboardPage, ensambla componentes independientes de overview/.
+// Qué hace: Vista principal del panel de Resumen (Overview) desacoplada y modularizada.
+// De dónde trae datos: Escucha userDatabasesProvider, userAiProvider, userN8nProvider y userDnsProvider via Riverpod.
+// Dónde se conecta: Primera pestaña (índice 0) de DashboardPage.
 // ==========================================
 
 import 'package:flutter/material.dart';
@@ -21,31 +20,29 @@ import 'package:frontend_landing/src/features/user/presentation/widgets/overview
 
 class OverviewPage extends ConsumerWidget {
   const OverviewPage({
-    required this.onCreateDatabase,   // Callback para abrir el modal de creación de BD
-    required this.onGoDatabases,      // Callback para redirigir a la pestaña de Bases de Datos (índice 1)
-    required this.onGoDocumentation,  // Callback para redirigir a la pestaña de Herramientas/Guías (índice 5)
-    this.onGoDns,                     // Callback opcional para ir a DNS & SSL (índice 2)
-    this.onGoAi,                      // Callback opcional para ir a Servicios de IA (índice 3)
-    this.onGoN8n,                     // Callback opcional para ir a N8N Workflows (índice 4)
+    required this.onCreateDatabase,
+    required this.onGoDatabases,
+    required this.onGoDocumentation,
+    this.onGoDns,
+    this.onGoAi,
+    this.onGoN8n,
     super.key,
   });
 
-  final VoidCallback onCreateDatabase;  // Función para abrir modal de creación
-  final VoidCallback onGoDatabases;     // Función para navegar a bases de datos
-  final VoidCallback onGoDocumentation; // Función para navegar a la documentación
-  final VoidCallback? onGoDns;          // Función para navegar a DNS
-  final VoidCallback? onGoAi;           // Función para navegar a IA
-  final VoidCallback? onGoN8n;          // Función para navegar a N8N
+  final VoidCallback onCreateDatabase;
+  final VoidCallback onGoDatabases;
+  final VoidCallback onGoDocumentation;
+  final VoidCallback? onGoDns;
+  final VoidCallback? onGoAi;
+  final VoidCallback? onGoN8n;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. Escucha los proveedores de estado reactivos de Riverpod
-    final instances = ref.watch(userDatabasesProvider); // Lista reactiva de bases de datos del usuario
-    final aiKeys = ref.watch(userAiProvider);            // Lista reactiva de API Keys de IA
-    final n8nData = ref.watch(userN8nProvider);          // Estado reactivo del servicio de n8n Workflows
-    final dnsRecords = ref.watch(userDnsProvider);       // Lista reactiva de registros DNS del usuario
+    final instances = ref.watch(userDatabasesProvider);
+    final aiKeys = ref.watch(userAiProvider);
+    final n8nData = ref.watch(userN8nProvider);
+    final dnsRecords = ref.watch(userDnsProvider);
 
-    // 2. Detecta si la pantalla es de escritorio (ancho >= 900px)
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return DashboardScrollView(
@@ -59,9 +56,9 @@ class OverviewPage extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          // 2. Componente modularizado de métricas en cuadrícula
+          // 2. Componente modularizado de métricas (conteo total de BDs)
           OverviewMetricsGrid(
-            runningDatabasesCount: instances.where((i) => i.isRunning).length,
+            totalDatabasesCount: instances.length, // 👈 Ahora cuenta TODAS las instancias (activas o detenidas)
             dnsSubdomainsCount: dnsRecords.length,
             aiKeysCount: aiKeys.length,
             n8nWorkflowsCount: n8nData?.activeWorkflows ?? 0,

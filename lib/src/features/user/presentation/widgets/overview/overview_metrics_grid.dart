@@ -1,8 +1,7 @@
 // ==========================================
-// Archivo: lib/src/features/user/presentation/widgets/overview/overview_metrics_grid.dart
-// ¿Qué hace?: Renderiza la cuadrícula responsiva de 4 tarjetas informativas de métricas (BDs, DNS, IA, N8N).
-// ¿De dónde trae datos?: Ingesta los conteos numéricos de BDs activas, subdominios DNS, API Keys de IA y flujos N8N.
-// ¿Hacia dónde va / Cómo se conecta?: Se incluye en OverviewPage debajo del WelcomeBanner.
+// Qué hace: Renderiza la cuadrícula responsiva de 4 tarjetas informativas de métricas (BDs totales, DNS, IA, N8N).
+// Dónde se conecta: Se incluye en OverviewPage debajo del WelcomeBanner.
+// De dónde trae datos: Ingesta los conteos numéricos de BDs totales, subdominios DNS, API Keys de IA y flujos N8N.
 // ==========================================
 
 import 'package:flutter/material.dart';
@@ -10,14 +9,14 @@ import 'package:frontend_landing/src/features/user/presentation/widgets/overview
 
 class OverviewMetricsGrid extends StatelessWidget {
   const OverviewMetricsGrid({
-    required this.runningDatabasesCount,
+    required this.totalDatabasesCount, // Conteo total de todas las BDs (activas y detenidas)
     required this.dnsSubdomainsCount,
     required this.aiKeysCount,
     required this.n8nWorkflowsCount,
     super.key,
   });
 
-  final int runningDatabasesCount; // Conteo real de BDs ejecutándose
+  final int totalDatabasesCount; // Conteo real de BDs totales en el clúster
   final int dnsSubdomainsCount;    // Conteo real de registros/subdominios DNS
   final int aiKeysCount;          // Conteo real de API Keys de IA creadas
   final int n8nWorkflowsCount;    // Conteo real de flujos n8n activos
@@ -27,20 +26,20 @@ class OverviewMetricsGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final cols = width >= 1100 ? 4 : (width >= 700 ? 2 : 1); // Distribución de columnas responsiva
+        final cols = width >= 1100 ? 4 : (width >= 700 ? 2 : 1);
         final itemWidth = (width - (cols - 1) * 14) / cols;
 
         return Wrap(
           spacing: 14,
           runSpacing: 14,
           children: [
-            // 1. Tarjeta BDs: Conteo real de bases de datos activas
+            // 1. Tarjeta BDs: Conteo total de bases de datos creadas
             SizedBox(
               width: itemWidth,
               child: MetricCard(
                 title: 'Bases de Datos',
-                value: '$runningDatabasesCount',
-                subtitle: 'Bases de datos activas',
+                value: '$totalDatabasesCount',
+                subtitle: 'Instancias en tu clúster',
                 icon: Icons.storage_rounded,
               ),
             ),

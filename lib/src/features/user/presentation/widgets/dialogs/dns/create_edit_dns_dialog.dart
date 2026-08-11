@@ -147,7 +147,7 @@ class _CreateEditDnsDialogState extends State<CreateEditDnsDialog> {
       decoration: InputDecoration(
         labelText: 'Subdominio',
         hintText: 'ej. midb',
-        suffixText: '.coderhivex.com',
+        suffixText: 'raft.coderhivex.com',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: theme.dividerColor),
