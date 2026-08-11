@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/account/plan_details_card.dart'; // Account
-import 'package:frontend_landing/src/features/user/presentation/widgets/account/profile_info_card.dart'; // Account
-import 'package:frontend_landing/src/features/user/presentation/widgets/account/security_card.dart'; // Account
-import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_scroll_view.dart'; // Common
-import 'package:frontend_landing/src/features/user/presentation/widgets/common/section_header.dart'; // Common
+import 'package:frontend_landing/src/features/user/presentation/widgets/account/plan_details_card.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/account/profile_info_card.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/account/security_card.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_scroll_view.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/common/section_header.dart';
 
-/// ¿Qué hace?: Página web de gestión de cuenta, perfil, seguridad y plan del usuario.
-/// ¿De dónde trae?: Trae widgets de common y las 3 tarjetas de account (ProfileInfoCard, SecurityCard, PlanDetailsCard).
-/// ¿Hacia dónde va / Cómo se conecta?: Es la quinta pestaña renderizada dentro de DashboardPage.
+/// Página de gestión de cuenta, seguridad, perfil y plan del usuario.
+/// 
+/// ¿Qué hace?: Presenta en orden: 1. Seguridad (Cambio de clave), 2. Perfil de usuario, 3. Estado del plan.
+/// ¿De dónde trae?: Widgets modulares de la carpeta account.
+/// ¿Hacia dónde va / Cómo se conecta?: Quinta pestaña renderizada dentro de DashboardPage.
 class AccountPage extends StatelessWidget {
   const AccountPage({
-    required this.onMessage, // Callback para notificaciones snackbar
+    required this.onMessage,
     super.key,
   });
 
@@ -24,14 +26,12 @@ class AccountPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Encabezado de sección
           const SectionHeader(
             title: 'Mi Cuenta y Configuración',
-            subtitle: 'Gestiona tu información personal, clave de acceso y límites de tu plan',
+            subtitle: 'Gestiona tu clave de acceso, información personal y límites de tu plan',
           ),
           const SizedBox(height: 24),
 
-          // Disposición responsiva de tarjetas (2 columnas en Desktop o 1 en Móvil)
           if (isDesktop)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,9 +40,11 @@ class AccountPage extends StatelessWidget {
                   flex: 3,
                   child: Column(
                     children: [
-                      ProfileInfoCard(onMessage: onMessage),
-                      const SizedBox(height: 20),
+                      // 1. Primero cambiar contraseña
                       SecurityCard(onMessage: onMessage),
+                      const SizedBox(height: 20),
+                      // 2. Luego editar perfil
+                      ProfileInfoCard(onMessage: onMessage),
                     ],
                   ),
                 ),
@@ -54,9 +56,9 @@ class AccountPage extends StatelessWidget {
               ],
             )
           else ...[
-            ProfileInfoCard(onMessage: onMessage),
-            const SizedBox(height: 20),
             SecurityCard(onMessage: onMessage),
+            const SizedBox(height: 20),
+            ProfileInfoCard(onMessage: onMessage),
             const SizedBox(height: 20),
             PlanDetailsCard(onMessage: onMessage),
           ],

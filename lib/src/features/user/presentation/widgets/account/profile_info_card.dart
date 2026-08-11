@@ -1,91 +1,120 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
-import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_card.dart'; // Common
-import 'package:frontend_landing/src/features/user/presentation/widgets/common/field_label.dart'; // Common
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend_landing/src/features/user/presentation/providers/user_profile_provider.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/account/profile/profile_date_helper.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/account/profile/profile_form.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/account/profile/profile_header.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_card.dart';
 
-/// ¿Qué hace?: Tarjeta con formulario para editar datos personales del usuario (Nombre, Email, Organización).
-/// ¿De dónde trae?: Trae AppColors (core), DashboardCard y FieldLabel (common).
-/// ¿Hacia dónde va / Cómo se conecta?: Se renderiza dentro del panel principal de AccountPage.
-class ProfileInfoCard extends StatefulWidget {
+/// Orquestador modular ultracompacto de la tarjeta de perfil de usuario.
+/// 
+/// ¿Qué hace?: Ensambla ProfileHeader y ProfileForm administrando la carga inicial y delegando la fecha a ProfileDateHelper.
+/// ¿De dónde recibe datos?: Del userProfileProvider.
+/// ¿Hacia dónde se conecta?: Renderizado en el panel principal de AccountPage.
+class ProfileInfoCard extends ConsumerStatefulWidget {
   const ProfileInfoCard({
-    required this.onMessage, // Callback para notificaciones snackbar
+    required this.onMessage,
     super.key,
   });
 
   final void Function(String message, {bool success}) onMessage;
 
   @override
-  State<ProfileInfoCard> createState() => _ProfileInfoCardState();
+  ConsumerState<ProfileInfoCard> createState() => _ProfileInfoCardState();
 }
 
-class _ProfileInfoCardState extends State<ProfileInfoCard> {
-  final _nameController = TextEditingController(text: 'Usuario Raft');
-  final _emailController = TextEditingController(text: 'user@raftdb.dev');
-  final _orgController = TextEditingController(text: 'Universidad Tecnológica');
+class _ProfileInfoCardState extends ConsumerState<ProfileInfoCard> {
+  final _nameController = TextEditingController();
+  final _orgController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _birthDateController = TextEditingController();
+  final _countryController = TextEditingController();
+  String _selectedGender = 'Masculino';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(userProfileProvider.notifier).loadProfile();
+      final profile = ref.read(userProfileProvider);
+      _nameController.text = profile.name;
+      _orgController.text = profile.organization;
+      _phoneController.text = profile.phone;
+      _countryController.text = profile.country;
+      _birthDateController.text = ProfileDateHelper.toDisplayDate(profile.birthDate);
+      setState(() {
+        _selectedGender = profile.gender.isNotEmpty ? profile.gender : 'Masculino';
+      });
+    });
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
     _orgController.dispose();
+    _phoneController.dispose();
+    _birthDateController.dispose();
+    _countryController.dispose();
     super.dispose();
   }
 
-  void _save() {
-    widget.onMessage('Perfil actualizado correctamente.', success: true);
+  Future<void> _handleSave() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      widget.onMessage('El nombre no puede estar vacío.', success: false);
+      return;
+    }
+
+    final success = await ref.read(userProfileProvider.notifier).updateProfile(
+      name: name,
+      organization: _orgController.text.trim(),
+      phone: _phoneController.text.trim(),
+      gender: _selectedGender,
+      birthDate: ProfileDateHelper.toIsoDate(_birthDateController.text),
+      country: _countryController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      widget.onMessage('Perfil actualizado correctamente.', success: true);
+    } else {
+      final error = ref.read(userProfileProvider).errorMessage ?? 'Error al actualizar el perfil.';
+      widget.onMessage(error, success: false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final profile = ref.watch(userProfileProvider);
+
     return DashboardCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Información Personal',
-            style: TextStyle(color: AppColors.navy, fontSize: 16, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Actualiza tu nombre completo, correo institucional y organización.',
-            style: TextStyle(color: AppColors.muted, fontSize: 12),
-          ),
+          ProfileHeader(role: profile.role),
           const SizedBox(height: 20),
-
-          const FieldLabel('Nombre completo'),
-          const SizedBox(height: 6),
-          TextFormField(
-            controller: _nameController,
-            decoration: const InputDecoration(prefixIcon: Icon(Icons.person_outline_rounded)),
-          ),
-          const SizedBox(height: 14),
-
-          const FieldLabel('Correo electrónico'),
-          const SizedBox(height: 6),
-          TextFormField(
-            controller: _emailController,
-            decoration: const InputDecoration(prefixIcon: Icon(Icons.email_outlined)),
-          ),
-          const SizedBox(height: 14),
-
-          const FieldLabel('Organización / Universidad'),
-          const SizedBox(height: 6),
-          TextFormField(
-            controller: _orgController,
-            decoration: const InputDecoration(prefixIcon: Icon(Icons.school_outlined)),
-          ),
-          const SizedBox(height: 20),
-
-          // Botón de guardar cambios
-          Align(
-            alignment: Alignment.centerRight,
-            child: FilledButton.icon(
-              onPressed: _save,
-              icon: const Icon(Icons.save_rounded, size: 16),
-              label: const Text('Guardar cambios'),
-              style: FilledButton.styleFrom(backgroundColor: AppColors.navy),
+          if (profile.isLoading && profile.name.isEmpty)
+            const Center(child: CircularProgressIndicator())
+          else
+            ProfileForm(
+              nameController: _nameController,
+              orgController: _orgController,
+              phoneController: _phoneController,
+              selectedGender: _selectedGender,
+              onGenderChanged: (val) {
+                if (val != null) setState(() => _selectedGender = val);
+              },
+              birthDateController: _birthDateController,
+              onSelectBirthDate: () async {
+                final date = await ProfileDateHelper.pickDate(context, _birthDateController.text);
+                if (date != null) setState(() => _birthDateController.text = date);
+              },
+              countryController: _countryController,
+              email: profile.email,
+              isLoading: profile.isLoading,
+              onSave: _handleSave,
             ),
-          ),
         ],
       ),
     );

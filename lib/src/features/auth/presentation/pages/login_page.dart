@@ -6,6 +6,7 @@ import 'package:frontend_landing/src/features/auth/presentation/providers/auth_p
 import 'package:frontend_landing/src/features/auth/presentation/widgets/common/auth_background.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/login/login_card.dart';
 import 'package:frontend_landing/src/features/auth/presentation/widgets/login/login_presentation.dart';
+import 'package:frontend_landing/src/features/auth/presentation/widgets/login/recover_password_dialog.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -121,10 +122,38 @@ class _LoginPageState extends ConsumerState<LoginPage>
     }
   }
 
-  /// Abre la recuperación de contraseña
+    /// Abre el diálogo modal de recuperación de contraseña
   void _recoverPassword() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Abrir recuperación de contraseña.')),
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return RecoverPasswordDialog(
+          onSubmit: (email) async {
+            // Invoca la petición de recuperación al backend a través del provider
+            final success = await ref.read(authProvider.notifier).recoverPassword(email);
+
+            if (!mounted) return;
+
+            if (success) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Se han enviado las instrucciones a tu correo.'),
+                  backgroundColor: Color(0xFF118A61),
+                ),
+              );
+            } else {
+              final errorMessage = ref.read(authProvider).errorMessage ?? 
+                  'No se pudo procesar la solicitud de recuperación.';
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(errorMessage),
+                  backgroundColor: Colors.redAccent,
+                ),
+              );
+            }
+          },
+        );
+      },
     );
   }
 

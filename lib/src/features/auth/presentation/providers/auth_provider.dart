@@ -1,48 +1,19 @@
-// ==========================================
-// Archivo: lib/src/features/auth/presentation/providers/auth_provider.dart
-// Qué hace: Controla el estado inmutable de sesión, guardado de token y parseo de JWT.
-// Dónde se conecta: Consumido por LoginPage, AuthCallbackPage y AppRouter.
-// De dónde recibe datos: AuthRepositoryImpl y AuthCallbackPage.
-// ==========================================
-
-import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:frontend_landing/src/features/auth/domain/entities/auth_session.dart';
-import 'package:frontend_landing/src/features/auth/domain/entities/auth_user.dart';
 import 'package:frontend_landing/src/features/auth/domain/entities/login_form_data.dart';
 import 'package:frontend_landing/src/features/auth/domain/entities/register_form_data.dart';
+import 'package:frontend_landing/src/features/auth/presentation/providers/auth_state.dart';
+import 'package:frontend_landing/src/features/auth/presentation/providers/jwt_decoder.dart';
 
-/// Estructura inmutable del estado de autenticación
-class AuthState {
-  const AuthState({
-    this.isLoading = false,
-    this.isAuthenticated = false,
-    this.session,
-    this.errorMessage,
-  });
+// Exporta AuthState para mantener compatibilidad con las pantallas que lo importan directamente
+export 'package:frontend_landing/src/features/auth/presentation/providers/auth_state.dart';
 
-  final bool isLoading;
-  final bool isAuthenticated;
-  final AuthSession? session;
-  final String? errorMessage;
-
-  AuthState copyWith({
-    bool? isLoading,
-    bool? isAuthenticated,
-    AuthSession? session,
-    String? errorMessage,
-  }) {
-    return AuthState(
-      isLoading: isLoading ?? this.isLoading,
-      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
-      session: session ?? this.session,
-      errorMessage: errorMessage,
-    );
-  }
-}
-
-/// Notificador que controla las acciones de autenticación
+/// Notificador que controla las acciones del ciclo de vida de autenticación.
+/// 
+/// ¿Qué hace?: Gestiona inicio de sesión, registro, recuperación/cambio de contraseña y sesión OAuth.
+/// ¿De dónde recibe datos?: Invoca AuthRepositoryImpl y utiliza JwtDecoder para procesar tokens.
+/// ¿Hacia dónde se conecta?: Expuesto a través de authProvider para la interfaz gráfica.
 class AuthNotifier extends StateNotifier<AuthState> {
   AuthNotifier({required this.repository}) : super(const AuthState()) {
     checkAuthStatus();
@@ -50,19 +21,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   final AuthRepositoryImpl repository;
 
-  // ¿Qué hace?: Verifica la validez y expiración del Token JWT guardado en el dispositivo.
-  /// Verifica si existe un token guardado localmente y valida que no haya expirado
+  /// Verifica si existe un token guardado localmente y valida su expiración
   Future<void> checkAuthStatus() async {
     final token = await repository.getSavedToken();
     if (token != null && token.isNotEmpty) {
-      final isExpired = _isJwtExpired(token);
+      final isExpired = JwtDecoder.isExpired(token);
       if (isExpired) {
-        // Si el token expiró, limpia el almacenamiento y cierra la sesión
         await repository.logout();
         state = state.copyWith(isLoading: false, isAuthenticated: false);
         return;
       }
-      final user = _parseUserFromJwt(token, 'Local');
+      final user = JwtDecoder.parseUser(token, 'Local');
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
@@ -76,7 +45,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Inicia sesión mediante formulario
   Future<bool> login(LoginFormData formData) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-
     try {
       final session = await repository.login(formData);
       state = state.copyWith(
@@ -91,30 +59,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  /// Verifica si la fecha de expiración ('exp') del JWT ya se cumplió
-  bool _isJwtExpired(String token) {
-    try {
-      final parts = token.split('.');
-      if (parts.length != 3) return true;
-      final payload = parts[1];
-      final normalized = base64Url.normalize(payload);
-      final decodedString = utf8.decode(base64Url.decode(normalized));
-      final Map<String, dynamic> claims = jsonDecode(decodedString);
-      if (claims.containsKey('exp')) {
-        final expTimestamp = claims['exp'] as int;
-        final expiryDate = DateTime.fromMillisecondsSinceEpoch(expTimestamp * 1000);
-        return DateTime.now().isAfter(expiryDate); // Devuelve true si el token ya venció
-      }
-      return false;
-    } catch (_) {
-      return true; // Ante cualquier error de parseo se asume expirado
-    }
-  }
-
   /// Registra un usuario mediante formulario
   Future<bool> register(RegisterFormData formData) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-
     try {
       final session = await repository.register(formData);
       state = state.copyWith(
@@ -129,22 +76,55 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  /// Envía la solicitud de recuperación de contraseña al servidor
+  Future<bool> recoverPassword(String email) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      await repository.recoverPassword(email);
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+      );
+      return false;
+    }
+  }
+
+  /// Solicita la actualización de la contraseña del usuario activo
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      await repository.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+      );
+      return false;
+    }
+  }
+
   /// Establece la sesión activa al recibir el token de OAuth (Google/GitHub)
   Future<bool> setSessionFromOAuth(String token, String provider) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-
     try {
-      // Guardar el token en el almacenamiento persistente
       await repository.sessionStorage.saveToken(token);
-
-      // Decodificar los datos del usuario contenidos en el JWT
-      final user = _parseUserFromJwt(token, provider);
+      final user = JwtDecoder.parseUser(token, provider);
       final session = AuthSession(
         accessToken: token,
         provider: provider,
         user: user,
       );
-
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
@@ -157,59 +137,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
         errorMessage: 'Error al guardar la sesión de OAuth.',
       );
       return false;
-    }
-  }
-
-  /// Parsea el payload del JWT soportando claims estándar y de ASP.NET Core
-  AuthUser _parseUserFromJwt(String token, String provider) {
-    try {
-      final parts = token.split('.');
-      if (parts.length != 3) throw Exception('JWT inválido');
-
-      final payload = parts[1];
-      final normalized = base64Url.normalize(payload);
-      final decodedString = utf8.decode(base64Url.decode(normalized));
-      final Map<String, dynamic> claims = jsonDecode(decodedString);
-
-      // Mapeo del claim de Rol
-      final roleClaim =
-          claims['role'] ??
-          claims['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ??
-          'User';
-
-      // Mapeo del claim de ID
-      final idClaim =
-          claims['sub'] ??
-          claims['nameid'] ??
-          claims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ??
-          '0';
-
-      // Mapeo del claim de Nombre
-      final nameClaim =
-          claims['name'] ??
-          claims['unique_name'] ??
-          claims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
-          'Usuario $provider';
-
-      // Mapeo del claim de Email
-      final emailClaim =
-          claims['email'] ??
-          claims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ??
-          '';
-
-      return AuthUser(
-        id: idClaim.toString(),
-        name: nameClaim.toString(),
-        email: emailClaim.toString(),
-        role: roleClaim.toString(),
-      );
-    } catch (_) {
-      return AuthUser(
-        id: '0',
-        name: 'Usuario $provider',
-        email: '',
-        role: 'User',
-      );
     }
   }
 

@@ -1,26 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
-import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_card.dart'; // Common
-import 'package:frontend_landing/src/features/user/presentation/widgets/common/field_label.dart'; // Common
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend_landing/src/features/auth/presentation/providers/auth_provider.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/account/security/security_header.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/account/security/security_oauth_notice.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/account/security/security_password_form.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_card.dart';
 
-/// ¿Qué hace?: Tarjeta con formulario para cambio de contraseña y ajustes de seguridad de la cuenta.
-/// ¿De dónde trae?: Trae AppColors (core), DashboardCard y FieldLabel (common).
-/// ¿Hacia dónde va / Cómo se conecta?: Se renderiza dentro del panel principal de AccountPage.
-class SecurityCard extends StatefulWidget {
+/// Orquestador modular de la tarjeta de seguridad de la cuenta.
+/// 
+/// ¿Qué hace?: Muestra el formulario de cambio de clave únicamente para usuarios registrados por email.
+///              Para usuarios de OAuth (Google/GitHub), muestra exclusivamente el aviso sin campos de clave.
+/// ¿De dónde recibe datos?: De authProvider (sesión activa del usuario).
+/// ¿Hacia dónde se conecta?: Dispara el cambio de contraseña al backend mediante authProvider.notifier.changePassword.
+class SecurityCard extends ConsumerStatefulWidget {
   const SecurityCard({
-    required this.onMessage, // Callback para notificaciones snackbar
+    required this.onMessage,
     super.key,
   });
 
   final void Function(String message, {bool success}) onMessage;
 
   @override
-  State<SecurityCard> createState() => _SecurityCardState();
+  ConsumerState<SecurityCard> createState() => _SecurityCardState();
 }
 
-class _SecurityCardState extends State<SecurityCard> {
+class _SecurityCardState extends ConsumerState<SecurityCard> {
   final _currentPassController = TextEditingController();
   final _newPassController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -29,64 +36,67 @@ class _SecurityCardState extends State<SecurityCard> {
     super.dispose();
   }
 
-  void _updatePassword() {
-    if (_currentPassController.text.isEmpty || _newPassController.text.isEmpty) {
+  Future<void> _handleUpdatePassword() async {
+    final currentPassword = _currentPassController.text.trim();
+    final newPassword = _newPassController.text.trim();
+
+    if (currentPassword.isEmpty || newPassword.isEmpty) {
       widget.onMessage('Ingresa tu contraseña actual y la nueva.', success: false);
       return;
     }
-    _currentPassController.clear();
-    _newPassController.clear();
-    widget.onMessage('Contraseña actualizada con éxito.', success: true);
+
+    if (newPassword.length < 8) {
+      widget.onMessage('La nueva contraseña debe tener al menos 8 caracteres.', success: false);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final success = await ref.read(authProvider.notifier).changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+
+      if (!mounted) return;
+
+      if (success) {
+        _currentPassController.clear();
+        _newPassController.clear();
+        widget.onMessage('Contraseña actualizada con éxito.', success: true);
+      } else {
+        final errorMessage = ref.read(authProvider).errorMessage ?? 
+            'No se pudo actualizar la contraseña.';
+        widget.onMessage(errorMessage, success: false);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final session = ref.watch(authProvider).session;
+    final provider = session?.provider.toLowerCase() ?? '';
+    final isOAuth = provider == 'google' || provider == 'github';
+
     return DashboardCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Seguridad y Contraseña',
-            style: TextStyle(color: AppColors.navy, fontSize: 16, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Mantén tu cuenta protegida cambiando tu clave periódicamente.',
-            style: TextStyle(color: AppColors.muted, fontSize: 12),
-          ),
+          const SecurityHeader(),
           const SizedBox(height: 20),
-
-          const FieldLabel('Contraseña actual'),
-          const SizedBox(height: 6),
-          TextFormField(
-            controller: _currentPassController,
-            obscureText: true,
-            decoration: const InputDecoration(prefixIcon: Icon(Icons.lock_outline_rounded)),
-          ),
-          const SizedBox(height: 14),
-
-          const FieldLabel('Nueva contraseña'),
-          const SizedBox(height: 6),
-          TextFormField(
-            controller: _newPassController,
-            obscureText: true,
-            decoration: const InputDecoration(prefixIcon: Icon(Icons.key_outlined)),
-          ),
-          const SizedBox(height: 20),
-
-          // Botón cambiar contraseña
-          Align(
-            alignment: Alignment.centerRight,
-            child: OutlinedButton.icon(
-              onPressed: _updatePassword,
-              icon: const Icon(Icons.shield_outlined, size: 16),
-              label: const Text('Actualizar contraseña'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.navy,
-                side: const BorderSide(color: AppColors.border),
-              ),
+          if (isOAuth)
+            SecurityOauthNotice(provider: session?.provider ?? 'OAuth')
+          else
+            SecurityPasswordForm(
+              currentPassController: _currentPassController,
+              newPassController: _newPassController,
+              isLoading: _isLoading,
+              onSubmit: _handleUpdatePassword,
             ),
-          ),
         ],
       ),
     );

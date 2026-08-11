@@ -6,7 +6,7 @@ import 'package:frontend_landing/src/features/auth/domain/entities/login_form_da
 import 'package:frontend_landing/src/features/auth/domain/entities/register_form_data.dart';
 
 /// Implementación del repositorio de autenticación que orquesta la red y la persistencia local.
-/// 
+///
 /// ¿De dónde recibe datos?: De AuthRemoteDataSource (peticiones API) y SessionStorage (JWT).
 /// ¿Hacia dónde va / Dónde se conecta?: Consumido por AuthNotifier / AuthProvider en la capa de presentación.
 class AuthRepositoryImpl {
@@ -44,6 +44,27 @@ class AuthRepositoryImpl {
   /// Consulta si existe un token previamente guardado.
   Future<String?> getSavedToken() async {
     return sessionStorage.getToken();
+  }
+
+  /// Solicita la recuperación de contraseña procesando la llamada a través del DataSource remoto.
+  Future<void> recoverPassword(String email) async {
+    await remoteDataSource.recoverPassword(email);
+  }
+
+  /// Procesa el cambio de contraseña para el usuario actualmente autenticado.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final token = await sessionStorage.getToken();
+    if (token == null || token.isEmpty) {
+      throw Exception('No hay una sesión activa para cambiar la contraseña.');
+    }
+    await remoteDataSource.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+      token: token,
+    );
   }
 }
 
