@@ -43,7 +43,7 @@ class ProfilePersonalFields extends StatelessWidget {
         const FieldLabel('Género'),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          value: validGender,
+          initialValue: validGender,
           onChanged: isLoading ? null : onGenderChanged,
           decoration: const InputDecoration(
             prefixIcon: Icon(Icons.wc_outlined),

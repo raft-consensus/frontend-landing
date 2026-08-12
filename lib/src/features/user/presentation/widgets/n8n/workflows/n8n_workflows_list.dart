@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/features/user/domain/entities/n8n_workflow.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/n8n_workflow_row_item.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/workflows/n8n_workflow_row_item.dart';
 
 /// ¿Qué hace?: Tarjeta contenedora que renderiza la lista de flujos de n8n o un estado vacío si no hay coincidencias.
 /// ¿De dónde trae datos?: Ingesta la lista de flujos filtrada de N8nWorkflow.

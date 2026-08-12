@@ -3,21 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/features/user/presentation/providers/user_n8n_provider.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_scroll_view.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/section_header.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/n8n_access_banner.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/n8n_info_card.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/n8n_summary_cards.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/n8n_templates_section.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/n8n_toolbar.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/n8n_workflows_list.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/banner/n8n_access_banner.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/info/n8n_info_card.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/summary/n8n_summary_cards.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/templates/n8n_templates_section.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/workflows/n8n_toolbar.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/workflows/n8n_workflows_list.dart';
 
-/// ¿Qué hace?: Vista principal del servicio de n8n Workflows que ensambla los sub-widgets atómicos y administra el filtro de búsqueda.
-/// ¿De dónde trae datos?: Escucha userN8nProvider usando Riverpod y recibe el callback onMessage del Dashboard.
+/// ¿Qué hace?: Vista principal del servicio de n8n Workflows que ensambla las tarjetas KPI, el banner de activación y la telemetría de flujos.
+/// ¿De dónde trae datos?: Escucha userN8nProvider usando Riverpod y consulta a SQL Server al iniciarse.
 /// ¿Hacia dónde va / Cómo se conecta?: Se incluye en el IndexedStack de DashboardPage (opción de menú n8n).
 class N8nServicesPage extends ConsumerStatefulWidget {
-  final void Function(String message, {bool success}) onMessage; // Callback para disparar notificaciones flotantes
+  final void Function(String message, {bool success}) onMessage; // Callback para notificaciones en SnackBar
 
   const N8nServicesPage({
-    required this.onMessage, // Requerido: Notificador de mensajes SnackBar
+    required this.onMessage,
     super.key,
   });
 
@@ -26,85 +26,100 @@ class N8nServicesPage extends ConsumerStatefulWidget {
 }
 
 class _N8nServicesPageState extends ConsumerState<N8nServicesPage> {
-  String _searchQuery = ''; // Variable de estado local para almacenar la cadena tipeada en la búsqueda
+  String _searchQuery = ''; // Búsqueda de flujos en tiempo real
 
-  /// Método privado para alternar el estado de un flujo de trabajo (Pausar / Activar)
-  void _handleToggleWorkflow(String workflowId) {
-    ref.read(userN8nProvider.notifier).toggleWorkflowStatus(workflowId); // Llama al notifier de Riverpod
-    widget.onMessage('Estado del flujo actualizado correctamente', success: true); // Muestra notificación
+  @override
+  void initState() {
+    super.initState();
+    // Consulta a la base de datos SQL Server cada vez que el usuario ingresa a esta vista
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(userN8nProvider.notifier).loadN8nData();
+    });
   }
 
-  /// Método privado al seleccionar una plantilla pre-diseñada
-  void _handleUseTemplate(String templateName) {
-    widget.onMessage('Plantilla "$templateName" lista para importar en n8n Studio', success: true);
+  /// Cambia el estado (pausa/activo) de un flujo de n8n
+  void _handleToggleWorkflow(String workflowId) {
+    ref.read(userN8nProvider.notifier).toggleWorkflowStatus(workflowId);
+    widget.onMessage('Estado del flujo actualizado correctamente', success: true);
+  }
+
+  /// Acción ejecutada al presionar "Activar cuenta n8n"
+  Future<void> _handleProvisionAccount() async {
+    final success = await ref.read(userN8nProvider.notifier).provisionAccount();
+    if (success) {
+      widget.onMessage('Cuenta de n8n activada correctamente', success: true);
+    } else {
+      widget.onMessage('Error al activar la cuenta de n8n', success: false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final n8nData = ref.watch(userN8nProvider); // Escucha el estado reactivo del provider de n8n
+    final n8nData = ref.watch(userN8nProvider);
 
-    // Estado de carga si los datos del servicio aún no han sido inicializados
     if (n8nData == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Filtra la lista de flujos en tiempo real según lo tipeado en el campo de búsqueda
     final filteredWorkflows = n8nData.workflows.where((wf) {
-      if (_searchQuery.trim().isEmpty) return true; // Si no hay búsqueda, retorna todos los flujos
-      final q = _searchQuery.toLowerCase().trim();   // Convierte la búsqueda a minúsculas
-      return wf.name.toLowerCase().contains(q) || wf.trigger.toLowerCase().contains(q); // Compara por nombre o trigger
+      if (_searchQuery.trim().isEmpty) return true;
+      final q = _searchQuery.toLowerCase().trim();
+      return wf.name.toLowerCase().contains(q) || wf.trigger.toLowerCase().contains(q);
     }).toList();
 
     return DashboardScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Encabezado de la Sección
+          // 1. Encabezado de Sección
           const SectionHeader(
-            title: 'Automatización & Workflows (n8n)', // Título principal
-            subtitle: 'Gestiona la integración con la célula de automatización n8n y tus flujos activos', // Subtítulo
+            title: 'Automatización & Workflows (n8n)',
+            subtitle: 'Gestiona la integración con la célula de automatización n8n y tus flujos activos',
           ),
           const SizedBox(height: 20),
 
-          // 2. Tarjetas KPI Superiores (Estado, Flujos Activos, Ejecuciones Mensuales)
+          // 2. Tarjetas KPI Adaptativas (Estado de Activación y Cuotas)
           N8nSummaryCards(
-            serviceStatus: n8nData.serviceStatus,           // Estado del servicio ("ACTIVE")
-            activeWorkflows: n8nData.activeWorkflows,         // Cantidad de flujos activos
-            maxWorkflows: n8nData.maxWorkflows,              // Límite de flujos asignados
-            monthlyExecutions: n8nData.monthlyExecutions,    // Consumo de ejecuciones
-            maxMonthlyExecutions: n8nData.maxMonthlyExecutions, // Límite de ejecuciones
+            isActivated: n8nData.isActivated,
+            serviceStatus: n8nData.serviceStatus,
+            activeWorkflows: n8nData.activeWorkflows,
+            maxWorkflows: n8nData.maxWorkflows,
+            monthlyExecutions: n8nData.monthlyExecutions,
+            maxMonthlyExecutions: n8nData.maxMonthlyExecutions,
           ),
           const SizedBox(height: 24),
 
-          // 3. Banner CTA de Acceso a n8n Studio y Credenciales
+          // 3. Banner Principal de Acceso y Activación
           N8nAccessBanner(
-            studioUrl: n8nData.studioUrl,           // URL de acceso a n8n Studio
-            apiKey: n8nData.apiKey,                 // API Key del usuario
-            webhookBaseUrl: n8nData.webhookBaseUrl, // URL Base de Webhooks
-            onMessage: widget.onMessage,            // Callback para mensajes
+            isActivated: n8nData.isActivated,
+            studioUrl: n8nData.studioUrl,
+            apiKey: n8nData.apiKey,
+            webhookBaseUrl: n8nData.webhookBaseUrl,
+            onProvision: _handleProvisionAccount,
+            onMessage: widget.onMessage,
           ),
           const SizedBox(height: 24),
 
-          // 4. Barra de Herramientas y Búsqueda en Tiempo Real
+          // 4. Barra de búsqueda y herramientas
           N8nToolbar(
-            totalWorkflows: filteredWorkflows.length, // Total de flujos encontrados tras filtrar
-            onSearchChanged: (text) => setState(() => _searchQuery = text), // Actualiza estado de búsqueda
+            totalWorkflows: filteredWorkflows.length,
+            onSearchChanged: (text) => setState(() => _searchQuery = text),
           ),
           const SizedBox(height: 12),
 
-          // 5. Tabla / Lista de Flujos Filtrados
+          // 5. Lista de Flujos (Telemetría de Solo Lectura)
           N8nWorkflowsList(
-            workflows: filteredWorkflows,        // Lista de flujos ya filtrados
-            onToggleStatus: _handleToggleWorkflow, // Callback para pausar / activar
+            workflows: filteredWorkflows,
+            onToggleStatus: _handleToggleWorkflow,
             onCopyWebhook: (url) {
               widget.onMessage('URL de Webhook copiada al portapapeles', success: true);
             },
           ),
           const SizedBox(height: 24),
 
-          // 6. Sección de Plantillas Pre-configuradas
+          // 6. Sección de Plantillas Recomendadas
           N8nTemplatesSection(
-            onUseTemplate: _handleUseTemplate, // Callback al seleccionar plantilla
+            onMessage: widget.onMessage,
           ),
           const SizedBox(height: 24),
 
