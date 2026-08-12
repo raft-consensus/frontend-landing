@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend_landing/src/features/user/data/datasources/user_dns_remote_datasource.dart';
 import 'package:frontend_landing/src/features/user/domain/entities/dns_record.dart';
+import 'package:frontend_landing/src/features/user/presentation/providers/user_activity_provider.dart';
 
 /// Notificador de estado que gestiona los registros DNS de Cloudflare en la API real
 class UserDnsNotifier extends StateNotifier<List<DnsRecord>> {
@@ -62,6 +63,12 @@ class UserDnsNotifier extends StateNotifier<List<DnsRecord>> {
         token: token,
       );
       await fetchDnsRecords();
+      // REGISTRAR ACTIVIDAD
+      ref.read(userActivityProvider.notifier).addActivity(
+        title: 'Zona DNS Actualizada',
+        desc: 'Registro añadido a "$subdomain"',
+        type: ActivityType.dnsUpdated,
+      );
       return null; // Éxito
     } catch (e) {
       debugPrint('[UserDnsNotifier] Error al crear DNS en backend: $e');
@@ -114,6 +121,12 @@ class UserDnsNotifier extends StateNotifier<List<DnsRecord>> {
     try {
       await datasource.deleteDnsRecord(id: parsedId, token: token);
       await fetchDnsRecords();
+      // REGISTRAR ACTIVIDAD
+      ref.read(userActivityProvider.notifier).addActivity(
+        title: 'Registro DNS Revocado',
+        desc: 'Eliminaste un subdominio DNS',
+        type: ActivityType.dnsUpdated,
+      );
       return null; // Éxito
     } catch (e) {
       debugPrint('[UserDnsNotifier] Error al eliminar DNS en backend: $e');

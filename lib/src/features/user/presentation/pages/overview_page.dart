@@ -43,7 +43,7 @@ class OverviewPage extends ConsumerWidget {
     final n8nData = ref.watch(userN8nProvider);
     final dnsRecords = ref.watch(userDnsProvider);
 
-    final isDesktop = MediaQuery.of(context).size.width >= 900;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     return DashboardScrollView(
       child: Column(
@@ -58,14 +58,15 @@ class OverviewPage extends ConsumerWidget {
 
           // 2. Componente modularizado de métricas (conteo total de BDs)
           OverviewMetricsGrid(
-            totalDatabasesCount: instances.length, // 👈 Ahora cuenta TODAS las instancias (activas o detenidas)
+            totalDatabasesCount: instances
+                .length, // 👈 Ahora cuenta TODAS las instancias (activas o detenidas)
             dnsSubdomainsCount: dnsRecords.length,
             aiKeysCount: aiKeys.length,
             n8nWorkflowsCount: n8nData?.activeWorkflows ?? 0,
           ),
           const SizedBox(height: 28),
 
-          // 3. Fila Doble Responsiva: Ecosistema de Servicios + Actividad Reciente
+          // 3. Fila Doble Responsiva: Ecosistema de Servicios + Actividad Reciente (Perfectamente Alineados a 380px)
           if (isDesktop)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,

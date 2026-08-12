@@ -5,21 +5,24 @@ import 'package:frontend_landing/src/features/auth/domain/entities/login_form_da
 import 'package:frontend_landing/src/features/auth/domain/entities/register_form_data.dart';
 import 'package:frontend_landing/src/features/auth/presentation/providers/auth_state.dart';
 import 'package:frontend_landing/src/features/auth/presentation/providers/jwt_decoder.dart';
+import 'package:frontend_landing/src/features/user/presentation/providers/user_activity_provider.dart';
 
 // Exporta AuthState para mantener compatibilidad con las pantallas que lo importan directamente
 export 'package:frontend_landing/src/features/auth/presentation/providers/auth_state.dart';
 
 /// Notificador que controla las acciones del ciclo de vida de autenticación.
-/// 
+///
 /// ¿Qué hace?: Gestiona inicio de sesión, registro, recuperación/cambio de contraseña y sesión OAuth.
 /// ¿De dónde recibe datos?: Invoca AuthRepositoryImpl y utiliza JwtDecoder para procesar tokens.
 /// ¿Hacia dónde se conecta?: Expuesto a través de authProvider para la interfaz gráfica.
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier({required this.repository}) : super(const AuthState()) {
+  AuthNotifier({required this.repository, required this.ref})
+    : super(const AuthState()) {
     checkAuthStatus();
   }
 
   final AuthRepositoryImpl repository;
+  final Ref ref;
 
   /// Verifica si existe un token guardado localmente y valida su expiración
   Future<void> checkAuthStatus() async {
@@ -37,6 +40,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isAuthenticated: true,
         session: AuthSession(accessToken: token, provider: 'Local', user: user),
       );
+
+      // REGISTRAR INICIO DE SESIÓN RECONECTADO REAL
+      ref
+          .read(userActivityProvider.notifier)
+          .addActivity(
+            title: 'Inicio de Sesión',
+            desc: 'Acceso exitoso al panel de control de Raft DB',
+            type: ActivityType.login,
+          );
     } else {
       state = state.copyWith(isLoading: false, isAuthenticated: false);
     }
@@ -52,6 +64,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isAuthenticated: true,
         session: session,
       );
+      // REGISTRAR INICIO DE SESIÓN REAL
+      ref
+          .read(userActivityProvider.notifier)
+          .addActivity(
+            title: 'Inicio de Sesión',
+            desc: 'Acceso exitoso con contraseña',
+            type: ActivityType.login,
+          );
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
@@ -69,6 +89,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isAuthenticated: true,
         session: session,
       );
+      // REGISTRAR REGISTRO Y BIENVENIDA REAL
+      ref
+          .read(userActivityProvider.notifier)
+          .addActivity(
+            title: 'Cuenta Creada',
+            desc: 'Registro exitoso en el clúster Raft DB',
+            type: ActivityType.login,
+          );
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
@@ -130,6 +158,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isAuthenticated: true,
         session: session,
       );
+      // REGISTRAR INICIO DE SESIÓN OAUTH REAL
+      ref
+          .read(userActivityProvider.notifier)
+          .addActivity(
+            title: 'Inicio de Sesión',
+            desc: 'Acceso exitoso vía $provider',
+            type: ActivityType.login,
+          );
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -150,5 +186,5 @@ class AuthNotifier extends StateNotifier<AuthState> {
 /// Proveedor de Riverpod para consultar el estado global de Autenticación
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final repository = ref.watch(authRepositoryProvider);
-  return AuthNotifier(repository: repository);
+  return AuthNotifier(repository: repository, ref: ref);
 });

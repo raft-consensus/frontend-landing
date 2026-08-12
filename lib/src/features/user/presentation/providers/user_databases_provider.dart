@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/features/auth/presentation/providers/auth_provider.dart';
 import 'package:frontend_landing/src/features/user/data/datasources/user_databases_remote_datasource.dart';
 import 'package:frontend_landing/src/features/user/domain/entities/database_instance.dart';
+import 'package:frontend_landing/src/features/user/presentation/providers/user_activity_provider.dart';
 
 /// Notificador de estado que administra la lista global de bases de datos del usuario desde la API
 class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
@@ -52,6 +53,12 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
     }
     try {
       final password = await datasource.revealPassword(instanceId, token);
+      // REGISTRAR ACTIVIDAD
+      ref.read(userActivityProvider.notifier).addActivity(
+        title: 'Credenciales Consultadas',
+        desc: 'Consultaste la contraseña de una instancia',
+        type: ActivityType.credentialViewed,
+      );
       return (password: password, error: null);
     } catch (e, stackTrace) {
       debugPrint('[UserDatabasesNotifier] Error al revelar contraseña para ID $instanceId: $e');
@@ -80,6 +87,13 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
         token: token,
       );
       await fetchDatabases();
+      final newDbName = createdData['databaseName']?.toString() ?? engine;
+      // REGISTRAR ACTIVIDAD
+      ref.read(userActivityProvider.notifier).addActivity(
+        title: 'BD Creada',
+        desc: 'Creaste la instancia "$newDbName"',
+        type: ActivityType.dbCreated,
+      );
       return (data: createdData, error: null);
     } catch (e) {
       return (
@@ -99,8 +113,20 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
     try {
       if (currentlyRunning) {
         await datasource.pauseDatabase(instanceIdInt, token);
+        // REGISTRAR ACTIVIDAD (Pausa)
+        ref.read(userActivityProvider.notifier).addActivity(
+          title: 'Instancia Detenida',
+          desc: 'Detuviste una instancia de base de datos',
+          type: ActivityType.dbStopped,
+        );
       } else {
         await datasource.resumeDatabase(instanceIdInt, token);
+        // REGISTRAR ACTIVIDAD (Reanudar)
+        ref.read(userActivityProvider.notifier).addActivity(
+          title: 'Instancia Reanudada',
+          desc: 'Reanudaste una instancia de base de datos',
+          type: ActivityType.dbCreated,
+        );
       }
       await fetchDatabases(); // Refresca la lista real desde el servidor C#
       return (success: true, error: null);
@@ -119,6 +145,12 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
     final instanceIdInt = int.tryParse(id) ?? 0;
     try {
       await datasource.deleteDatabase(instanceIdInt, token);
+      // REGISTRAR ACTIVIDAD
+      ref.read(userActivityProvider.notifier).addActivity(
+        title: 'Instancia Eliminada',
+        desc: 'Eliminaste una instancia de base de datos',
+        type: ActivityType.dbStopped,
+      );
       await fetchDatabases(); // Refresca la lista real desde el servidor C#
       return (success: true, error: null);
     } catch (e) {
