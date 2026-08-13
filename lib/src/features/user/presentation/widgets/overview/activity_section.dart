@@ -9,12 +9,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
 import 'package:frontend_landing/src/features/user/presentation/providers/user_activity_provider.dart';
 
-/// Widget reactivo que renderiza la tarjeta de actividad reciente adaptándose dinámicamente a la altura de su contenedor
+/// Widget reactivo que renderiza la tarjeta de actividad reciente con una altura acotada para evitar errores de layout
 class ActivitySection extends ConsumerWidget {
+  /// Constructor de la sección de actividad
   const ActivitySection({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) { // Método principal de construcción del widget
     // 1. Obtiene la lista dinámica de actividades vivas desde el proveedor
     final activities = ref.watch(userActivityProvider);
 
@@ -32,7 +33,7 @@ class ActivitySection extends ConsumerWidget {
         : AppColors.dayTextSecondary;
 
     return Container(
-      // Se removió el height: 285 para nivelar la altura con EcosystemServicesCard mediante IntrinsicHeight
+      height: 300, // Altura fija restaurada para acotar el ListView y prevenir fallos de layout en Flutter Web
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: cardBg,
@@ -82,13 +83,14 @@ class ActivitySection extends ConsumerWidget {
 
 /// Sub-widget privado 1: Cabecera con título e icono de reloj
 class _ActivityHeader extends StatelessWidget {
+  /// Constructor del encabezado de actividad
   const _ActivityHeader({required this.titleColor, required this.isDark});
 
-  final Color titleColor;
-  final bool isDark;
+  final Color titleColor; // Atributo: Color del título según el tema activo
+  final bool isDark;      // Atributo: Flag del modo oscuro activo
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) { // Método de renderizado de la cabecera
     return Row(
       children: [
         Text(
@@ -112,6 +114,7 @@ class _ActivityHeader extends StatelessWidget {
 
 /// Sub-widget privado 2: Fila individual con resplandor hover sutil y cursor estándar
 class _ActivityItemRow extends StatefulWidget {
+  /// Constructor de la fila individual de actividad
   const _ActivityItemRow({
     required this.activity,
     required this.titleColor,
@@ -119,20 +122,20 @@ class _ActivityItemRow extends StatefulWidget {
     required this.isDark,
   });
 
-  final UserActivityItem activity;
-  final Color titleColor;
-  final Color subtitleColor;
-  final bool isDark;
+  final UserActivityItem activity; // Atributo: Instancia del evento de actividad
+  final Color titleColor;          // Atributo: Color del título del evento
+  final Color subtitleColor;       // Atributo: Color de la descripción del evento
+  final bool isDark;               // Atributo: Flag del tema nocturno activo
 
   @override
-  State<_ActivityItemRow> createState() => _ActivityItemRowState();
+  State<_ActivityItemRow> createState() => _ActivityItemRowState(); // Creación del estado mutable
 }
 
 class _ActivityItemRowState extends State<_ActivityItemRow> {
-  bool _isHovered = false;
+  bool _isHovered = false; // Atributo de estado: Estado del puntero sobre la fila
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) { // Método de renderizado de la fila de ítem
     final hoverBg = widget.isDark
         ? Colors.white.withValues(alpha: 0.03)
         : Colors.black.withValues(alpha: 0.03);

@@ -41,7 +41,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
         session: AuthSession(accessToken: token, provider: 'Local', user: user),
       );
 
-      // REGISTRAR INICIO DE SESIÓN RECONECTADO REAL
+      // Carga las actividades previas guardadas en SharedPreferences para este usuario
+      ref.read(userActivityProvider.notifier).loadForCurrentUser();
+
+      // Registra el inicio de sesión o reconexión en el historial
       ref
           .read(userActivityProvider.notifier)
           .addActivity(
@@ -64,6 +67,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isAuthenticated: true,
         session: session,
       );
+      // Carga el historial local guardado del usuario que acaba de ingresar
+      ref.read(userActivityProvider.notifier).loadForCurrentUser();
       // REGISTRAR INICIO DE SESIÓN REAL
       ref
           .read(userActivityProvider.notifier)
@@ -89,6 +94,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isAuthenticated: true,
         session: session,
       );
+      // Carga el almacenamiento local para el usuario recién registrado
+      ref.read(userActivityProvider.notifier).loadForCurrentUser();
       // REGISTRAR REGISTRO Y BIENVENIDA REAL
       ref
           .read(userActivityProvider.notifier)
@@ -158,6 +165,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isAuthenticated: true,
         session: session,
       );
+      // Carga las actividades previas guardadas para la cuenta de OAuth
+      ref.read(userActivityProvider.notifier).loadForCurrentUser();
       // REGISTRAR INICIO DE SESIÓN OAUTH REAL
       ref
           .read(userActivityProvider.notifier)
@@ -179,6 +188,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Cierra la sesión del usuario
   Future<void> logout() async {
     await repository.logout();
+    ref.read(userActivityProvider.notifier).clearActivitiesInMemory();
     state = const AuthState(isAuthenticated: false);
   }
 }

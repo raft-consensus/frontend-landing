@@ -1,7 +1,7 @@
 // ==========================================
 // Qué hace: Administra, emite y persiste las últimas 10 actividades del usuario autenticado, aisladas por su ID.
 // De dónde recibe datos: Acciones del usuario e ingesta desde SharedPreferences indexada por userId de authProvider.
-// Hacia dónde se conecta: Consumido por ActivitySection en OverviewPage y reseteado/reconstruido por authProvider.
+// Hacia dónde se conecta: Consumido por ActivitySection en OverviewPage y reseteado por authProvider sin dependencias circulares.
 // ==========================================
 
 import 'dart:convert';
@@ -12,23 +12,26 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Tipos de eventos conocidos para mapear iconos y paletas temáticas
 enum ActivityType {
-  dbCreated,        // Creación de BD -> Icono de suma
+  dbCreated, // Creación de BD -> Icono de suma
   credentialViewed, // Consulta de credencial -> Icono de llave
-  dbStopped,        // BD Detenida -> Icono de pausa
-  dnsUpdated,       // DNS / Subdominios -> Icono de web/globo
-  n8nExecuted,      // Workflow N8N -> Icono de rayo
-  login,            // Inicio de sesión -> Icono de escudo
-  generic,          // Evento genérico -> Icono de reloj
+  dbStopped, // BD Detenida -> Icono de pausa
+  dnsUpdated, // DNS / Subdominios -> Icono de web/globo
+  n8nExecuted, // Workflow N8N -> Icono de rayo
+  login, // Inicio de sesión -> Icono de escudo
+  generic, // Evento genérico -> Icono de reloj
 }
 
 /// Modelo de datos para representar una actividad individual en el historial del usuario
 class UserActivityItem {
-  final String id;          // Identificador único de la actividad
-  final String title;       // Título corto del evento (ej: "BD Creada")
-  final String desc;        // Descripción detallada de la acción realizada
-  final String time;        // Texto de tiempo transcurrido (ej: "Hace un momento")
-  final ActivityType type;  // Tipo de evento para mapear icono y paleta temática
+  final String id; // Atributo: Identificador único de la actividad
+  final String title; // Atributo: Título corto del evento (ej: "BD Creada")
+  final String desc; // Atributo: Descripción detallada de la acción realizada
+  final String
+  time; // Atributo: Texto de tiempo transcurrido (ej: "Hace un momento")
+  final ActivityType
+  type; // Atributo: Tipo de evento para mapear icono y paleta temática
 
+  /// Constructor del modelo UserActivityItem
   UserActivityItem({
     required this.id,
     required this.title,
@@ -105,14 +108,17 @@ class UserActivityItem {
 
 /// Notificador de estado que administra y persiste las actividades del usuario autenticado (aislado por userId)
 class UserActivityNotifier extends StateNotifier<List<UserActivityItem>> {
+  /// Constructor de UserActivityNotifier
   UserActivityNotifier(this.ref) : super([]) {
     _loadFromStorage();
   }
 
-  final Ref ref;
-  static const int _maxItems = 10;
+  final Ref
+  ref; // Atributo: Referencia a Riverpod para leer dependencias puntuales
+  static const int _maxItems =
+      10; // Atributo constante: Límite máximo de actividades registradas
 
-  /// Extrae el ID del usuario actualmente autenticado desde authProvider
+  /// Extrae el ID del usuario actualmente autenticado desde authProvider vía ref.read desacoplado
   String? get _userId => ref.read(authProvider).session?.user.id;
 
   /// Genera una clave única en SharedPreferences indexada por el ID del usuario
@@ -130,9 +136,12 @@ class UserActivityNotifier extends StateNotifier<List<UserActivityItem>> {
       final String? jsonString = prefs.getString(_storageKey);
 
       if (jsonString != null && jsonString.isNotEmpty) {
-        final List<dynamic> decodedList = jsonDecode(jsonString) as List<dynamic>;
+        final List<dynamic> decodedList =
+            jsonDecode(jsonString) as List<dynamic>;
         state = decodedList
-            .map((item) => UserActivityItem.fromMap(item as Map<String, dynamic>))
+            .map(
+              (item) => UserActivityItem.fromMap(item as Map<String, dynamic>),
+            )
             .take(_maxItems)
             .toList();
       } else {
@@ -143,8 +152,7 @@ class UserActivityNotifier extends StateNotifier<List<UserActivityItem>> {
     }
   }
 
-  /// Inicializa eventos de bienvenida por defecto aislados para el nuevo usuario
-    /// Inicializa un único evento de bienvenida por defecto para cuentas totalmente nuevas
+  /// Inicializa un único evento de bienvenida por defecto para cuentas totalmente nuevas
   void _initializeDefaultActivities() {
     state = [
       UserActivityItem(
@@ -158,13 +166,14 @@ class UserActivityNotifier extends StateNotifier<List<UserActivityItem>> {
     _saveToStorage();
   }
 
-
   /// Guarda la lista actual en SharedPreferences bajo la clave del userId activo
   Future<void> _saveToStorage() async {
     if (_userId == null) return;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final List<Map<String, dynamic>> mapList = state.map((item) => item.toMap()).toList();
+      final List<Map<String, dynamic>> mapList = state
+          .map((item) => item.toMap())
+          .toList();
       await prefs.setString(_storageKey, jsonEncode(mapList));
     } catch (_) {
       // Silencioso
@@ -192,20 +201,19 @@ class UserActivityNotifier extends StateNotifier<List<UserActivityItem>> {
     _saveToStorage();
   }
 
-  /// Limpia la lista del usuario actual en memoria y disco al cerrar sesión
-  Future<void> clearActivities() async {
+  /// Limpia las actividades en memoria al cerrar sesión sin generar ciclo de dependencia
+  void clearActivitiesInMemory() {
     state = [];
-    if (_userId != null) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_storageKey);
-    }
+  }
+
+  /// Carga explícitamente las actividades almacenadas para el usuario activo
+  void loadForCurrentUser() {
+    _loadFromStorage();
   }
 }
 
-/// Proveedor global de Riverpod reactivo que recrea el notificador al cambiar de usuario
+/// Proveedor global de Riverpod desacoplado para gestionar el historial de actividad del usuario
 final userActivityProvider =
     StateNotifierProvider<UserActivityNotifier, List<UserActivityItem>>((ref) {
-  // Escucha el ID del usuario autenticado para re-ejecutar la instanciación al cambiar de sesión
-  ref.watch(authProvider.select((s) => s.session?.user.id));
-  return UserActivityNotifier(ref);
-});
+      return UserActivityNotifier(ref);
+    });

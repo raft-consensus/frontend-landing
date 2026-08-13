@@ -119,16 +119,31 @@ class ApiClient {
   }
 
   /// Realiza peticiones HTTP GET y retorna el mapa JSON deserializado.
-  /// ¿Qué hace?: Realiza una consulta GET al endpoint indicado.
-  /// ¿De dónde recibe datos?: Peticiones de los DataSources remotos (ej: MetricsRemoteDataSource).
-  /// ¿Hacia dónde se conecta?: Backend ASP.NET Core.
   Future<Map<String, dynamic>> get(String endpoint, {String? token}) async {
     final url = Uri.parse('$baseUrl$endpoint');
 
     try {
       final response = await _client.get(url, headers: _buildHeaders(token));
 
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      // Intenta deserializar el cuerpo únicamente si el servidor envió contenido
+      Map<String, dynamic> responseData = {};
+      if (response.body.isNotEmpty) {
+        try {
+          responseData = jsonDecode(response.body) as Map<String, dynamic>;
+        } catch (_) {
+          if (response.statusCode == 403) {
+            throw ApiException(
+              'Acceso denegado (HTTP 403 Forbidden). Permisos insuficientes.',
+              statusCode: 403,
+            );
+          } else if (response.statusCode == 401) {
+            throw ApiException(
+              'Sesión expirada o no autorizada (HTTP 401 Unauthorized).',
+              statusCode: 401,
+            );
+          }
+        }
+      }
 
       // Si el status HTTP es exitoso (200 - 299)
       if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -140,19 +155,17 @@ class ApiClient {
       if (errorMessage.isEmpty) {
         errorMessage =
             responseData['title'] as String? ??
-            'Error al obtener datos del servidor';
+            'Error al obtener datos del servidor (HTTP ${response.statusCode})';
       }
 
       throw ApiException(errorMessage, statusCode: response.statusCode);
-    } on FormatException {
-      throw ApiException('Respuesta con formato JSON inválido del servidor');
     } catch (e) {
       if (e is ApiException) rethrow;
       throw ApiException('Error de conexión con el servidor: $e');
     }
   }
 
-  /// Realiza peticiones HTTP PUT codificando el cuerpo a JSON.
+  /// Realiza peticiones HTTP PUT codificando el cuerpo a JSON de forma segura.
   Future<Map<String, dynamic>> put(
     String endpoint, {
     required Map<String, dynamic> body,
@@ -167,22 +180,40 @@ class ApiClient {
         body: jsonEncode(body),
       );
 
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      // Intenta deserializar el cuerpo únicamente si el servidor envió contenido
+      Map<String, dynamic> responseData = {};
+      if (response.body.isNotEmpty) {
+        try {
+          responseData = jsonDecode(response.body) as Map<String, dynamic>;
+        } catch (_) {
+          if (response.statusCode == 403) {
+            throw ApiException(
+              'Acceso denegado (HTTP 403 Forbidden). Permisos insuficientes.',
+              statusCode: 403,
+            );
+          } else if (response.statusCode == 401) {
+            throw ApiException(
+              'Sesión expirada o no autorizada (HTTP 401 Unauthorized).',
+              statusCode: 401,
+            );
+          }
+        }
+      }
 
+      // Si el status HTTP es exitoso (200 - 299)
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return responseData;
       }
 
+      // Extrae el mensaje de error entregado por la API
       String errorMessage = responseData['message'] as String? ?? '';
       if (errorMessage.isEmpty) {
         errorMessage =
             responseData['title'] as String? ??
-            'Error al actualizar datos en el servidor';
+            'Error al actualizar datos en el servidor (HTTP ${response.statusCode})';
       }
 
       throw ApiException(errorMessage, statusCode: response.statusCode);
-    } on FormatException {
-      throw ApiException('Respuesta con formato JSON inválido del servidor');
     } catch (e) {
       if (e is ApiException) rethrow;
       throw ApiException('Error de conexión con el servidor: $e');

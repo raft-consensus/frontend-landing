@@ -42,7 +42,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           state.matchedLocation.startsWith('/dashboard') ||
           state.matchedLocation.startsWith('/admin');
 
-      // Determina el destino según el rol del usuario ('Admin' o 'User')
+      // Determina el destino según el rol del usuario ('Admin' vs 'User')
       final userRole = authState.session?.user.role ?? 'User';
       final defaultDashboard = (userRole == 'Admin') ? '/admin' : '/dashboard';
 
@@ -51,9 +51,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
 
-      // Regla 2: Si YA está autenticado e intenta ir a login o registro -> Redirigir a su panel
+      // Regla 2: Si YA está autenticado e intenta ir a login o registro -> Redirigir a su panel por defecto
       if (isAuthenticated && isAuthRoute) {
         return defaultDashboard;
+      }
+
+      // Regla 3: Si un usuario regular ('User') intenta ingresar al panel de administración -> Redirigir a /dashboard
+      if (isAuthenticated &&
+          userRole != 'Admin' &&
+          state.matchedLocation.startsWith('/admin')) {
+        return '/dashboard';
       }
 
       return null;
