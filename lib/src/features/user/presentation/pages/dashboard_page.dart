@@ -6,7 +6,7 @@ import 'package:frontend_landing/src/features/user/presentation/pages/databases_
 import 'package:frontend_landing/src/features/user/presentation/pages/dns_ssl_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/pages/n8n_services_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/pages/overview_page.dart';
-import 'package:frontend_landing/src/features/user/presentation/pages/tools_and_docs_page.dart';
+import 'package:frontend_landing/src/features/user/presentation/pages/documentation_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/siderbar/dashboard_sidebar.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/topbar/dashboard_topbar.dart';
 

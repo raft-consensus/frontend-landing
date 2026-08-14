@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
 import 'package:frontend_landing/src/features/user/domain/entities/tool_data.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/section_header.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/tools/tool_card.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/documentation/tools/tool_card.dart';
 
 /// ¿Qué hace?: Sub-widget de sección que administra el catálogo y filtros de herramientas de administración web.
 /// ¿De dónde trae datos?: Herramientas registradas (ToolData) y filtros por categoría.

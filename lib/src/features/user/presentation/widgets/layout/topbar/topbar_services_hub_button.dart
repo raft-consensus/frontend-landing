@@ -41,7 +41,7 @@ class TopbarServicesHubButton extends StatelessWidget {
           ),
         );
       },
-      icon: const Icon(Icons.language_rounded, size: 18),
+      icon: const Icon(Icons.grid_view_rounded, size: 18),
       label: Text(isDesktop ? 'Ecosistema Raft' : 'Servicios'),
       style: FilledButton.styleFrom(
         backgroundColor: bgColor,
