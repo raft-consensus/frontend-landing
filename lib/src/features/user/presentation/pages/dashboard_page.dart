@@ -7,8 +7,8 @@ import 'package:frontend_landing/src/features/user/presentation/pages/dns_ssl_pa
 import 'package:frontend_landing/src/features/user/presentation/pages/n8n_services_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/pages/overview_page.dart';
 import 'package:frontend_landing/src/features/user/presentation/pages/tools_and_docs_page.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_sidebar.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/layout/dashboard_topbar.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/layout/siderbar/dashboard_sidebar.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/layout/topbar/dashboard_topbar.dart';
 
 /// ¿Qué hace?: Shell contenedor principal del panel de usuario que administra la navegación y sub-páginas.
 /// ¿De dónde trae datos?: Maneja el estado del índice seleccionado (_selectedIndex) y la barra lateral/superior.

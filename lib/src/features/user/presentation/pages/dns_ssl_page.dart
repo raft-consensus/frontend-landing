@@ -1,111 +1,39 @@
+// ==========================================
+// Qué hace: Vista principal limpia de Dominio & SSL que solo ensambla los módulos segmentados.
+// Dónde se conecta: Se renderiza en el índice 3 del IndexedStack en DashboardPage.
+// De dónde trae datos: Escucha userDnsProvider vía Riverpod.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend_landing/src/features/user/domain/entities/dns_record.dart';
 import 'package:frontend_landing/src/features/user/presentation/providers/user_dns_provider.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_scroll_view.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/section_header.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/common/confirm_action_dialog.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/dns/create_edit_dns_dialog.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dns/dns_info_card.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dns/dns_summary_cards.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dns/dns_table.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/dns/dns_toolbar.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dns/actions/dns_create_or_edit_action.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dns/actions/dns_delete_action.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dns/info/dns_info_card.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dns/records/dns_table.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dns/summary/dns_summary_cards.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dns/toolbar/dns_toolbar.dart';
 
-/// ¿Qué hace?: Vista de la pestaña Dominio & SSL para gestionar subdominios A en Cloudflare y estado de certificados.
-/// ¿De dónde trae?: Escucha userDnsProvider y userDatabasesProvider usando Riverpod.
-/// ¿Hacia dónde va / Cómo se conecta?: Se incluye dentro del IndexedStack principal de DashboardPage.
+/// Vista modular de administración de Dominio & SSL (DNS)
 class DnsSslPage extends ConsumerStatefulWidget {
   const DnsSslPage({required this.onMessage, super.key});
 
-  final void Function(String message, {bool success}) onMessage;
+  final void Function(String message, {bool success}) onMessage; // Callback para emitir notificaciones
 
   @override
   ConsumerState<DnsSslPage> createState() => _DnsSslPageState();
 }
 
 class _DnsSslPageState extends ConsumerState<DnsSslPage> {
-  String _searchQuery = '';
-
-  /// Abre el modal reutilizable para crear o editar un registro DNS
-  Future<void> _openCreateOrEditDialog([DnsRecord? recordToEdit]) async {
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (context) => CreateEditDnsDialog(initialRecord: recordToEdit),
-    );
-
-    if (result != null) {
-      final sub = result['subdomain'] as String;
-      final ip = result['targetIp'] as String;
-      final comm = result['comment'] as String?;
-
-      if (recordToEdit != null) {
-        // Edición
-        final error = await ref
-            .read(userDnsProvider.notifier)
-            .updateRecord(
-              id: recordToEdit.id,
-              subdomain: sub,
-              targetIp: ip,
-              comment: comm,
-            );
-
-        if (error != null) {
-          widget.onMessage(error, success: false);
-        } else {
-          widget.onMessage(
-            'Subdominio $sub.coderhivex.com actualizado correctamente.',
-            success: true,
-          );
-        }
-      } else {
-        // Creación
-        final error = await ref
-            .read(userDnsProvider.notifier)
-            .addRecord(subdomain: sub, targetIp: ip, comment: comm);
-
-        if (error != null) {
-          widget.onMessage(error, success: false);
-        } else {
-          widget.onMessage(
-            'Subdominio $sub.coderhivex.com aprovisionado correctamente en Cloudflare.',
-            success: true,
-          );
-        }
-      }
-    }
-  }
-
-  /// Pide confirmación y elimina un registro DNS
-  Future<void> _confirmAndDelete(DnsRecord record) async {
-    final confirmed = await showConfirmDialog(
-      context: context,
-      title: 'Eliminar Registro DNS',
-      message:
-          '¿Estás seguro de que deseas eliminar el subdominio ${record.fqdn}?',
-      confirmLabel: 'Sí, eliminar',
-      icon: Icons.delete_forever_rounded,
-    );
-
-    if (confirmed) {
-      final error = await ref
-          .read(userDnsProvider.notifier)
-          .deleteRecord(record.id);
-      if (error != null) {
-        widget.onMessage(error, success: false);
-      } else {
-        widget.onMessage(
-          'Registro DNS ${record.fqdn} revocado correctamente.',
-          success: true,
-        );
-      }
-    }
-  }
+  String _searchQuery = ''; // Cadena de búsqueda en tiempo real
 
   @override
   Widget build(BuildContext context) {
-    final allRecords = ref.watch(userDnsProvider);
+    final allRecords = ref.watch(userDnsProvider); // Registros DNS desde Riverpod
 
-    // Filtra la lista según el término ingresado en el buscador
+    // Filtrado de registros en memoria por FQDN, IP o nota
     final filteredRecords = allRecords.where((rec) {
       final query = _searchQuery.toLowerCase().trim();
       if (query.isEmpty) return true;
@@ -118,37 +46,48 @@ class _DnsSslPageState extends ConsumerState<DnsSslPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Encabezado de la Sección
+          // 1. Encabezado de Sección
           const SectionHeader(
             title: 'Dominio & Certificados SSL',
-            subtitle:
-                'Administra tus subdominios DNS en Cloudflare (coderhivex.com) y su estado SSL',
+            subtitle: 'Administra tus subdominios DNS en Cloudflare (coderhivex.com) y su estado SSL',
           ),
           const SizedBox(height: 20),
 
-          // Tarjetas de Resumen KPI Superiores
+          // 2. Tarjetas KPI de Resumen Superior
           DnsSummaryCards(totalRecords: allRecords.length),
           const SizedBox(height: 24),
 
-          // Barra de Herramientas (Buscador y Botón "+ Nuevo Subdominio")
+          // 3. Barra de Herramientas (Buscador expandido y Botón "+ Nuevo Subdominio")
           DnsToolbar(
-            onSearchChanged: (query) {
-              setState(() => _searchQuery = query);
-            },
-            onCreateNew: () => _openCreateOrEditDialog(),
+            onSearchChanged: (query) => setState(() => _searchQuery = query),
+            onCreateNew: () => DnsCreateOrEditAction.execute(
+              context: context,
+              ref: ref,
+              onMessage: widget.onMessage,
+            ),
           ),
           const SizedBox(height: 16),
 
-          // Tabla con los Registros DNS
+          // 4. Tabla de Registros DNS
           DnsTable(
             records: filteredRecords,
-            onEdit: (record) => _openCreateOrEditDialog(record),
-            onDelete: (record) => _confirmAndDelete(record),
+            onEdit: (record) => DnsCreateOrEditAction.execute(
+              context: context,
+              ref: ref,
+              recordToEdit: record,
+              onMessage: widget.onMessage,
+            ),
+            onDelete: (record) => DnsDeleteAction.execute(
+              context: context,
+              ref: ref,
+              record: record,
+              onMessage: widget.onMessage,
+            ),
             onMessage: widget.onMessage,
           ),
           const SizedBox(height: 24),
 
-          // Tarjeta Informativa al Pie
+          // 5. Tarjeta Informativa al Pie
           const DnsInfoCard(),
         ],
       ),
