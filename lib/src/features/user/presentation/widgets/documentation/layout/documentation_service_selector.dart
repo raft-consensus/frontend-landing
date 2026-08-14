@@ -67,7 +67,7 @@ class DocumentationServiceSelector extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             DocumentationServiceTabButton(
-              label: 'Herramientas de BD',
+              label: 'Herramientas y ayuda',
               icon: Icons.build_circle_outlined,
               isSelected: selectedIndex == 4,
               onTap: () => onSelect(4),

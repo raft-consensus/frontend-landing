@@ -1,15 +1,15 @@
 // ==========================================
-// Que hace: Seccion documental para conectar bases de datos y webhooks en entornos n8n.
-// De donde trae datos: Coleccion de configuraciones de integracion n8n.
-// Donde se conecta: Renderizado como la cuarta opcion de servicio en ToolsAndDocsPage.
+// Que hace: Lienzo de documentacion de Workflows n8n con guias de integracion y hoja de limites reales.
+// De donde trae datos: Orquesta N8nGuidesGrid y ServiceDocumentSheet.
+// Donde se conecta: Cuarta opcion en ToolsAndDocsPage.
 // ==========================================
 
 import 'package:flutter/material.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/section_header.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/documentation/common/doc_expandable_card.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/documentation/common/service_document_sheet.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/documentation/n8n/n8n_guides_grid.dart';
 
-/// Seccion de documentacion para Workflows n8n
+/// Lienzo de documentacion para el Servicio de Automatización (n8n)
 class N8nGuideSection extends StatelessWidget {
   const N8nGuideSection({
     required this.onMessage, // Callback para notificaciones
@@ -23,53 +23,35 @@ class N8nGuideSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Encabezado con descripcion breve
+        // 1. Encabezado limpio
         const SectionHeader(
           title: 'Guía de Automatización y Workflows (n8n)',
           subtitle: 'Aprende a conectar tus bases de datos con cientos de aplicaciones externas y disparadores de eventos',
         ),
         const SizedBox(height: 20),
 
-        // Cuadricula responsiva de tarjetas
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final cols = width >= 850 ? 2 : 1;
-            final cardWidth = (width - (cols - 1) * 16) / cols;
+        // 2. Cuadricula modular de 3 columnas
+        N8nGuidesGrid(onMessage: onMessage),
+        const SizedBox(height: 24),
 
-            return Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: [
-                SizedBox(
-                  width: cardWidth,
-                  child: DocExpandableCard(
-                    title: 'Configurar Credenciales de PostgreSQL en n8n',
-                    description: 'Conecta un nodo nativo de base de datos dentro de tu lienzo visual de n8n.',
-                    snippet: '// Parametros del nodo Postgres en n8n:\nHost: pg01.raftdb.dev\nDatabase: mi_database\nUser: usuario_raft\nPassword: <tu_password>\nPort: 5432\nSSL: Disable / Allow',
-                    icon: Icons.hub_rounded,
-                    badgeText: 'Nodo Database',
-                    badgeColor: const Color(0xFFEC4899),
-                    estimatedTime: '2 min',
-                    onMessage: onMessage,
-                  ),
-                ),
-                SizedBox(
-                  width: cardWidth,
-                  child: DocExpandableCard(
-                    title: 'Disparar Flujos mediante Webhooks HTTP',
-                    description: 'Recibe notificaciones en tiempo real cuando se inserte un registro en tu base de datos.',
-                    snippet: '# Disparo de webhook POST:\ncurl -X POST https://n8n.raftdb.dev/webhook/mi-flujo \\\n  -H "Content-Type: application/json" \\\n  -d \'{\n    "event": "user.created",\n    "user_id": 1024,\n    "email": "dev@riwi.io"\n  }\'',
-                    icon: Icons.webhook_rounded,
-                    badgeText: 'Webhook Trigger',
-                    badgeColor: const Color(0xFF8B5CF6),
-                    estimatedTime: '3 min',
-                    onMessage: onMessage,
-                  ),
-                ),
-              ],
-            );
-          },
+        // 3. Hoja de especificaciones y limites reales en formato documento
+        const ServiceDocumentSheet(
+          description: 'Raft Cloud se integra con la célula de automatización n8n para permitir la creación de flujos de trabajo visuales basados en eventos, webhooks y consultas programadas a tus bases de datos.',
+          offerings: [
+            'Lienzo visual interactivo para orquestar microservicios y bases de datos.',
+            'Nodos oficiales compatibles con PostgreSQL, MySQL, Redis y MongoDB.',
+            'Webhooks públicos listos para recibir eventos de tus aplicaciones.',
+            'Plantillas prediseñadas para alertas, sincronizaciones y respaldos.',
+          ],
+          limits: [
+            'Hasta 10 workflows activos por cuenta de usuario.',
+            'Servicio gestionado externamente por la célula de automatización.',
+          ],
+          recommendations: [
+            'Utiliza el nodo de base de datos correspondiente con las credenciales FQDN de tu instancia en Raft Cloud.',
+            'Configura autenticación por cabecera o secreto en tus Webhooks para proteger los flujos públicos.',
+            'Si requieres ampliar tu límite de ejecuciones mensuales, solicita soporte a través del canal oficial.',
+          ],
         ),
       ],
     );

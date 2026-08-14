@@ -1,14 +1,13 @@
 // ==========================================
-// Qué hace: Vista principal limpia de Dominio & SSL que solo ensambla los módulos segmentados.
-// Dónde se conecta: Se renderiza en el índice 3 del IndexedStack en DashboardPage.
-// De dónde trae datos: Escucha userDnsProvider vía Riverpod.
+// Que hace: Vista principal limpia de Dominio & SSL sin encabezados redundantes.
+// De donde trae datos: Escucha userDnsProvider via Riverpod.
+// Donde se conecta: Renderizado en el indice 3 del IndexedStack en DashboardPage.
 // ==========================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/features/user/presentation/providers/user_dns_provider.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_scroll_view.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/common/section_header.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dns/actions/dns_create_or_edit_action.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dns/actions/dns_delete_action.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dns/info/dns_info_card.dart';
@@ -16,7 +15,7 @@ import 'package:frontend_landing/src/features/user/presentation/widgets/dns/reco
 import 'package:frontend_landing/src/features/user/presentation/widgets/dns/summary/dns_summary_cards.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/dns/toolbar/dns_toolbar.dart';
 
-/// Vista modular de administración de Dominio & SSL (DNS)
+/// Vista modular de administracion de Dominio & SSL (DNS)
 class DnsSslPage extends ConsumerStatefulWidget {
   const DnsSslPage({required this.onMessage, super.key});
 
@@ -27,7 +26,7 @@ class DnsSslPage extends ConsumerStatefulWidget {
 }
 
 class _DnsSslPageState extends ConsumerState<DnsSslPage> {
-  String _searchQuery = ''; // Cadena de búsqueda en tiempo real
+  String _searchQuery = ''; // Cadena de busqueda en tiempo real
 
   @override
   Widget build(BuildContext context) {
@@ -46,18 +45,11 @@ class _DnsSslPageState extends ConsumerState<DnsSslPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Encabezado de Sección
-          const SectionHeader(
-            title: 'Dominio & Certificados SSL',
-            subtitle: 'Administra tus subdominios DNS en Cloudflare (coderhivex.com) y su estado SSL',
-          ),
-          const SizedBox(height: 20),
-
-          // 2. Tarjetas KPI de Resumen Superior
+          // 1. Tarjetas KPI de Resumen Superior directo
           DnsSummaryCards(totalRecords: allRecords.length),
           const SizedBox(height: 24),
 
-          // 3. Barra de Herramientas (Buscador expandido y Botón "+ Nuevo Subdominio")
+          // 2. Barra de Herramientas (Buscador y Boton Crear)
           DnsToolbar(
             onSearchChanged: (query) => setState(() => _searchQuery = query),
             onCreateNew: () => DnsCreateOrEditAction.execute(
@@ -68,7 +60,7 @@ class _DnsSslPageState extends ConsumerState<DnsSslPage> {
           ),
           const SizedBox(height: 16),
 
-          // 4. Tabla de Registros DNS
+          // 3. Tabla de Registros DNS
           DnsTable(
             records: filteredRecords,
             onEdit: (record) => DnsCreateOrEditAction.execute(
@@ -87,7 +79,7 @@ class _DnsSslPageState extends ConsumerState<DnsSslPage> {
           ),
           const SizedBox(height: 24),
 
-          // 5. Tarjeta Informativa al Pie
+          // 4. Tarjeta Informativa al Pie
           const DnsInfoCard(),
         ],
       ),

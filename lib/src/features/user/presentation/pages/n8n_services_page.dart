@@ -1,8 +1,13 @@
+// ==========================================
+// Que hace: Vista principal del servicio de n8n Workflows sin encabezados redundantes.
+// De donde trae datos: Escucha userN8nProvider usando Riverpod.
+// Donde se conecta: Renderizado en el indice 4 del IndexedStack en DashboardPage.
+// ==========================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend_landing/src/features/user/presentation/providers/user_n8n_provider.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_scroll_view.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/common/section_header.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/banner/n8n_access_banner.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/info/n8n_info_card.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/summary/n8n_summary_cards.dart';
@@ -10,9 +15,7 @@ import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/temp
 import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/workflows/n8n_toolbar.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/n8n/workflows/n8n_workflows_list.dart';
 
-/// ¿Qué hace?: Vista principal del servicio de n8n Workflows que ensambla las tarjetas KPI, el banner de activación y la telemetría de flujos.
-/// ¿De dónde trae datos?: Escucha userN8nProvider usando Riverpod y consulta a SQL Server al iniciarse.
-/// ¿Hacia dónde va / Cómo se conecta?: Se incluye en el IndexedStack de DashboardPage (opción de menú n8n).
+/// Vista principal del servicio de n8n Workflows
 class N8nServicesPage extends ConsumerStatefulWidget {
   final void Function(String message, {bool success}) onMessage; // Callback para notificaciones en SnackBar
 
@@ -26,24 +29,21 @@ class N8nServicesPage extends ConsumerStatefulWidget {
 }
 
 class _N8nServicesPageState extends ConsumerState<N8nServicesPage> {
-  String _searchQuery = ''; // Búsqueda de flujos en tiempo real
+  String _searchQuery = ''; // Busqueda de flujos en tiempo real
 
   @override
   void initState() {
     super.initState();
-    // Consulta a la base de datos SQL Server cada vez que el usuario ingresa a esta vista
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(userN8nProvider.notifier).loadN8nData();
     });
   }
 
-  /// Cambia el estado (pausa/activo) de un flujo de n8n
   void _handleToggleWorkflow(String workflowId) {
     ref.read(userN8nProvider.notifier).toggleWorkflowStatus(workflowId);
     widget.onMessage('Estado del flujo actualizado correctamente', success: true);
   }
 
-  /// Acción ejecutada al presionar "Activar cuenta n8n"
   Future<void> _handleProvisionAccount() async {
     final success = await ref.read(userN8nProvider.notifier).provisionAccount();
     if (success) {
@@ -71,14 +71,7 @@ class _N8nServicesPageState extends ConsumerState<N8nServicesPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Encabezado de Sección
-          const SectionHeader(
-            title: 'Automatización & Workflows (n8n)',
-            subtitle: 'Gestiona la integración con la célula de automatización n8n y tus flujos activos',
-          ),
-          const SizedBox(height: 20),
-
-          // 2. Tarjetas KPI Adaptativas (Estado de Activación y Cuotas)
+          // 1. Tarjetas KPI Adaptativas directas
           N8nSummaryCards(
             isActivated: n8nData.isActivated,
             serviceStatus: n8nData.serviceStatus,
@@ -89,7 +82,7 @@ class _N8nServicesPageState extends ConsumerState<N8nServicesPage> {
           ),
           const SizedBox(height: 24),
 
-          // 3. Banner Principal de Acceso y Activación
+          // 2. Banner Principal de Acceso y Activacion
           N8nAccessBanner(
             isActivated: n8nData.isActivated,
             studioUrl: n8nData.studioUrl,
@@ -100,14 +93,14 @@ class _N8nServicesPageState extends ConsumerState<N8nServicesPage> {
           ),
           const SizedBox(height: 24),
 
-          // 4. Barra de búsqueda y herramientas
+          // 3. Barra de busqueda y herramientas
           N8nToolbar(
             totalWorkflows: filteredWorkflows.length,
             onSearchChanged: (text) => setState(() => _searchQuery = text),
           ),
           const SizedBox(height: 12),
 
-          // 5. Lista de Flujos (Telemetría de Solo Lectura)
+          // 4. Lista de Flujos
           N8nWorkflowsList(
             workflows: filteredWorkflows,
             onToggleStatus: _handleToggleWorkflow,
@@ -117,13 +110,13 @@ class _N8nServicesPageState extends ConsumerState<N8nServicesPage> {
           ),
           const SizedBox(height: 24),
 
-          // 6. Sección de Plantillas Recomendadas
+          // 5. Seccion de Plantillas Recomendadas
           N8nTemplatesSection(
             onMessage: widget.onMessage,
           ),
           const SizedBox(height: 24),
 
-          // 7. Tarjeta Informativa al Pie
+          // 6. Tarjeta Informativa al Pie
           const N8nInfoCard(),
         ],
       ),

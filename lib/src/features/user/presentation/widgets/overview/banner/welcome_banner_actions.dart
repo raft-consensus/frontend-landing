@@ -87,7 +87,7 @@ class WelcomeBannerActions extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onGoDocumentation,
               icon: const Icon(Icons.article_outlined, size: 18),
-              label: const Text('Ver guías de conexión'),
+              label: const Text('Ver guías y documentación'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),

@@ -1,87 +1,78 @@
 // ==========================================
-// Archivo: lib/src/features/user/presentation/widgets/dialogs/notifications_dialog.dart
-// Qué hace: Modal que despliega la lista de notificaciones y alertas en tiempo real del usuario.
-// Dónde se conecta: Consume userNotificationsProvider en Riverpod. Se abre desde la campana de DashboardTopbar.
-// De dónde recibe datos: Escucha el estado global de notificaciones del usuario.
+// Que hace: Ensamblador limpio del modal de notificaciones que une header, lista/empty state y footer.
+// De donde trae datos: Escucha userNotificationsProvider de Riverpod.
+// Donde se conecta: Se abre desde la campana de DashboardTopbar.
 // ==========================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend_landing/src/core/theme/app_colors.dart'; // Core
-import 'package:frontend_landing/src/features/user/presentation/providers/user_notifications_provider.dart'; // Providers
-import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/notifications/notification_item.dart'; // Dialogs
+import 'package:frontend_landing/src/core/theme/app_colors.dart';
+import 'package:frontend_landing/src/features/user/presentation/providers/user_notifications_provider.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/notifications/notifications_empty_state.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/notifications/notifications_footer.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/notifications/notifications_header.dart';
+import 'package:frontend_landing/src/features/user/presentation/widgets/dialogs/notifications/notifications_list.dart';
 
-/// Modal interactivo que muestra las notificaciones reales generadas por la plataforma
+/// Modal modular interactivo de notificaciones
 class NotificationsDialog extends ConsumerWidget {
   const NotificationsDialog({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifications = ref.watch(userNotificationsProvider);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final titleColor = isDark ? AppColors.nightTextPrimary : AppColors.dayTextPrimary;
+    final dialogBg = isDark ? AppColors.nightSurface : AppColors.daySurface;
+    final borderColor = isDark ? AppColors.nightBorder : AppColors.dayBorder;
+    final unreadCount = notifications.where((n) => !n.isRead).length;
 
-    return AlertDialog(
-      backgroundColor: theme.cardColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Row(
-        children: [
-          Icon(Icons.notifications_none_rounded, color: theme.colorScheme.primary),
-          const SizedBox(width: 9),
-          Text(
-            'Notificaciones',
-            style: TextStyle(color: titleColor, fontWeight: FontWeight.bold),
-          ),
-          const Spacer(),
-          if (notifications.any((n) => !n.isRead))
-            TextButton(
-              onPressed: () {
+    return Dialog(
+      backgroundColor: dialogBg,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: borderColor),
+      ),
+      child: Container(
+        width: 440,
+        constraints: const BoxConstraints(maxHeight: 520),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Encabezado modular
+            NotificationsHeader(
+              unreadCount: unreadCount,
+              onClose: () => Navigator.pop(context),
+            ),
+            const SizedBox(height: 12),
+            Divider(color: borderColor, height: 1),
+            const SizedBox(height: 14),
+
+            // 2. Cuerpo: Lista scrolleable o Estado Vacio
+            Expanded(
+              child: notifications.isEmpty
+                  ? const NotificationsEmptyState()
+                  : NotificationsList(notifications: notifications),
+            ),
+            const SizedBox(height: 10),
+            Divider(color: borderColor, height: 1),
+            const SizedBox(height: 10),
+
+            // 3. Pie de acciones modular
+            NotificationsFooter(
+              unreadCount: unreadCount,
+              onMarkAllAsRead: () {
                 ref.read(userNotificationsProvider.notifier).markAllAsRead();
               },
-              child: const Text('Marcar leídas', style: TextStyle(fontSize: 12)),
+              onDismiss: () {
+                ref.read(userNotificationsProvider.notifier).markAllAsRead();
+                Navigator.pop(context);
+              },
             ),
-        ],
-      ),
-      content: SizedBox(
-        width: 420,
-        child: notifications.isEmpty
-            ? const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(
-                  child: Text(
-                    'No tienes notificaciones pendientes',
-                    style: TextStyle(color: AppColors.muted),
-                  ),
-                ),
-              )
-            : SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (int i = 0; i < notifications.length; i++) ...[
-                      NotificationItem(
-                        color: notifications[i].color,
-                        title: notifications[i].title,
-                        description: notifications[i].description,
-                        time: notifications[i].time,
-                      ),
-                      if (i < notifications.length - 1) const Divider(),
-                    ],
-                  ],
-                ),
-              ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            ref.read(userNotificationsProvider.notifier).markAllAsRead();
-            Navigator.pop(context);
-          },
-          child: const Text('Cerrar'),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

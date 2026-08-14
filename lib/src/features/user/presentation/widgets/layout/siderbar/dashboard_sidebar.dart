@@ -1,7 +1,7 @@
 // ==========================================
-// Qué hace: Ensamblador principal limpio del panel lateral (Logo, Navegación, Plan y Perfil).
-// Dónde se conecta: Renderizado en el lado izquierdo de DashboardPage y dentro del Drawer móvil.
-// De dónde trae datos: Recibe selectedIndex y el callback onSelect.
+// Que hace: Ensamblador principal del panel lateral compacto (228px) con isotipo destacado, navegacion y telemetria.
+// De donde trae datos: Recibe selectedIndex y el callback onSelect.
+// Donde se conecta: Renderizado en el lado izquierdo de DashboardPage y dentro del Drawer movil.
 // ==========================================
 
 import 'package:flutter/material.dart';
@@ -11,11 +11,11 @@ import 'package:frontend_landing/src/features/user/presentation/widgets/layout/s
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/siderbar/sidebar_student_plan_card.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/layout/siderbar/sidebar_user_profile.dart';
 
-/// Panel lateral de navegación principal del Dashboard
+/// Panel lateral de navegacion principal del Dashboard
 class DashboardSidebar extends StatelessWidget {
   const DashboardSidebar({
-    required this.selectedIndex, // Índice de la página activa
-    required this.onSelect, // Callback al presionar una opción de menú
+    required this.selectedIndex, // Indice de la pagina activa
+    required this.onSelect, // Callback al presionar una opcion de menu
     super.key,
   });
 
@@ -30,7 +30,7 @@ class DashboardSidebar extends StatelessWidget {
     final borderColor = isDark ? AppColors.nightBorder : AppColors.dayBorder;
 
     return Container(
-      width: 260, // Ancho estándar de 260px
+      width: 228, // Ancho compacto y estilizado
       decoration: BoxDecoration(
         color: surfaceBg,
         border: Border(
@@ -39,15 +39,14 @@ class DashboardSidebar extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // 1. Logotipo superior
+          // 1. Isotipo superior con protagonismo y espaciado holgado
           const Padding(
-            padding: EdgeInsets.all(20),
-            child: RaftLogo(),
+            padding: EdgeInsets.only(top: 28, bottom: 22),
+            child: RaftLogo(iconOnly: true),
           ),
-          const Divider(height: 1),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
 
-          // 2. Lista de Navegación
+          // 2. Lista de Navegacion
           Expanded(
             child: SidebarNavigationList(
               selectedIndex: selectedIndex,
@@ -55,14 +54,14 @@ class DashboardSidebar extends StatelessWidget {
             ),
           ),
 
-          // 3. Tarjeta de Uso / Plan Estudiante
+          // 3. Tarjeta de Resumen del Plan Desarrollador
           const SidebarStudentPlanCard(),
 
-          const Divider(height: 1),
+          Divider(color: borderColor, height: 1),
 
           // 4. Perfil de Usuario y Logout
           const Padding(
-            padding: EdgeInsets.all(14),
+            padding: EdgeInsets.all(12),
             child: SidebarUserProfile(),
           ),
         ],

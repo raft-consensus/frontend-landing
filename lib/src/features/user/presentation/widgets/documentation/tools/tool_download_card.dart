@@ -1,7 +1,7 @@
 // ==========================================
 // Que hace: Tarjeta interactiva con enlace oficial de descarga y parametros recomendados de conexion desplegables.
-// De donde trae datos: Recibe datos de la herramienta, URL oficial y snippet de conexion.
-// Donde se conecta: Consumido dentro de ToolsGuideSection.
+// De donde trae datos: Recibe datos del software, URL oficial y snippet de configuracion.
+// Donde se conecta: Consumido dentro de ToolsGrid.
 // ==========================================
 
 import 'package:flutter/material.dart';
@@ -9,13 +9,13 @@ import 'package:frontend_landing/src/core/theme/app_colors.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Tarjeta de herramienta de gestion de bases de datos con boton de descarga oficial
+/// Tarjeta de herramienta de desarrollo con soporte de tema dinamico
 class ToolDownloadCard extends StatefulWidget {
   const ToolDownloadCard({
-    required this.title, // Nombre del gestor (ej. DBeaver, pgAdmin)
-    required this.category, // Categoria (Multi-motor, PostgreSQL, NoSQL, etc.)
-    required this.description, // Descripcion del gestor
-    required this.icon, // Icono caracteristico
+    required this.title, // Nombre del software (ej. DBeaver, Postman)
+    required this.category, // Categoria (Multi-motor, APIs, Terminal, etc.)
+    required this.description, // Descripcion del software
+    required this.icon, // Icono representativo
     required this.officialUrl, // Enlace oficial de descarga
     required this.configSnippet, // Parametros de configuracion recomendados
     required this.onMessage, // Callback para notificaciones
@@ -53,6 +53,10 @@ class _ToolDownloadCardState extends State<ToolDownloadCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.nightPrimary : AppColors.dayPrimary;
+
     return DashboardCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,25 +67,27 @@ class _ToolDownloadCardState extends State<ToolDownloadCard> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.blue.withValues(alpha: 0.10),
+                  color: primaryColor.withValues(alpha: isDark ? 0.20 : 0.10),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.blue.withValues(alpha: 0.20)),
+                  border: Border.all(color: primaryColor.withValues(alpha: 0.25)),
                 ),
-                child: Icon(widget.icon, color: AppColors.blue, size: 22),
+                child: Icon(widget.icon, color: primaryColor, size: 22),
               ),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0F7FF),
+                  color: isDark ? const Color(0xFF132B45) : const Color(0xFFEBF5FF),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFD4E8FC)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF20456C) : const Color(0xFFC7E2FE),
+                  ),
                 ),
                 child: Text(
                   widget.category,
-                  style: const TextStyle(
-                    color: AppColors.blue,
-                    fontSize: 10,
+                  style: TextStyle(
+                    color: primaryColor,
+                    fontSize: 11,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -90,13 +96,13 @@ class _ToolDownloadCardState extends State<ToolDownloadCard> {
           ),
           const SizedBox(height: 14),
 
-          // 2. Titulo
+          // 2. Titulo con contraste adaptativo
           Text(
             widget.title,
-            style: const TextStyle(
-              color: AppColors.text,
+            style: TextStyle(
+              color: theme.colorScheme.onSurface,
               fontSize: 15,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 6),
@@ -104,10 +110,10 @@ class _ToolDownloadCardState extends State<ToolDownloadCard> {
           // 3. Descripcion
           Text(
             widget.description,
-            style: const TextStyle(
-              color: AppColors.muted,
-              fontSize: 12,
-              height: 1.4,
+            style: TextStyle(
+              color: theme.textTheme.bodyMedium?.color,
+              fontSize: 12.5,
+              height: 1.45,
             ),
           ),
           const SizedBox(height: 14),
@@ -118,16 +124,19 @@ class _ToolDownloadCardState extends State<ToolDownloadCard> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF03132F),
+                color: isDark ? const Color(0xFF071220) : const Color(0xFF0F172A),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFF334155),
+                ),
               ),
               child: SelectableText(
                 widget.configSnippet,
                 style: const TextStyle(
-                  color: Color(0xFFE0EDFB),
-                  fontSize: 11,
+                  color: Color(0xFFE2E8F0),
+                  fontSize: 11.5,
                   fontFamily: 'monospace',
-                  height: 1.4,
+                  height: 1.45,
                 ),
               ),
             ),
@@ -141,15 +150,15 @@ class _ToolDownloadCardState extends State<ToolDownloadCard> {
               children: [
                 Icon(
                   _expanded ? Icons.keyboard_arrow_up_rounded : Icons.tune_rounded,
-                  size: 14,
-                  color: AppColors.blue,
+                  size: 15,
+                  color: primaryColor,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 5),
                 Text(
                   _expanded ? 'Ocultar parámetros' : 'Ver parámetros recomendados',
-                  style: const TextStyle(
-                    color: AppColors.blue,
-                    fontSize: 11,
+                  style: TextStyle(
+                    color: primaryColor,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -166,8 +175,8 @@ class _ToolDownloadCardState extends State<ToolDownloadCard> {
               icon: const Icon(Icons.download_rounded, size: 16),
               label: const Text('Descargar / Sitio Oficial'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.navy,
-                side: const BorderSide(color: AppColors.border),
+                foregroundColor: theme.colorScheme.onSurface,
+                side: BorderSide(color: theme.dividerColor),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),

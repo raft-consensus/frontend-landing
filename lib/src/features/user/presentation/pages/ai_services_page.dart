@@ -1,7 +1,7 @@
 // ==========================================
-// Qué hace: Vista principal del Servicio de IA filtrando exclusivamente claves activas.
-// Dónde se conecta: Se incluye en el IndexedStack de DashboardPage (índice 3).
-// De dónde trae datos: Escucha userAiProvider usando Riverpod y delega acciones a clases de acción.
+// Que hace: Vista principal del Servicio de IA sin encabezados redundantes.
+// De donde trae datos: Escucha userAiProvider usando Riverpod.
+// Donde se conecta: Renderizado en el indice 2 del IndexedStack en DashboardPage.
 // ==========================================
 
 import 'package:flutter/material.dart';
@@ -15,9 +15,8 @@ import 'package:frontend_landing/src/features/user/presentation/widgets/ai/keys/
 import 'package:frontend_landing/src/features/user/presentation/widgets/ai/summary/ai_summary_cards.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/ai/toolbar/ai_toolbar.dart';
 import 'package:frontend_landing/src/features/user/presentation/widgets/common/dashboard_scroll_view.dart';
-import 'package:frontend_landing/src/features/user/presentation/widgets/common/section_header.dart';
 
-/// Vista principal de administración del Servicio de IA
+/// Vista principal de administracion del Servicio de IA
 class AiServicesPage extends ConsumerStatefulWidget {
   const AiServicesPage({required this.onMessage, super.key});
 
@@ -28,19 +27,19 @@ class AiServicesPage extends ConsumerStatefulWidget {
 }
 
 class _AiServicesPageState extends ConsumerState<AiServicesPage> {
-  String _searchQuery = ''; // Cadena de búsqueda para filtrar la tabla de claves
+  String _searchQuery = ''; // Cadena de busqueda para filtrar la tabla de claves
 
   @override
   Widget build(BuildContext context) {
     final allKeys = ref.watch(userAiProvider); // Obtiene el estado actual de claves
     
-    // Filtra exclusivamente las claves activas (omite revocadas)
+    // Filtra exclusivamente las claves activas
     final activeKeys = allKeys.where((k) => k.isActive).toList();
     final activeKeysCount = activeKeys.length;
     final totalRequests = activeKeys.fold<int>(0, (sum, k) => sum + k.totalRequests);
     final totalTokens = activeKeys.fold<int>(0, (sum, k) => sum + k.totalTokens);
 
-    // Filtra las API Keys activas según el texto del buscador
+    // Filtra las API Keys activas segun el buscador
     final filteredKeys = activeKeys.where((k) {
       if (_searchQuery.trim().isEmpty) return true;
       final q = _searchQuery.toLowerCase().trim();
@@ -51,14 +50,7 @@ class _AiServicesPageState extends ConsumerState<AiServicesPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Encabezado de la página
-          const SectionHeader(
-            title: 'Servicios de Inteligencia Artificial',
-            subtitle: 'Administra tus API Keys para consumir los servicios de IA de Raft',
-          ),
-          const SizedBox(height: 20),
-
-          // 2. Tarjetas KPI superiores
+          // 1. Tarjetas KPI superiores directas
           AiSummaryCards(
             activeKeysCount: activeKeysCount,
             totalRequests: totalRequests,
@@ -66,7 +58,7 @@ class _AiServicesPageState extends ConsumerState<AiServicesPage> {
           ),
           const SizedBox(height: 24),
 
-          // 3. Barra de herramientas con buscador acotado y botón generar
+          // 2. Barra de herramientas con buscador y boton generar
           AiToolbar(
             onSearchChanged: (q) => setState(() => _searchQuery = q),
             onCreateNew: () => AiKeyCreateAction.execute(
@@ -77,7 +69,7 @@ class _AiServicesPageState extends ConsumerState<AiServicesPage> {
           ),
           const SizedBox(height: 16),
 
-          // 4. Tabla de API Keys con acciones desacopladas
+          // 3. Tabla de API Keys
           AiKeysTable(
             keys: filteredKeys,
             onRotate: (key) => AiKeyRotateAction.execute(
@@ -96,7 +88,7 @@ class _AiServicesPageState extends ConsumerState<AiServicesPage> {
           ),
           const SizedBox(height: 24),
 
-          // 5. Tarjeta informativa al pie
+          // 4. Tarjeta informativa al pie
           const AiInfoCard(),
         ],
       ),
