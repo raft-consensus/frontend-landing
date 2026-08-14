@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_landing/src/core/theme/app_colors.dart';
+import 'package:frontend_landing/src/core/utils/device_detector.dart'; // Import para detección de teléfono móvil
 import 'package:frontend_landing/src/features/landing/presentation/widgets/benefits/benefits_section.dart';
+import 'package:frontend_landing/src/features/landing/presentation/widgets/common/mobile_playstore_banner.dart'; // Import del Banner de Play Store
 import 'package:frontend_landing/src/features/landing/presentation/widgets/databases/database_section.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/faq/faq_section.dart';
 import 'package:frontend_landing/src/features/landing/presentation/widgets/final_cta/final_cta_section.dart';
@@ -52,6 +54,8 @@ class LandingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark =
         Theme.of(context).brightness == Brightness.dark; // Tema activo
+    final isMobileDevice =
+        DeviceDetector.isMobile(); // Detección de dispositivo móvil
 
     return Scaffold(
       // Botón flotante para subir
@@ -75,6 +79,9 @@ class LandingPage extends StatelessWidget {
       body: SelectionArea(
         child: Column(
           children: [
+            // Banner superior de Play Store si se detecta un teléfono o pantalla móvil
+            if (isMobileDevice) const MobilePlayStoreBanner(),
+
             // Navbar superior fijo
             NavigationBarSection(
               onLogoTap:
