@@ -36,7 +36,7 @@ class N8nTemplatesSection extends StatelessWidget {
     final templates = [
       {
         'title': 'Notificación de Backup en Slack/Discord',
-        'desc': 'Envía una alerta automática a tu canal cuando se complete una copia de seguridad en Raft DB.',
+        'desc': 'Envía una alerta automática a tu canal cuando se complete una copia de seguridad en Raft Cloud.',
         'icon': Icons.notifications_active_rounded,
         'color': AppColors.purple,
       },

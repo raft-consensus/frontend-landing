@@ -21,7 +21,7 @@ class N8nTemplateModal extends StatelessWidget {
   String _getTemplateJson() {
     if (templateTitle.contains('Backup')) {
       return '''{
-  "name": "Alerta de Backup Raft DB",
+  "name": "Alerta de Backup Raft Cloud",
   "nodes": [
     {
       "parameters": {
@@ -29,7 +29,7 @@ class N8nTemplateModal extends StatelessWidget {
         "path": "raft-backup-webhook",
         "options": {}
       },
-      "name": "Webhook Raft DB",
+      "name": "Webhook Raft Cloud",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [250, 300]
@@ -65,7 +65,7 @@ class N8nTemplateModal extends StatelessWidget {
         "path": "sheets-sync",
         "options": {}
       },
-      "name": "Webhook Tabla Raft DB",
+      "name": "Webhook Tabla Raft Cloud",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [250, 300]

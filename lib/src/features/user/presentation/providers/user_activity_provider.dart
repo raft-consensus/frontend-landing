@@ -157,7 +157,7 @@ class UserActivityNotifier extends StateNotifier<List<UserActivityItem>> {
     state = [
       UserActivityItem(
         id: '1',
-        title: 'Bienvenido a Raft DB',
+        title: 'Bienvenido a Raft Cloud',
         desc: 'Tu entorno de bases de datos distribuidas está activo y listo',
         time: 'Hace un momento',
         type: ActivityType.generic,

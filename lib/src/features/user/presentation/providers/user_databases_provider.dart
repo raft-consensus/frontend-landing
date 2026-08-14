@@ -103,12 +103,22 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
     }
   }
 
-  /// Alterna el estado activo/detenido invocando el backend C# (/pause o /resume)
+    /// Alterna el estado activo/detenido invocando el backend C# (/pause o /resume)
   Future<({bool success, String? error})> toggleInstanceState(String id, bool currentlyRunning) async {
     final token = _token;
     if (token == null || token.isEmpty) {
       return (success: false, error: 'Sesión expirada. Inicia sesión de nuevo.');
     }
+
+    // Cláusula de guarda: Si el motor es MySQL, no se realiza ninguna petición HTTP
+    final currentDb = state.where((db) => db.id == id).firstOrNull;
+    if (currentDb != null && currentDb.engine.trim().toLowerCase() == 'mysql') {
+      return (
+        success: false,
+        error: 'La opción de pausar/iniciar no está disponible para instancias MySQL.',
+      );
+    }
+
     final instanceIdInt = int.tryParse(id) ?? 0;
     try {
       if (currentlyRunning) {
@@ -158,7 +168,7 @@ class UserDatabasesNotifier extends StateNotifier<List<DatabaseInstance>> {
       return (success: false, error: errorMessage);
     }
   }
-} // 👈 La clase UserDatabasesNotifier cierra AQUÍ
+} //  La clase UserDatabasesNotifier cierra AQUÍ
 
 /// Proveedor global de Riverpod para consultar y refrescar las BDs del usuario
 final userDatabasesProvider =

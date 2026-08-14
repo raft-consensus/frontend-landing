@@ -70,7 +70,7 @@ class RegisterCard extends StatelessWidget {
             ),
             const SizedBox(height: 7),
             const Text(
-              'Comienza a utilizar Raft DB gratuitamente.',
+              'Comienza a utilizar Raft Cloud gratuitamente.',
               style: TextStyle(color: Color(0xFF687A91), fontSize: 14),
             ),
             const SizedBox(height: 25),

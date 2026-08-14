@@ -56,7 +56,7 @@ class MobileBrand extends StatelessWidget {
         RaftLogo(light: true),
         SizedBox(height: 15),
         Text(
-          'Accede a tu panel de Raft DB',
+          'Accede a tu panel de Raft Cloud',
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Color(0xFFB4C5DA),

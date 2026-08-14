@@ -49,7 +49,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           .read(userActivityProvider.notifier)
           .addActivity(
             title: 'Inicio de Sesión',
-            desc: 'Acceso exitoso al panel de control de Raft DB',
+            desc: 'Acceso exitoso al panel de control de Raft Cloud',
             type: ActivityType.login,
           );
     } else {
@@ -101,7 +101,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           .read(userActivityProvider.notifier)
           .addActivity(
             title: 'Cuenta Creada',
-            desc: 'Registro exitoso en el clúster Raft DB',
+            desc: 'Registro exitoso en el clúster Raft Cloud',
             type: ActivityType.login,
           );
       return true;
